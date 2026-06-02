@@ -1,0 +1,54 @@
+/* Global design tokens — import this once in main.tsx */
+:root {
+  /* Backgrounds */
+  --bg-base: #0d0d1a;
+  --bg-surface: #13131f;
+  --bg-raised: #1e1e2e;
+  --bg-overlay: #2a2a3e;
+
+  /* Borders */
+  --border-subtle: #2a2a3e;
+  --border-default: #374151;
+  --border-error: #ef4444;
+
+  /* Text */
+  --text-primary: #e5e7eb;
+  --text-secondary: #9ca3af;
+  --text-muted: #6b7280;
+  --text-faint: #4b5563;
+
+  /* Accent */
+  --accent: #6366f1;
+  --accent-glow: #6366f180;
+  --accent-hover: #4f46e5;
+
+  /* Status */
+  --status-connected: #22c55e;
+  --status-disconnected: #6b7280;
+  --status-error: #ef4444;
+
+  /* Spacing */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-pill: 999px;
+
+  /* Typography */
+  --font-sans: system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+}
