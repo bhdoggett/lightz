@@ -1,0 +1,29 @@
+.fader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 60px;
+}
+
+.value {
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.slider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  height: 120px;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+.name {
+  color: var(--text-primary);
+  font-size: 12px;
+  text-align: center;
+  max-width: 70px;
+  word-break: break-word;
+}

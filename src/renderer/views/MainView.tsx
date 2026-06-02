@@ -5,6 +5,7 @@ import { FixtureToggle } from '../components/FixtureToggle'
 import { useIpc } from '../hooks/useIpc'
 import { useDmxState } from '../hooks/useDmxState'
 import type { Fixture, Scene } from '../../shared/types'
+import styles from './MainView.module.css'
 
 interface Props {
   fixtures: Fixture[]
@@ -42,14 +43,14 @@ export function MainView({ fixtures, scenes, onScenesChange }: Props) {
   const sorted = [...fixtures].sort((a, b) => a.channel - b.channel)
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className={styles.view}>
       <ScenesStrip
         scenes={scenes}
         activeSceneId={activeSceneId}
         onActivate={handleActivate}
         onSave={handleSave}
       />
-      <div style={{ flex: 1, padding: 24, display: 'flex', flexWrap: 'wrap', gap: 24, alignContent: 'flex-start', overflowY: 'auto' }}>
+      <div className={styles.fixtures}>
         {sorted.map((fixture) =>
           fixture.type === 'dimmer' ? (
             <FixtureFader
@@ -68,7 +69,7 @@ export function MainView({ fixtures, scenes, onScenesChange }: Props) {
           )
         )}
         {fixtures.length === 0 && (
-          <p style={{ color: '#6b7280' }}>No fixtures configured. Go to Setup to add fixtures.</p>
+          <p className={styles.empty}>No fixtures configured. Go to Setup to add fixtures.</p>
         )}
       </div>
     </div>

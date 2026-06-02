@@ -1,0 +1,55 @@
+.list {
+  flex: 1;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: background 0.1s;
+}
+
+.row:hover {
+  background: var(--bg-overlay);
+}
+
+.row.selected {
+  background: var(--bg-overlay);
+  border-left-color: var(--accent);
+}
+
+.num {
+  color: var(--text-muted);
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.bar {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-raised);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.barFill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+}
+
+.label {
+  min-width: 120px;
+  color: var(--text-primary);
+}
+
+.label.unlabeled {
+  color: var(--text-faint);
+  font-style: italic;
+}

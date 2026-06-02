@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import type { Fixture } from '../../shared/types'
+import styles from './ChannelList.module.css'
 
 interface Props {
   fixtures: Fixture[]
@@ -16,27 +17,22 @@ export function ChannelList({ fixtures, channelValues, selectedChannel, onSelect
   }, [fixtures])
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', fontFamily: 'monospace', fontSize: 12 }}>
+    <div className={styles.list}>
       {Array.from({ length: 512 }, (_, i) => i + 1).map((ch) => {
         const fixture = fixtureByChannel[ch]
-        const valueKey = `0-${ch}`
-        const value = channelValues[valueKey] ?? 0
+        const value = channelValues[`0-${ch}`] ?? 0
         const isSelected = selectedChannel === ch
         return (
           <div
             key={ch}
             onClick={() => onSelect(ch)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 10, padding: '4px 12px',
-              cursor: 'pointer', background: isSelected ? '#2a2a3e' : 'transparent',
-              borderLeft: isSelected ? '2px solid #6366f1' : '2px solid transparent',
-            }}
+            className={`${styles.row}${isSelected ? ` ${styles.selected}` : ''}`}
           >
-            <span style={{ color: '#6b7280', width: 28 }}>{String(ch).padStart(3, '0')}</span>
-            <div style={{ flex: 1, height: 6, background: '#1e1e2e', borderRadius: 3 }}>
-              <div style={{ width: `${(value / 255) * 100}%`, height: '100%', background: '#6366f1', borderRadius: 3 }} />
+            <span className={styles.num}>{String(ch).padStart(3, '0')}</span>
+            <div className={styles.bar}>
+              <div className={styles.barFill} style={{ width: `${(value / 255) * 100}%` }} />
             </div>
-            <span style={{ color: fixture ? '#e5e7eb' : '#4b5563', fontStyle: fixture ? 'normal' : 'italic', minWidth: 120 }}>
+            <span className={`${styles.label}${!fixture ? ` ${styles.unlabeled}` : ''}`}>
               {fixture ? fixture.name : 'unlabeled'}
             </span>
           </div>

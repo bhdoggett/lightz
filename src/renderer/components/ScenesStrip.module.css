@@ -1,0 +1,98 @@
+.strip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 16px;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sceneBtn {
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--bg-overlay);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 400;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+
+.sceneBtn.active {
+  background: var(--accent);
+  font-weight: 700;
+}
+
+.sceneBtn:hover:not(.active) {
+  background: var(--border-default);
+}
+
+.saveBtn {
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--border-default);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.saveBtn:hover {
+  background: var(--text-muted);
+}
+
+/* Save dialog */
+.dialog {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-overlay);
+  border-radius: var(--radius-lg);
+}
+
+.dialog input {
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.dialog label {
+  color: var(--text-secondary);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dialog label input {
+  width: 70px;
+}
+
+.confirmBtn {
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.cancelBtn {
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--border-default);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+}

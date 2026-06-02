@@ -1,0 +1,30 @@
+.toggle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  background: var(--border-default);
+  box-shadow: none;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.btn.on {
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+
+.name {
+  color: var(--text-primary);
+  font-size: 12px;
+  text-align: center;
+  max-width: 70px;
+  word-break: break-word;
+}

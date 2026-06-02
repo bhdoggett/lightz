@@ -1,0 +1,35 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-raised);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge.connected {
+  border: 1px solid var(--status-connected);
+  color: var(--status-connected);
+}
+
+.badge.disconnected {
+  border: 1px solid var(--status-disconnected);
+  color: var(--status-disconnected);
+}
+
+.badge.error {
+  border: 1px solid var(--status-error);
+  color: var(--status-error);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.connected .dot { background: var(--status-connected); }
+.disconnected .dot { background: var(--status-disconnected); }
+.error .dot { background: var(--status-error); }

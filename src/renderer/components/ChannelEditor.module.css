@@ -1,0 +1,93 @@
+.placeholder {
+  padding: 24px;
+  color: var(--text-muted);
+}
+
+.editor {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 220px;
+}
+
+.title {
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.fieldLabel {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.input {
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  font-size: 14px;
+  width: 100%;
+}
+
+.input:focus {
+  outline: 1px solid var(--accent);
+}
+
+.segmentGroup {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.segmentBtn {
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  background: var(--border-default);
+  color: var(--text-primary);
+  font-weight: 400;
+}
+
+.segmentBtn.active {
+  background: var(--accent);
+  font-weight: 700;
+}
+
+.saveBtn {
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.saveBtn:hover {
+  background: var(--accent-hover);
+}
+
+.deleteBtn {
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-error);
+  background: transparent;
+  color: var(--status-error);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.deleteBtn:hover {
+  background: color-mix(in srgb, var(--status-error) 10%, transparent);
+}

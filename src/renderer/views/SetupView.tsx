@@ -3,6 +3,7 @@ import { ChannelList } from '../components/ChannelList'
 import { ChannelEditor } from '../components/ChannelEditor'
 import { useIpc } from '../hooks/useIpc'
 import type { Fixture } from '../../shared/types'
+import styles from './SetupView.module.css'
 
 interface Props {
   fixtures: Fixture[]
@@ -35,24 +36,19 @@ export function SetupView({ fixtures, onFixturesChange, onBack }: Props) {
   }, [fixtures, ipc, onFixturesChange])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', background: '#13131f', borderBottom: '1px solid #2a2a3e' }}>
-        <button
-          onClick={onBack}
-          style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid #374151', background: 'transparent', color: '#9ca3af', cursor: 'pointer' }}
-        >
-          ← Back
-        </button>
-        <h2 style={{ margin: 0, color: '#e5e7eb', fontSize: 16 }}>Setup & Channels</h2>
+    <div className={styles.view}>
+      <div className={styles.toolbar}>
+        <button className={styles.backBtn} onClick={onBack}>← Back</button>
+        <h2 className={styles.toolbarTitle}>Setup & Channels</h2>
       </div>
-      <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+      <div className={styles.body}>
         <ChannelList
           fixtures={fixtures}
           channelValues={{}}
           selectedChannel={selectedChannel}
           onSelect={setSelectedChannel}
         />
-        <div style={{ width: 1, background: '#2a2a3e' }} />
+        <div className={styles.divider} />
         <ChannelEditor
           channel={selectedChannel}
           fixture={fixtureOnChannel}

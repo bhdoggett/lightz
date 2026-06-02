@@ -18,7 +18,7 @@ describe('ScenesStrip', () => {
   it('highlights the active scene', () => {
     render(<ScenesStrip scenes={scenes} activeSceneId="worship-mode" onActivate={vi.fn()} onSave={vi.fn()} />)
     const btn = screen.getByText('Worship Mode').closest('button')
-    expect(btn).toHaveStyle({ fontWeight: '700' })
+    expect(btn).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('calls onActivate when a scene is clicked', async () => {

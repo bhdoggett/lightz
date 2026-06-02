@@ -4,6 +4,7 @@ import { SetupView } from './views/SetupView'
 import { ConnectionBadge } from './components/ConnectionBadge'
 import { CompanionModal } from './components/CompanionModal'
 import type { Config, DmxStatus, Fixture, Scene } from '../shared/types'
+import styles from './App.module.css'
 
 type View = 'main' | 'setup'
 
@@ -19,7 +20,7 @@ export function App() {
   }, [])
 
   if (!config) {
-    return <div style={{ color: '#fff', padding: 24 }}>Loading...</div>
+    return <div className={styles.loading}>Loading...</div>
   }
 
   const handleFixturesChange = (fixtures: Fixture[]) =>
@@ -34,31 +35,23 @@ export function App() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: '#13131f', color: '#e5e7eb', fontFamily: 'system-ui, sans-serif' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', background: '#0d0d1a', borderBottom: '1px solid #2a2a3e' }}>
-        <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: 1 }}>Church Lights</span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+    <div className={styles.app}>
+      <header className={styles.header}>
+        <span className={styles.appName}>Church Lights</span>
+        <div className={styles.headerRight}>
           <ConnectionBadge status={dmxStatus} />
           {view === 'main' && (
-            <button
-              onClick={() => setView('setup')}
-              title="Setup"
-              style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 18 }}
-            >
+            <button className={styles.iconBtn} onClick={() => setView('setup')} title="Setup">
               ⚙
             </button>
           )}
-          <button
-            onClick={() => setCompanionOpen(true)}
-            title="Companion / About"
-            style={{ background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 18 }}
-          >
+          <button className={styles.iconBtn} onClick={() => setCompanionOpen(true)} title="Companion">
             ℹ
           </button>
         </div>
-      </div>
+      </header>
 
-      <div style={{ flex: 1, overflow: 'hidden' }}>
+      <div className={styles.content}>
         {view === 'main' ? (
           <MainView
             fixtures={config.fixtures}
