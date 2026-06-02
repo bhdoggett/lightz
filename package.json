@@ -1,0 +1,47 @@
+{
+  "name": "church-lights",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./out/main/index.js",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "build": "electron-vite build",
+    "preview": "electron-vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "build:mac": "npm run build && electron-builder --mac",
+    "postinstall": "electron-rebuild"
+  },
+  "dependencies": {
+    "dmx": "^0.25.1",
+    "electron-store": "^9.0.0",
+    "express": "^4.18.2",
+    "slugify": "^1.6.6",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "@electron-toolkit/preload": "^3.0.0",
+    "@electron-toolkit/tsconfig": "^1.0.1",
+    "@electron-toolkit/utils": "^3.0.0",
+    "@electron/rebuild": "^3.6.0",
+    "@testing-library/jest-dom": "^6.4.2",
+    "@testing-library/react": "^15.0.2",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/express": "^4.17.21",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.0",
+    "@types/supertest": "^6.0.2",
+    "@types/uuid": "^9.0.8",
+    "@vitejs/plugin-react": "^4.2.1",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.13.3",
+    "electron-vite": "^2.2.0",
+    "jsdom": "^24.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "supertest": "^6.3.4",
+    "typescript": "^5.4.5",
+    "vitest": "^1.5.0",
+    "@vitest/ui": "^1.5.0"
+  }
+}
