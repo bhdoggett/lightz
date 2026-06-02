@@ -4,6 +4,14 @@ import type { Config } from '../src/shared/types'
 
 const FILTERS = [{ name: 'Church Lights Show', extensions: ['json'] }]
 
+function parseShowFile(path: string): Config {
+  const raw = JSON.parse(readFileSync(path, 'utf-8'))
+  if (!Array.isArray(raw.fixtures) || !Array.isArray(raw.scenes) || typeof raw.companionPort !== 'number') {
+    throw new Error('Invalid show file format')
+  }
+  return raw as Config
+}
+
 export async function exportShow(config: Config): Promise<boolean> {
   const { canceled, filePath } = await dialog.showSaveDialog({
     title: 'Save Show File',
@@ -22,16 +30,5 @@ export async function importShow(): Promise<Config | null> {
     properties: ['openFile'],
   })
   if (canceled || filePaths.length === 0) return null
-
-  const raw = JSON.parse(readFileSync(filePaths[0], 'utf-8'))
-
-  if (
-    !Array.isArray(raw.fixtures) ||
-    !Array.isArray(raw.scenes) ||
-    typeof raw.companionPort !== 'number'
-  ) {
-    throw new Error('Invalid show file format')
-  }
-
-  return raw as Config
+  return parseShowFile(filePaths[0])
 }

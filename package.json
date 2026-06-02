@@ -20,9 +20,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@electron-toolkit/preload": "^3.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
-    "@electron-toolkit/utils": "^3.0.0",
     "@electron/rebuild": "^3.6.0",
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/react": "^15.0.2",

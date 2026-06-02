@@ -87,10 +87,6 @@ export class DmxManager {
     }, 16)
   }
 
-  getStatus(): DmxStatus {
-    return this.status
-  }
-
   interpolate(start: number, end: number, progress: number): number {
     const p = Math.min(progress, 1)
     return Math.round(start + (end - start) * p)
