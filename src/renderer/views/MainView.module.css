@@ -65,7 +65,7 @@
   padding: var(--space-6);
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-4);
+  gap: var(--fader-gap);
   align-content: flex-start;
   overflow-y: auto;
 }
