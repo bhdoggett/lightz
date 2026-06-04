@@ -11,6 +11,11 @@ const store = new Store<Config>({
   },
 })
 
+// Migrate old default port 3000 → 5551
+if (store.get('companionPort', 5551) === 3000) {
+  store.set('companionPort', 5551)
+}
+
 export function getConfig(): Config {
   return {
     fixtures: store.get('fixtures', []),
