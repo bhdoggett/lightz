@@ -28,7 +28,7 @@ describe('config store', () => {
     const config = getConfig()
     expect(config.fixtures).toEqual([])
     expect(config.scenes).toEqual([])
-    expect(config.companionPort).toBe(3000)
+    expect(config.companionPort).toBe(5551)
   })
 
   it('saveFixture adds a new fixture', () => {

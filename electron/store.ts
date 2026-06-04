@@ -5,7 +5,7 @@ const store = new Store<Config>({
   defaults: {
     fixtures: [],
     scenes: [],
-    companionPort: 3000,
+    companionPort: 5551,
     devicePath: '',
     dmxOutputPort: 0,
   },
@@ -15,7 +15,7 @@ export function getConfig(): Config {
   return {
     fixtures: store.get('fixtures', []),
     scenes: store.get('scenes', []),
-    companionPort: store.get('companionPort', 3000),
+    companionPort: store.get('companionPort', 5551),
     devicePath: store.get('devicePath', ''),
     dmxOutputPort: store.get('dmxOutputPort', 0),
   }
