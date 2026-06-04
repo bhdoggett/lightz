@@ -1,16 +1,27 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { RawFader } from '../components/RawFader'
 import { useIpc } from '../hooks/useIpc'
+import type { Fixture } from '../../shared/types'
 import styles from './LiveView.module.css'
 
 interface Props {
   universe: 0 | 1
+  fixtures: Fixture[]
   getChannel: (universe: 0 | 1, channel: number) => number
   setChannel: (universe: 0 | 1, channel: number, value: number) => void
+  onRename: (channel: number, name: string) => void
 }
 
-export function LiveView({ universe, getChannel, setChannel }: Props) {
+export function LiveView({ universe, fixtures, getChannel, setChannel, onRename }: Props) {
   const ipc = useIpc()
+
+  const fixtureByChannel = useMemo(() => {
+    const map: Record<number, Fixture> = {}
+    for (const f of fixtures) {
+      if (f.universe === universe) map[f.channel] = f
+    }
+    return map
+  }, [fixtures, universe])
 
   const handleChange = useCallback((channel: number, value: number) => {
     setChannel(universe, channel, value)
@@ -37,7 +48,9 @@ export function LiveView({ universe, getChannel, setChannel }: Props) {
             key={ch}
             channel={ch}
             value={getChannel(universe, ch)}
+            label={fixtureByChannel[ch]?.name}
             onChange={(v) => handleChange(ch, v)}
+            onRename={(name) => onRename(ch, name)}
           />
         ))}
       </div>

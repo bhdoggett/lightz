@@ -14,9 +14,10 @@ interface Props {
   fixtures: Fixture[]
   scenes: Scene[]
   onScenesChange: (scenes: Scene[]) => void
+  onFixturesChange: (fixtures: Fixture[]) => void
 }
 
-export function MainView({ fixtures, scenes, onScenesChange }: Props) {
+export function MainView({ fixtures, scenes, onScenesChange, onFixturesChange }: Props) {
   const ipc = useIpc()
   const { getChannel, setChannel: setLocal, applyScene } = useDmxState()
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null)
@@ -44,6 +45,26 @@ export function MainView({ fixtures, scenes, onScenesChange }: Props) {
     const saved = await ipc.saveScene({ name, fadeDuration, values })
     onScenesChange([...scenes, saved])
   }, [fixtures, scenes, ipc, getChannel, onScenesChange])
+
+  // Rename a named fixture (from Scenes view)
+  const handleFixtureRename = useCallback(async (fixture: Fixture, name: string) => {
+    const updated = await ipc.updateFixture({ ...fixture, name })
+    onFixturesChange(fixtures.map((f) => f.id === updated.id ? updated : f))
+  }, [fixtures, ipc, onFixturesChange])
+
+  // Rename by channel from Live view — creates fixture if none exists
+  const handleChannelRename = useCallback(async (channel: number, name: string) => {
+    const existing = fixtures.find((f) => f.universe === universe && f.channel === channel)
+    const fixtureToSave: Fixture = existing
+      ? { ...existing, name }
+      : { id: crypto.randomUUID(), name, channel, universe, type: 'dimmer' }
+    const saved = await ipc.updateFixture(fixtureToSave)
+    if (existing) {
+      onFixturesChange(fixtures.map((f) => f.id === saved.id ? saved : f))
+    } else {
+      onFixturesChange([...fixtures, saved])
+    }
+  }, [fixtures, universe, ipc, onFixturesChange])
 
   const sorted = [...fixtures].sort((a, b) => a.channel - b.channel)
 
@@ -96,6 +117,7 @@ export function MainView({ fixtures, scenes, onScenesChange }: Props) {
                   name={fixture.name}
                   value={getChannel(fixture.universe, fixture.channel)}
                   onChange={(v) => handleSetChannel(fixture, v)}
+                  onRename={(name) => handleFixtureRename(fixture, name)}
                 />
               ) : (
                 <FixtureToggle
@@ -112,7 +134,13 @@ export function MainView({ fixtures, scenes, onScenesChange }: Props) {
           </div>
         </>
       ) : (
-        <LiveView universe={universe} getChannel={getChannel} setChannel={setLocal} />
+        <LiveView
+          universe={universe}
+          fixtures={fixtures}
+          getChannel={getChannel}
+          setChannel={setLocal}
+          onRename={handleChannelRename}
+        />
       )}
     </div>
   )

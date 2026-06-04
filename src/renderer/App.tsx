@@ -81,6 +81,7 @@ export function App() {
             fixtures={config.fixtures}
             scenes={config.scenes}
             onScenesChange={handleScenesChange}
+            onFixturesChange={handleFixturesChange}
           />
         ) : (
           <SetupView

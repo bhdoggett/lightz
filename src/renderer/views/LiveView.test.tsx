@@ -13,8 +13,10 @@ vi.mock('../hooks/useIpc', () => ({
 
 const defaultProps = {
   universe: 0 as const,
+  fixtures: [],
   getChannel: mockGetChannel,
   setChannel: vi.fn(),
+  onRename: vi.fn(),
 }
 
 describe('LiveView', () => {
@@ -54,5 +56,11 @@ describe('LiveView', () => {
     expect(setChannelProp).toHaveBeenCalledWith(0, 1, 0)
     expect(setChannelProp).toHaveBeenCalledWith(0, 512, 0)
     expect(mockSetChannel).toHaveBeenCalledTimes(512)
+  })
+
+  it('shows fixture label for a labeled channel', () => {
+    const fixtures = [{ id: 'f1', name: 'Front Wash', channel: 3, universe: 0 as const, type: 'dimmer' as const }]
+    render(<LiveView {...defaultProps} fixtures={fixtures} />)
+    expect(screen.getByText('Front Wash')).toBeInTheDocument()
   })
 })

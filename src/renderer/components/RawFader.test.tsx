@@ -43,4 +43,35 @@ describe('RawFader', () => {
     await userEvent.click(screen.getByRole('button', { name: /off/i }))
     expect(onChange).toHaveBeenCalledWith(0)
   })
+
+  it('does not show rename input without onRename prop', () => {
+    render(<RawFader channel={1} value={0} onChange={vi.fn()} />)
+    expect(screen.queryByTestId('rename-input')).not.toBeInTheDocument()
+  })
+
+  it('shows rename input when channel area clicked with onRename provided', async () => {
+    render(<RawFader channel={1} value={0} onChange={vi.fn()} onRename={vi.fn()} />)
+    await userEvent.click(screen.getByText('001'))
+    expect(screen.getByTestId('rename-input')).toBeInTheDocument()
+  })
+
+  it('calls onRename with new name on Enter', async () => {
+    const onRename = vi.fn()
+    render(<RawFader channel={1} value={0} label="Old Name" onChange={vi.fn()} onRename={onRename} />)
+    await userEvent.click(screen.getByText('Old Name'))
+    const input = screen.getByTestId('rename-input')
+    fireEvent.change(input, { target: { value: 'New Name' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+    expect(onRename).toHaveBeenCalledWith('New Name')
+  })
+
+  it('calls onRename on blur', async () => {
+    const onRename = vi.fn()
+    render(<RawFader channel={5} value={0} onChange={vi.fn()} onRename={onRename} />)
+    await userEvent.click(screen.getByText('005'))
+    const input = screen.getByTestId('rename-input')
+    fireEvent.change(input, { target: { value: 'Spotlight' } })
+    fireEvent.blur(input)
+    expect(onRename).toHaveBeenCalledWith('Spotlight')
+  })
 })
