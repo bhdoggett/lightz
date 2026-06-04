@@ -3,7 +3,8 @@
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  min-width: 44px;
+  width: var(--fader-width);
+  flex-shrink: 0;
 }
 
 .value {
@@ -91,7 +92,7 @@
 .label {
   font-size: 10px;
   color: var(--text-secondary);
-  max-width: 44px;
+  width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -99,7 +100,7 @@
 }
 
 .renameInput {
-  width: 44px;
+  width: 100%;
   font-size: 10px;
   font-family: var(--font-mono);
   background: var(--bg-raised);
