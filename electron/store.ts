@@ -53,6 +53,20 @@ export function deleteScene(id: string): void {
   store.set('scenes', scenes)
 }
 
+export function updateScene(id: string, name: string, fadeDuration: number): void {
+  const scenes = store.get('scenes', [])
+  const idx = scenes.findIndex((s) => s.id === id)
+  if (idx < 0) return
+  scenes[idx] = { ...scenes[idx], name, fadeDuration }
+  store.set('scenes', scenes)
+}
+
+export function reorderScenes(ids: string[]): void {
+  const scenes = store.get('scenes', [])
+  const ordered = ids.map((id) => scenes.find((s) => s.id === id)).filter(Boolean) as Scene[]
+  store.set('scenes', ordered)
+}
+
 export function setCompanionPort(port: number): void {
   store.set('companionPort', port)
 }
