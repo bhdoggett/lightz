@@ -1,4 +1,4 @@
-import styles from './FixtureFader.module.css'
+import { RawFader } from './RawFader'
 
 interface Props {
   name: string
@@ -8,18 +8,11 @@ interface Props {
 
 export function FixtureFader({ name, value, onChange }: Props) {
   return (
-    <div className={styles.fader}>
-      <span className={styles.value}>{value}</span>
-      <input
-        type="range"
-        role="slider"
-        min={0}
-        max={255}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className={styles.slider}
-      />
-      <span className={styles.name}>{name}</span>
-    </div>
+    <RawFader
+      channel={0}
+      value={value}
+      label={name}
+      onChange={onChange}
+    />
   )
 }
