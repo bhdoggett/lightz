@@ -1,16 +1,12 @@
 import { useEffect, useState } from 'react'
 import { MainView } from './views/MainView'
-import { SetupView } from './views/SetupView'
 import { ConnectionBadge } from './components/ConnectionBadge'
 import { CompanionModal } from './components/CompanionModal'
 import type { Config, DmxStatus, Fixture, Scene } from '../shared/types'
 import styles from './App.module.css'
 
-type View = 'main' | 'setup'
-
 export function App() {
   const [config, setConfig] = useState<Config | null>(null)
-  const [view, setView] = useState<View>('main')
   const [dmxStatus, setDmxStatus] = useState<DmxStatus>('disconnected')
   const [companionOpen, setCompanionOpen] = useState(false)
 
@@ -64,32 +60,19 @@ export function App() {
           </button>
           <div className={styles.showDivider} />
           <ConnectionBadge status={dmxStatus} />
-          {view === 'main' && (
-            <button className={styles.iconBtn} onClick={() => setView('setup')} title="Setup">
-              ⚙
-            </button>
-          )}
           <button className={styles.iconBtn} onClick={() => setCompanionOpen(true)} title="Settings">
-            ℹ
+            ⚙
           </button>
         </div>
       </header>
 
       <div className={styles.content}>
-        {view === 'main' ? (
-          <MainView
-            fixtures={config.fixtures}
-            scenes={config.scenes}
-            onScenesChange={handleScenesChange}
-            onFixturesChange={handleFixturesChange}
-          />
-        ) : (
-          <SetupView
-            fixtures={config.fixtures}
-            onFixturesChange={handleFixturesChange}
-            onBack={() => setView('main')}
-          />
-        )}
+        <MainView
+          fixtures={config.fixtures}
+          scenes={config.scenes}
+          onScenesChange={handleScenesChange}
+          onFixturesChange={handleFixturesChange}
+        />
       </div>
 
       {companionOpen && (

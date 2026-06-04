@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react'
 import { ScenesStrip } from '../components/ScenesStrip'
 import { FixtureFader } from '../components/FixtureFader'
-import { FixtureToggle } from '../components/FixtureToggle'
 import { LiveView } from './LiveView'
 import { useIpc } from '../hooks/useIpc'
 import { useDmxState } from '../hooks/useDmxState'
@@ -141,25 +140,16 @@ export function MainView({ fixtures, scenes, onScenesChange, onFixturesChange }:
             onReorder={handleSceneReorder}
           />
           <div className={styles.fixtures}>
-            {sorted.map((fixture) =>
-              fixture.type === 'dimmer' ? (
-                <FixtureFader
-                  key={fixture.id}
-                  channel={fixture.channel}
-                  name={fixture.name}
-                  value={getChannel(fixture.universe, fixture.channel)}
-                  onChange={(v) => handleSetChannel(fixture, v)}
-                  onRename={(name) => handleFixtureRename(fixture, name)}
-                />
-              ) : (
-                <FixtureToggle
-                  key={fixture.id}
-                  name={fixture.name}
-                  value={getChannel(fixture.universe, fixture.channel)}
-                  onChange={(v) => handleSetChannel(fixture, v)}
-                />
-              )
-            )}
+            {sorted.map((fixture) => (
+              <FixtureFader
+                key={fixture.id}
+                channel={fixture.channel}
+                name={fixture.name}
+                value={getChannel(fixture.universe, fixture.channel)}
+                onChange={(v) => handleSetChannel(fixture, v)}
+                onRename={(name) => handleFixtureRename(fixture, name)}
+              />
+            ))}
             {fixtures.length === 0 && (
               <p className={styles.empty}>No fixtures configured. Go to Setup to add fixtures.</p>
             )}
