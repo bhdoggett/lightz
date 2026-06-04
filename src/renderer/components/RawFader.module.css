@@ -72,6 +72,8 @@
   min-height: 28px;
   padding: 2px;
   border-radius: var(--radius-sm);
+  width: 100%;
+  overflow: hidden;
 }
 
 .renameable {
