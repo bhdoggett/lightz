@@ -2,6 +2,8 @@
   "name": "church-lights",
   "productName": "Church Lights",
   "version": "0.1.0",
+  "description": "DMX lighting controller for Enttec USB DMX Pro Mk2",
+  "author": "bdoggett@gmail.com",
   "private": true,
   "main": "./out/main/index.js",
   "scripts": {
