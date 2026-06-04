@@ -10,6 +10,7 @@ const defaultProps = {
   scenes,
   port: 3000,
   devicePath: '',
+  ports: [],
   onPortChange: vi.fn(),
   onDevicePathChange: vi.fn(),
   onClose: vi.fn(),
@@ -34,5 +35,21 @@ describe('CompanionModal', () => {
   it('shows device path input', () => {
     render(<CompanionModal {...defaultProps} devicePath="/dev/tty.usbserial-123" />)
     expect(screen.getByDisplayValue('/dev/tty.usbserial-123')).toBeInTheDocument()
+  })
+
+  it('renders detected ports as clickable options', () => {
+    render(
+      <CompanionModal
+        {...defaultProps}
+        ports={['/dev/tty.usbmodem123', '/dev/tty.usbserial-ABC']}
+      />
+    )
+    expect(screen.getByText('/dev/tty.usbmodem123')).toBeInTheDocument()
+    expect(screen.getByText('/dev/tty.usbserial-ABC')).toBeInTheDocument()
+  })
+
+  it('shows empty message when no ports detected', () => {
+    render(<CompanionModal {...defaultProps} ports={[]} />)
+    expect(screen.getByText(/no usb serial devices/i)).toBeInTheDocument()
   })
 })

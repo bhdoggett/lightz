@@ -65,7 +65,7 @@ export function App() {
             </button>
           )}
           <button className={styles.iconBtn} onClick={() => setCompanionOpen(true)} title="Settings">
-            ⚙︎
+            ℹ
           </button>
         </div>
       </header>
@@ -91,6 +91,7 @@ export function App() {
           scenes={config.scenes}
           port={config.companionPort}
           devicePath={config.devicePath}
+          ports={[]}
           onPortChange={handlePortChange}
           onDevicePathChange={handleDevicePathChange}
           onClose={() => setCompanionOpen(false)}

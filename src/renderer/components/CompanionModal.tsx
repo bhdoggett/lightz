@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { Scene } from '../../shared/types'
 import styles from './CompanionModal.module.css'
 
@@ -6,17 +6,29 @@ interface Props {
   scenes: Scene[]
   port: number
   devicePath: string
+  ports: string[]
   onPortChange: (port: number) => void
   onDevicePathChange: (path: string) => void
   onClose: () => void
 }
 
-export function CompanionModal({ scenes, port, devicePath, onPortChange, onDevicePathChange, onClose }: Props) {
+export function CompanionModal({ scenes, port, devicePath, ports, onPortChange, onDevicePathChange, onClose }: Props) {
   const [draftPort, setDraftPort] = useState(String(port))
   const [draftPath, setDraftPath] = useState(devicePath)
+  const [detectedPorts, setDetectedPorts] = useState<string[]>(ports)
   const base = `http://localhost:${port}`
 
   const copyToClipboard = (text: string) => navigator.clipboard?.writeText(text)
+
+  const refreshPorts = useCallback(async () => {
+    if (!window.electronAPI?.listPorts) return
+    const found = await window.electronAPI.listPorts()
+    setDetectedPorts(found)
+  }, [])
+
+  useEffect(() => {
+    refreshPorts()
+  }, [refreshPorts])
 
   return (
     <div className={styles.backdrop}>
@@ -28,6 +40,22 @@ export function CompanionModal({ scenes, port, devicePath, onPortChange, onDevic
 
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>DMX Device Path</h3>
+          {detectedPorts.length > 0 ? (
+            <div className={styles.portList}>
+              {detectedPorts.map((p) => (
+                <button
+                  key={p}
+                  className={styles.portOption}
+                  onClick={() => setDraftPath(p)}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.noPorts}>No USB serial devices detected — plug in the device and refresh.</p>
+          )}
+          <button className={styles.refreshBtn} onClick={refreshPorts}>↺ Refresh</button>
           <div className={styles.portRow}>
             <input
               type="text"
@@ -41,9 +69,6 @@ export function CompanionModal({ scenes, port, devicePath, onPortChange, onDevic
               Connect
             </button>
           </div>
-          <p className={styles.portHint}>
-            Find your device: <code className={styles.inlineCode}>ls /dev/tty.usb*</code>
-          </p>
         </section>
 
         <section className={styles.section}>

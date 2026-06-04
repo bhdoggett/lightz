@@ -172,3 +172,50 @@
 .steps strong {
   color: var(--text-primary);
 }
+
+.portList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.portOption {
+  padding: 6px 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.portOption:hover {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.noPorts {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.refreshBtn {
+  padding: 4px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+
+.refreshBtn:hover {
+  color: var(--text-primary);
+}
