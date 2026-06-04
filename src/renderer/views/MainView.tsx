@@ -46,6 +46,22 @@ export function MainView({ fixtures, scenes, onScenesChange, onFixturesChange }:
     onScenesChange([...scenes, saved])
   }, [fixtures, scenes, ipc, getChannel, onScenesChange])
 
+  const handleSceneUpdate = useCallback(async (id: string, name: string, fadeDuration: number) => {
+    const updated = await ipc.updateScene({ id, name, fadeDuration })
+    if (updated) onScenesChange(scenes.map((s) => s.id === id ? updated : s))
+  }, [scenes, ipc, onScenesChange])
+
+  const handleSceneDelete = useCallback(async (id: string) => {
+    await ipc.deleteScene(id)
+    onScenesChange(scenes.filter((s) => s.id !== id))
+    setActiveSceneId(null)
+  }, [scenes, ipc, onScenesChange])
+
+  const handleSceneReorder = useCallback(async (reordered: Scene[]) => {
+    await ipc.reorderScenes(reordered.map((s) => s.id))
+    onScenesChange(reordered)
+  }, [ipc, onScenesChange])
+
   // Rename a named fixture (from Scenes view) — empty name removes it
   const handleFixtureRename = useCallback(async (fixture: Fixture, name: string) => {
     if (!name) {
@@ -120,6 +136,9 @@ export function MainView({ fixtures, scenes, onScenesChange, onFixturesChange }:
             activeSceneId={activeSceneId}
             onActivate={handleActivate}
             onSave={handleSave}
+            onUpdate={handleSceneUpdate}
+            onDelete={handleSceneDelete}
+            onReorder={handleSceneReorder}
           />
           <div className={styles.fixtures}>
             {sorted.map((fixture) =>
