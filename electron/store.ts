@@ -63,7 +63,7 @@ export function updateScene(id: string, name: string, fadeDuration: number): voi
 
 export function reorderScenes(ids: string[]): void {
   const scenes = store.get('scenes', [])
-  const ordered = ids.map((id) => scenes.find((s) => s.id === id)).filter(Boolean) as Scene[]
+  const ordered = ids.map((id) => scenes.find((s) => s.id === id)).filter((s): s is Scene => s !== undefined)
   store.set('scenes', ordered)
 }
 
