@@ -1,0 +1,14 @@
+appId: com.churchlights.app
+productName: Church Lights
+directories:
+  output: dist-electron
+mac:
+  category: public.app-category.utilities
+  icon: resources/icon.icns
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+files:
+  - out/**/*

@@ -11,7 +11,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "build:mac": "npm run build && electron-builder --mac",
-    "postinstall": "electron-rebuild"
+    "postinstall": "electron-builder install-app-deps && electron-rebuild"
   },
   "dependencies": {
     "dmx": "^0.25.1",
