@@ -125,64 +125,75 @@ export function ScenesStrip({ scenes, activeSceneId, onActivate, onSave, onUpdat
     }
   }
 
-  return (
-    <div
-      className={styles.strip}
-      onDragOver={handleStripDragOver}
-      onDrop={handleStripDrop}
-      onDragLeave={handleStripDragLeave}
-    >
-      {scenes.map((scene, index) => (
-        <React.Fragment key={scene.id}>
-          {dragId && insertIndex === index && (
-            <div className={styles.insertIndicator} aria-hidden="true" />
-          )}
-          <button
-            onClick={() => onActivate(scene.id)}
-            className={[
-              styles.sceneBtn,
-              scene.id === activeSceneId ? styles.active : '',
-              scene.id === dragId ? styles.dragging : '',
-            ].filter(Boolean).join(' ')}
-            aria-pressed={scene.id === activeSceneId}
-            draggable
-            data-scene-id={scene.id}
-            onDragStart={(e) => {
-              setDragId(scene.id)
-              e.dataTransfer.effectAllowed = 'move'
-              e.dataTransfer.setData('text/plain', scene.id)
-            }}
-            onDragEnd={() => { setDragId(null); setInsertIndex(null) }}
-          >
-            {scene.name}
-          </button>
-        </React.Fragment>
-      ))}
-      {dragId && insertIndex === scenes.length && (
-        <div className={styles.insertIndicator} aria-hidden="true" />
-      )}
+  const showDialog = editing || saving
 
+  return (
+    <div className={styles.strip}>
+      {/* Scenes row with drag-and-drop */}
+      <div
+        className={styles.scenesRow}
+        onDragOver={handleStripDragOver}
+        onDrop={handleStripDrop}
+        onDragLeave={handleStripDragLeave}
+      >
+        {scenes.map((scene, index) => (
+          <React.Fragment key={scene.id}>
+            {dragId && insertIndex === index && (
+              <div className={styles.insertIndicator} aria-hidden="true" />
+            )}
+            <button
+              onClick={() => onActivate(scene.id)}
+              className={[
+                styles.sceneBtn,
+                scene.id === activeSceneId ? styles.active : '',
+                scene.id === dragId ? styles.dragging : '',
+              ].filter(Boolean).join(' ')}
+              aria-pressed={scene.id === activeSceneId}
+              draggable
+              data-scene-id={scene.id}
+              onDragStart={(e) => {
+                setDragId(scene.id)
+                e.dataTransfer.effectAllowed = 'move'
+                e.dataTransfer.setData('text/plain', scene.id)
+              }}
+              onDragEnd={() => { setDragId(null); setInsertIndex(null) }}
+            >
+              {scene.name}
+            </button>
+          </React.Fragment>
+        ))}
+        {dragId && insertIndex === scenes.length && (
+          <div className={styles.insertIndicator} aria-hidden="true" />
+        )}
+        {!showDialog && (
+          <>
+            <button className={styles.saveBtn} onClick={() => setSaving(true)}>+ Save Scene</button>
+            {activeSceneId && (
+              <button className={styles.editBtn} onClick={() => setEditing(true)}>Edit</button>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* Dialog row — centered below scenes */}
       {editing && activeScene ? (
-        <EditDialog
-          initialName={activeScene.name}
-          initialFade={activeScene.fadeDuration}
-          onUpdate={(name, fade) => { onUpdate(activeScene.id, name, fade); setEditing(false) }}
-          onDelete={() => { onDelete(activeScene.id); setEditing(false) }}
-          onCancel={() => setEditing(false)}
-        />
+        <div className={styles.dialogRow}>
+          <EditDialog
+            initialName={activeScene.name}
+            initialFade={activeScene.fadeDuration}
+            onUpdate={(name, fade) => { onUpdate(activeScene.id, name, fade); setEditing(false) }}
+            onDelete={() => { onDelete(activeScene.id); setEditing(false) }}
+            onCancel={() => setEditing(false)}
+          />
+        </div>
       ) : saving ? (
-        <SaveDialog
-          onConfirm={(name, fade) => { onSave(name, fade); setSaving(false) }}
-          onCancel={() => setSaving(false)}
-        />
-      ) : (
-        <>
-          <button className={styles.saveBtn} onClick={() => setSaving(true)}>+ Save Scene</button>
-          {activeSceneId && (
-            <button className={styles.editBtn} onClick={() => setEditing(true)}>Edit</button>
-          )}
-        </>
-      )}
+        <div className={styles.dialogRow}>
+          <SaveDialog
+            onConfirm={(name, fade) => { onSave(name, fade); setSaving(false) }}
+            onCancel={() => setSaving(false)}
+          />
+        </div>
+      ) : null}
     </div>
   )
 }

@@ -1,11 +1,23 @@
 .strip {
   display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.scenesRow {
+  display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
   padding: 10px 16px;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border-subtle);
+}
+
+.dialogRow {
+  display: flex;
+  justify-content: center;
+  padding: 8px 16px 10px;
+  border-top: 1px solid var(--border-subtle);
 }
 
 .sceneBtn {
