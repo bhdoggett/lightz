@@ -2,10 +2,13 @@ import { useState, useCallback } from 'react'
 import { ScenesStrip } from '../components/ScenesStrip'
 import { FixtureFader } from '../components/FixtureFader'
 import { FixtureToggle } from '../components/FixtureToggle'
+import { LiveView } from './LiveView'
 import { useIpc } from '../hooks/useIpc'
 import { useDmxState } from '../hooks/useDmxState'
 import type { Fixture, Scene } from '../../shared/types'
 import styles from './MainView.module.css'
+
+type Tab = 'scenes' | 'live'
 
 interface Props {
   fixtures: Fixture[]
@@ -17,6 +20,8 @@ export function MainView({ fixtures, scenes, onScenesChange }: Props) {
   const ipc = useIpc()
   const { getChannel, setChannel: setLocal, applyScene } = useDmxState()
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null)
+  const [tab, setTab] = useState<Tab>('scenes')
+  const [universe, setUniverse] = useState<0 | 1>(0)
 
   const handleSetChannel = useCallback((fixture: Fixture, value: number) => {
     setLocal(fixture.universe, fixture.channel, value)
@@ -44,34 +49,71 @@ export function MainView({ fixtures, scenes, onScenesChange }: Props) {
 
   return (
     <div className={styles.view}>
-      <ScenesStrip
-        scenes={scenes}
-        activeSceneId={activeSceneId}
-        onActivate={handleActivate}
-        onSave={handleSave}
-      />
-      <div className={styles.fixtures}>
-        {sorted.map((fixture) =>
-          fixture.type === 'dimmer' ? (
-            <FixtureFader
-              key={fixture.id}
-              name={fixture.name}
-              value={getChannel(fixture.universe, fixture.channel)}
-              onChange={(v) => handleSetChannel(fixture, v)}
-            />
-          ) : (
-            <FixtureToggle
-              key={fixture.id}
-              name={fixture.name}
-              value={getChannel(fixture.universe, fixture.channel)}
-              onChange={(v) => handleSetChannel(fixture, v)}
-            />
-          )
-        )}
-        {fixtures.length === 0 && (
-          <p className={styles.empty}>No fixtures configured. Go to Setup to add fixtures.</p>
+      <div className={styles.tabBar}>
+        <button
+          className={`${styles.tab}${tab === 'scenes' ? ` ${styles.active}` : ''}`}
+          onClick={() => setTab('scenes')}
+        >
+          Scenes
+        </button>
+        <button
+          className={`${styles.tab}${tab === 'live' ? ` ${styles.active}` : ''}`}
+          onClick={() => setTab('live')}
+        >
+          Live
+        </button>
+        {tab === 'live' && (
+          <div className={styles.universeToggle}>
+            <button
+              className={`${styles.uBtn}${universe === 0 ? ` ${styles.active}` : ''}`}
+              onClick={() => setUniverse(0)}
+            >
+              U1
+            </button>
+            <button
+              className={`${styles.uBtn}${universe === 1 ? ` ${styles.active}` : ''}`}
+              onClick={() => setUniverse(1)}
+            >
+              U2
+            </button>
+          </div>
         )}
       </div>
+
+      {tab === 'scenes' ? (
+        <>
+          <ScenesStrip
+            scenes={scenes}
+            activeSceneId={activeSceneId}
+            onActivate={handleActivate}
+            onSave={handleSave}
+          />
+          <div className={styles.fixtures}>
+            {sorted.map((fixture) =>
+              fixture.type === 'dimmer' ? (
+                <FixtureFader
+                  key={fixture.id}
+                  name={fixture.name}
+                  value={getChannel(fixture.universe, fixture.channel)}
+                  onChange={(v) => handleSetChannel(fixture, v)}
+                />
+              ) : (
+                <FixtureToggle
+                  key={fixture.id}
+                  name={fixture.name}
+                  value={getChannel(fixture.universe, fixture.channel)}
+                  onChange={(v) => handleSetChannel(fixture, v)}
+                />
+              )
+            )}
+            {fixtures.length === 0 && (
+              <p className={styles.empty}>No fixtures configured. Go to Setup to add fixtures.</p>
+            )}
+          </div>
+        </>
+      ) : (
+        <LiveView universe={universe} />
+      )}
     </div>
   )
 }
