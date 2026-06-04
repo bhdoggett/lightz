@@ -7,6 +7,7 @@ const store = new Store<Config>({
     scenes: [],
     companionPort: 3000,
     devicePath: '',
+    dmxOutputPort: 0,
   },
 })
 
@@ -16,6 +17,7 @@ export function getConfig(): Config {
     scenes: store.get('scenes', []),
     companionPort: store.get('companionPort', 3000),
     devicePath: store.get('devicePath', ''),
+    dmxOutputPort: store.get('dmxOutputPort', 0),
   }
 }
 
@@ -59,9 +61,14 @@ export function setDevicePath(path: string): void {
   store.set('devicePath', path)
 }
 
+export function setDmxOutputPort(port: 0 | 1 | 2): void {
+  store.set('dmxOutputPort', port)
+}
+
 export function replaceConfig(config: Config): void {
   store.set('fixtures', config.fixtures)
   store.set('scenes', config.scenes)
   store.set('companionPort', config.companionPort)
   store.set('devicePath', config.devicePath ?? '')
+  store.set('dmxOutputPort', config.dmxOutputPort ?? 0)
 }

@@ -112,7 +112,7 @@ export function MainView({ fixtures, scenes, onScenesChange }: Props) {
           </div>
         </>
       ) : (
-        <LiveView universe={universe} />
+        <LiveView universe={universe} getChannel={getChannel} setChannel={setLocal} />
       )}
     </div>
   )

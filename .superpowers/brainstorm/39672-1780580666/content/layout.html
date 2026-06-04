@@ -1,0 +1,91 @@
+<h2>Where should the live channel panel live?</h2>
+<p class="subtitle">Raw 512-channel control — no fixture setup required</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#13131f;border-radius:8px;overflow:hidden;font-size:11px;color:#9ca3af;font-family:monospace">
+        <div style="background:#0d0d1a;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2a2a3e">
+          <span style="color:#e5e7eb;font-weight:700">Church Lights</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span style="background:#374151;padding:2px 8px;border-radius:4px;font-size:10px">Open Show</span>
+            <span style="background:#374151;padding:2px 8px;border-radius:4px;font-size:10px">Save Show</span>
+            <span style="background:#22c55e22;border:1px solid #22c55e;padding:2px 6px;border-radius:10px;color:#22c55e;font-size:10px">● Connected</span>
+            <span style="font-size:14px">⚙ ℹ</span>
+          </div>
+        </div>
+        <div style="display:flex;border-bottom:1px solid #2a2a3e">
+          <div style="padding:6px 14px;color:#6366f1;border-bottom:2px solid #6366f1;font-size:11px;font-weight:600">Scenes</div>
+          <div style="padding:6px 14px;color:#9ca3af;font-size:11px">Live</div>
+        </div>
+        <div style="padding:16px;display:flex;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <span style="font-size:9px;color:#9ca3af">128</span>
+            <div style="width:16px;height:60px;background:#1e1e2e;border-radius:3px;position:relative">
+              <div style="position:absolute;bottom:0;left:0;right:0;height:50%;background:#6366f1;border-radius:3px"></div>
+            </div>
+            <span style="font-size:9px;color:#6b7280">001</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <span style="font-size:9px;color:#9ca3af">255</span>
+            <div style="width:16px;height:60px;background:#1e1e2e;border-radius:3px;position:relative">
+              <div style="position:absolute;bottom:0;left:0;right:0;height:100%;background:#6366f1;border-radius:3px"></div>
+            </div>
+            <span style="font-size:9px;color:#6b7280">002</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <span style="font-size:9px;color:#9ca3af">0</span>
+            <div style="width:16px;height:60px;background:#1e1e2e;border-radius:3px"></div>
+            <span style="font-size:9px;color:#6b7280">003</span>
+          </div>
+          <span style="color:#4b5563;align-self:center;font-size:10px">… 509 more →</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Tab in the main area</h3>
+      <p>A "Scenes" / "Live" tab switcher below the header. Keeps the header clean. Live replaces the fixture grid when selected.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div style="background:#13131f;border-radius:8px;overflow:hidden;font-size:11px;color:#9ca3af;font-family:monospace">
+        <div style="background:#0d0d1a;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #2a2a3e">
+          <span style="color:#e5e7eb;font-weight:700">Church Lights</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <span style="background:#374151;padding:2px 8px;border-radius:4px;font-size:10px">Open Show</span>
+            <span style="background:#374151;padding:2px 8px;border-radius:4px;font-size:10px">Save Show</span>
+            <span style="background:#22c55e22;border:1px solid #22c55e;padding:2px 6px;border-radius:10px;color:#22c55e;font-size:10px">● Connected</span>
+            <span style="background:#6366f1;padding:2px 8px;border-radius:4px;font-size:10px;color:#fff">Live</span>
+            <span style="font-size:14px">⚙ ℹ</span>
+          </div>
+        </div>
+        <div style="padding:8px 12px;border-bottom:1px solid #2a2a3e;display:flex;gap:6px;flex-wrap:wrap">
+          <span style="background:#6366f1;padding:2px 10px;border-radius:4px;color:#fff;font-size:10px">Worship Mode</span>
+          <span style="background:#2a2a3e;padding:2px 10px;border-radius:4px;font-size:10px">Full Bright</span>
+          <span style="background:#374151;padding:2px 8px;border-radius:4px;font-size:10px">+ Save Scene</span>
+        </div>
+        <div style="padding:16px;display:flex;gap:12px;flex-wrap:wrap">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <span style="font-size:9px;color:#9ca3af">128</span>
+            <div style="width:16px;height:50px;background:#1e1e2e;border-radius:3px;position:relative">
+              <div style="position:absolute;bottom:0;left:0;right:0;height:50%;background:#6366f1;border-radius:3px"></div>
+            </div>
+            <span style="font-size:9px;color:#6b7280">001</span>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px">
+            <span style="font-size:9px;color:#9ca3af">0</span>
+            <div style="width:16px;height:50px;background:#1e1e2e;border-radius:3px"></div>
+            <span style="font-size:9px;color:#6b7280">002</span>
+          </div>
+          <span style="color:#4b5563;align-self:center;font-size:10px">… →</span>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Button in the header, overlay panel</h3>
+      <p>A "Live" button in the header opens a full-screen overlay with the channel sliders. Scenes strip stays visible underneath. Dismiss with Escape or a close button.</p>
+    </div>
+  </div>
+</div>

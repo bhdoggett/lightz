@@ -1,6 +1,6 @@
 import { readdirSync } from 'fs'
 
-const USB_PREFIXES = ['tty.usb', 'cu.usb', 'tty.usbmodem']
+const USB_PREFIXES = ['cu.usb', 'cu.usbmodem']
 
 export function listSerialPorts(): string[] {
   try {

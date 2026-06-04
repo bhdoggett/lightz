@@ -1,13 +1,15 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-vi.mock('dmx', () => {
-  return {
-    default: vi.fn().mockImplementation(() => ({
-      addUniverse: vi.fn().mockReturnValue({}),
-      update: vi.fn(),
-    })),
-  }
+vi.mock('serialport', () => {
+  const SerialPort = vi.fn().mockImplementation(() => ({
+    isOpen: false,
+    writable: false,
+    close: vi.fn(),
+    write: vi.fn(),
+    drain: vi.fn(),
+  }))
+  return { SerialPort }
 })
 
 import { DmxManager } from './dmx'

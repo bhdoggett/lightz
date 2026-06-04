@@ -219,3 +219,30 @@
 .refreshBtn:hover {
   color: var(--text-primary);
 }
+
+.routingGrid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px 12px;
+  align-items: center;
+}
+
+.routingLabel {
+  color: var(--text-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.routingSelect {
+  padding: 5px 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.routingSelect:focus {
+  outline: 1px solid var(--accent);
+}

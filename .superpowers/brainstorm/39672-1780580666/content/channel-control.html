@@ -1,0 +1,103 @@
+<h2>Channel control design</h2>
+<p class="subtitle">Pick the style that feels right for the per-channel strip</p>
+
+<div class="cards">
+
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image" style="display:flex;justify-content:center;padding:16px 0;gap:16px;background:#13131f;border-radius:8px">
+      <!-- Option A: slider between two icon buttons -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:44px">
+        <div style="width:28px;height:28px;border-radius:50%;border:2px solid #6366f1;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#6366f122">
+          <div style="width:10px;height:10px;border-radius:50%;background:#6366f1"></div>
+        </div>
+        <div style="position:relative;height:90px;display:flex;align-items:center;justify-content:center">
+          <div style="width:3px;height:90px;background:#2a2a3e;border-radius:2px;position:absolute"></div>
+          <div style="width:3px;height:55px;background:#6366f1;border-radius:2px;position:absolute;bottom:0"></div>
+          <div style="width:18px;height:18px;border-radius:50%;background:#6366f1;position:absolute;bottom:55px;box-shadow:0 0 8px #6366f180;cursor:pointer;border:2px solid #fff"></div>
+        </div>
+        <div style="width:28px;height:28px;border-radius:4px;border:2px solid #ef4444;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#ef4444;font-weight:900;font-size:13px">✕</div>
+        <span style="font-size:10px;color:#6b7280;font-family:monospace">001</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:44px">
+        <div style="width:28px;height:28px;border-radius:50%;border:2px solid #374151;display:flex;align-items:center;justify-content:center;cursor:pointer">
+          <div style="width:10px;height:10px;border-radius:50%;background:#374151"></div>
+        </div>
+        <div style="position:relative;height:90px;display:flex;align-items:center;justify-content:center">
+          <div style="width:3px;height:90px;background:#2a2a3e;border-radius:2px;position:absolute"></div>
+          <div style="width:18px;height:18px;border-radius:50%;background:#9ca3af;position:absolute;bottom:0;box-shadow:none;cursor:pointer;border:2px solid #fff"></div>
+        </div>
+        <div style="width:28px;height:28px;border-radius:4px;border:2px solid #374151;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#374151;font-weight:900;font-size:13px">✕</div>
+        <span style="font-size:10px;color:#6b7280;font-family:monospace">002</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;width:44px">
+        <div style="width:28px;height:28px;border-radius:50%;border:2px solid #22c55e;display:flex;align-items:center;justify-content:center;cursor:pointer;background:#22c55e22">
+          <div style="width:10px;height:10px;border-radius:50%;background:#22c55e"></div>
+        </div>
+        <div style="position:relative;height:90px;display:flex;align-items:center;justify-content:center">
+          <div style="width:3px;height:90px;background:#2a2a3e;border-radius:2px;position:absolute"></div>
+          <div style="width:3px;height:90px;background:#22c55e;border-radius:2px;position:absolute"></div>
+          <div style="width:18px;height:18px;border-radius:50%;background:#22c55e;position:absolute;top:0;box-shadow:0 0 8px #22c55e80;cursor:pointer;border:2px solid #fff"></div>
+        </div>
+        <div style="width:28px;height:28px;border-radius:4px;border:2px solid #22c55e22;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#4b5563;font-weight:900;font-size:13px">✕</div>
+        <span style="font-size:10px;color:#6b7280;font-family:monospace">003</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Circle button above, X button below</h3>
+      <p>Circle (○) snaps to 255. X (✕) snaps to 0. Slider fills between them with a draggable thumb. Channel number at the bottom.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image" style="display:flex;justify-content:center;padding:16px 0;gap:16px;background:#13131f;border-radius:8px">
+      <!-- Option B: value label top, slider, X/O inline at bottom -->
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:44px">
+        <span style="font-size:11px;color:#6366f1;font-weight:600;font-family:monospace">127</span>
+        <div style="position:relative;height:90px;display:flex;align-items:center;justify-content:center">
+          <div style="width:3px;height:90px;background:#2a2a3e;border-radius:2px;position:absolute"></div>
+          <div style="width:3px;height:45px;background:#6366f1;border-radius:2px;position:absolute;bottom:0"></div>
+          <div style="width:16px;height:16px;border-radius:50%;background:#6366f1;position:absolute;bottom:45px;cursor:pointer;border:2px solid #fff"></div>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:2px">
+          <div style="width:20px;height:20px;border-radius:50%;border:1px solid #374151;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:8px;color:#9ca3af">○</div>
+          <div style="width:20px;height:20px;border-radius:3px;border:1px solid #374151;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:8px;color:#9ca3af">✕</div>
+        </div>
+        <span style="font-size:10px;color:#6b7280;font-family:monospace">001</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:44px">
+        <span style="font-size:11px;color:#6b7280;font-family:monospace">0</span>
+        <div style="position:relative;height:90px;display:flex;align-items:center;justify-content:center">
+          <div style="width:3px;height:90px;background:#2a2a3e;border-radius:2px;position:absolute"></div>
+          <div style="width:16px;height:16px;border-radius:50%;background:#374151;position:absolute;bottom:0;cursor:pointer;border:2px solid #fff"></div>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:2px">
+          <div style="width:20px;height:20px;border-radius:50%;border:1px solid #374151;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:8px;color:#9ca3af">○</div>
+          <div style="width:20px;height:20px;border-radius:3px;border:1px solid #374151;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:8px;color:#9ca3af">✕</div>
+        </div>
+        <span style="font-size:10px;color:#6b7280;font-family:monospace">002</span>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px;width:44px">
+        <span style="font-size:11px;color:#22c55e;font-weight:600;font-family:monospace">255</span>
+        <div style="position:relative;height:90px;display:flex;align-items:center;justify-content:center">
+          <div style="width:3px;height:90px;background:#2a2a3e;border-radius:2px;position:absolute"></div>
+          <div style="width:3px;height:90px;background:#22c55e;border-radius:2px;position:absolute"></div>
+          <div style="width:16px;height:16px;border-radius:50%;background:#22c55e;position:absolute;top:0;cursor:pointer;border:2px solid #fff"></div>
+        </div>
+        <div style="display:flex;gap:4px;margin-top:2px">
+          <div style="width:20px;height:20px;border-radius:50%;border:1px solid #22c55e;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:8px;color:#22c55e">○</div>
+          <div style="width:20px;height:20px;border-radius:3px;border:1px solid #374151;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:8px;color:#9ca3af">✕</div>
+        </div>
+        <span style="font-size:10px;color:#6b7280;font-family:monospace">003</span>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Value label top, buttons inline at bottom</h3>
+      <p>Value shown above slider. Small ○ and ✕ sit side by side at the bottom next to the channel number.</p>
+    </div>
+  </div>
+
+</div>

@@ -1,33 +1,83 @@
-import DMX from 'dmx'
+import { SerialPort } from 'serialport'
 import type { DmxStatus } from '../src/shared/types'
+
+const START = 0x7e
+const END = 0xe7
+const DMX_START_CODE = 0x00
+
+// MK2 output port labels (match QLC+ outputs 1/2/3)
+const PORT_LABELS = [0x06, 0xa9, 0xca] as const
 
 type UniverseState = Record<number, number>
 
 export class DmxManager {
-  private dmx: InstanceType<typeof DMX> | null = null
+  private port: SerialPort | null = null
   private universes: [UniverseState, UniverseState] = [{}, {}]
+  private buffers: [Buffer, Buffer] = [Buffer.alloc(513, 0), Buffer.alloc(513, 0)]
+  private outputPort: 0 | 1 | 2 = 0
   private fadeInterval: ReturnType<typeof setInterval> | null = null
+  private sendInterval: ReturnType<typeof setInterval> | null = null
   private status: DmxStatus = 'disconnected'
   private onStatusChange?: (status: DmxStatus) => void
 
-  connect(devicePath: string, onStatus: (s: DmxStatus) => void): void {
+  connect(devicePath: string, outputPort: 0 | 1 | 2, onStatus: (s: DmxStatus) => void): void {
     this.onStatusChange = onStatus
+    this.outputPort = outputPort
+
+    if (this.sendInterval) {
+      clearInterval(this.sendInterval)
+      this.sendInterval = null
+    }
+    if (this.port?.isOpen) {
+      this.port.close()
+    }
+    this.port = null
+
     try {
-      this.dmx = new DMX()
-      this.dmx.addUniverse('universe0', 'enttec-usb-dmx-pro', devicePath)
-      this.dmx.addUniverse('universe1', 'enttec-usb-dmx-pro', devicePath, { port: 1 })
-      this.setStatus('connected')
+      this.port = new SerialPort(
+        { path: devicePath, baudRate: 250000, dataBits: 8, stopBits: 2, parity: 'none' },
+        (err) => {
+          if (err) {
+            this.setStatus('error')
+          } else {
+            this.startSending()
+            this.setStatus('connected')
+          }
+        }
+      )
     } catch {
       this.setStatus('error')
     }
   }
 
+  private buildPacket(): Buffer {
+    const label = PORT_LABELS[this.outputPort]
+    // Merge both universe buffers into one — avoids alternating zeros/values
+    const merged = Buffer.alloc(513, 0)
+    for (let i = 1; i <= 512; i++) {
+      merged[i] = Math.max(this.buffers[0][i], this.buffers[1][i])
+    }
+    const hdr = Buffer.from([
+      START,
+      label,
+      merged.length & 0xff,
+      (merged.length >> 8) & 0xff,
+      DMX_START_CODE,
+    ])
+    return Buffer.concat([hdr, merged.slice(1), Buffer.from([END])])
+  }
+
+  private startSending(): void {
+    // 30ms interval > 22.8ms packet transmission time at 250kbaud, so no buffer overlap
+    this.sendInterval = setInterval(() => {
+      if (this.port?.writable) this.port.write(this.buildPacket())
+    }, 30)
+  }
+
   setChannel(universe: 0 | 1, channel: number, value: number): void {
     const v = this.clampValue(value)
     this.universes[universe][channel] = v
-    if (this.dmx) {
-      this.dmx.update(`universe${universe}`, { [channel]: v })
-    }
+    this.buffers[universe][channel] = v
   }
 
   activateScene(

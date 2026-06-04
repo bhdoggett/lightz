@@ -39,6 +39,11 @@ export function App() {
     setConfig((c) => c ? { ...c, devicePath: path } : c)
   }
 
+  const handleDmxOutputPortChange = async (port: 0 | 1 | 2) => {
+    await window.electronAPI.setDmxOutputPort(port)
+    setConfig((c) => c ? { ...c, dmxOutputPort: port } : c)
+  }
+
   const handleExport = () => window.electronAPI.exportShow()
 
   const handleImport = async () => {
@@ -92,8 +97,10 @@ export function App() {
           port={config.companionPort}
           devicePath={config.devicePath}
           ports={[]}
+          dmxOutputPort={config.dmxOutputPort}
           onPortChange={handlePortChange}
           onDevicePathChange={handleDevicePathChange}
+          onDmxOutputPortChange={handleDmxOutputPortChange}
           onClose={() => setCompanionOpen(false)}
         />
       )}

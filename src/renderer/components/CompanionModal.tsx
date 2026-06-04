@@ -7,23 +7,31 @@ interface Props {
   port: number
   devicePath: string
   ports: string[]
+  dmxOutputPort: 0 | 1 | 2
   onPortChange: (port: number) => void
   onDevicePathChange: (path: string) => void
+  onDmxOutputPortChange: (port: 0 | 1 | 2) => void
   onClose: () => void
 }
 
-export function CompanionModal({ scenes, port, devicePath, ports, onPortChange, onDevicePathChange, onClose }: Props) {
+export function CompanionModal({ scenes, port, devicePath, ports, dmxOutputPort, onPortChange, onDevicePathChange, onDmxOutputPortChange, onClose }: Props) {
   const [draftPort, setDraftPort] = useState(String(port))
   const [draftPath, setDraftPath] = useState(devicePath)
   const [detectedPorts, setDetectedPorts] = useState<string[]>(ports)
+  const [refreshError, setRefreshError] = useState<string | null>(null)
   const base = `http://localhost:${port}`
 
   const copyToClipboard = (text: string) => navigator.clipboard?.writeText(text)
 
   const refreshPorts = useCallback(async () => {
-    if (!window.electronAPI?.listPorts) return
-    const found = await window.electronAPI.listPorts()
-    setDetectedPorts(found)
+    setRefreshError(null)
+    try {
+      const found = await window.electronAPI.listPorts()
+      setDetectedPorts(found)
+      if (found.length === 0) setRefreshError('No USB serial devices found in /dev')
+    } catch (e) {
+      setRefreshError(String(e))
+    }
   }, [])
 
   useEffect(() => {
@@ -39,7 +47,7 @@ export function CompanionModal({ scenes, port, devicePath, ports, onPortChange, 
         </div>
 
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>DMX Device Path</h3>
+          <h3 className={styles.sectionTitle}>DMX Device</h3>
           {detectedPorts.length > 0 ? (
             <div className={styles.portList}>
               {detectedPorts.map((p) => (
@@ -53,7 +61,9 @@ export function CompanionModal({ scenes, port, devicePath, ports, onPortChange, 
               ))}
             </div>
           ) : (
-            <p className={styles.noPorts}>No USB serial devices detected — plug in the device and refresh.</p>
+            <p className={styles.noPorts}>
+              {refreshError ?? 'No USB serial devices detected — plug in the device and refresh.'}
+            </p>
           )}
           <button className={styles.refreshBtn} onClick={refreshPorts}>↺ Refresh</button>
           <div className={styles.portRow}>
@@ -62,13 +72,27 @@ export function CompanionModal({ scenes, port, devicePath, ports, onPortChange, 
               className={styles.pathInput}
               value={draftPath}
               onChange={(e) => setDraftPath(e.target.value)}
-              placeholder="/dev/tty.usbserial-XXXXX"
+              placeholder="/dev/cu.usbserial-XXXXX"
               spellCheck={false}
             />
             <button className={styles.savePortBtn} onClick={() => onDevicePathChange(draftPath.trim())}>
               Connect
             </button>
           </div>
+        </section>
+
+        <section className={styles.section}>
+          <h3 className={styles.sectionTitle}>Output Port</h3>
+          <select
+            className={styles.routingSelect}
+            value={dmxOutputPort}
+            onChange={(e) => onDmxOutputPortChange(Number(e.target.value) as 0 | 1 | 2)}
+          >
+            <option value={0}>Output 1</option>
+            <option value={1}>Output 2</option>
+            <option value={2}>Output 3</option>
+          </select>
+          <p className={styles.portHint}>Match this to the output selected in QLC+.</p>
         </section>
 
         <section className={styles.section}>

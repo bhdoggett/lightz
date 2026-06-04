@@ -20,6 +20,7 @@ export interface Config {
   scenes: Scene[]
   companionPort: number // default 3000
   devicePath: string   // e.g. /dev/tty.usbserial-XXXXX, empty = no connection
+  dmxOutputPort: 0 | 1 | 2 // MK2 output port (matches QLC+ output 1/2/3)
 }
 
 // Sent from main → renderer whenever DMX connection state changes

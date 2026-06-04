@@ -19,6 +19,7 @@ const api = {
   },
 
   setDevicePath: (path: string) => ipcRenderer.invoke('config:setDevicePath', { path }),
+  setDmxOutputPort: (port: 0 | 1 | 2) => ipcRenderer.invoke('config:setDmxOutputPort', { port }),
 
   listPorts: () => ipcRenderer.invoke('device:listPorts'),
 
