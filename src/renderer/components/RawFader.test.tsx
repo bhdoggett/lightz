@@ -30,18 +30,28 @@ describe('RawFader', () => {
     expect(onChange).toHaveBeenCalledWith(128)
   })
 
-  it('calls onChange(255) when circle button clicked', async () => {
+  it('calls onChange(255) when toggle clicked while off', async () => {
     const onChange = vi.fn()
     render(<RawFader channel={1} value={0} onChange={onChange} />)
-    await userEvent.click(screen.getByRole('button', { name: /max/i }))
+    await userEvent.click(screen.getByRole('button', { name: /toggle/i }))
     expect(onChange).toHaveBeenCalledWith(255)
   })
 
-  it('calls onChange(0) when X button clicked', async () => {
+  it('calls onChange(0) when toggle clicked while on', async () => {
     const onChange = vi.fn()
     render(<RawFader channel={1} value={200} onChange={onChange} />)
-    await userEvent.click(screen.getByRole('button', { name: /off/i }))
+    await userEvent.click(screen.getByRole('button', { name: /toggle/i }))
     expect(onChange).toHaveBeenCalledWith(0)
+  })
+
+  it('toggle has aria-pressed=false when value is 0', () => {
+    render(<RawFader channel={1} value={0} onChange={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /toggle/i })).toHaveAttribute('aria-pressed', 'false')
+  })
+
+  it('toggle has aria-pressed=true when value is above 0', () => {
+    render(<RawFader channel={1} value={128} onChange={vi.fn()} />)
+    expect(screen.getByRole('button', { name: /toggle/i })).toHaveAttribute('aria-pressed', 'true')
   })
 
   it('does not show rename input without onRename prop', () => {

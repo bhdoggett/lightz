@@ -49,10 +49,14 @@ export function RawFader({ channel, value, label, onChange, onRename }: Props) {
         onChange={(e) => onChange(Number(e.target.value))}
         className={styles.slider}
       />
-      <div className={styles.buttons}>
-        <button className={styles.maxBtn} aria-label="max" onClick={() => onChange(255)}>○</button>
-        <button className={styles.offBtn} aria-label="off" onClick={() => onChange(0)}>✕</button>
-      </div>
+      <button
+        className={`${styles.toggleBtn}${value > 0 ? ` ${styles.on}` : ''}`}
+        aria-label="toggle"
+        aria-pressed={value > 0}
+        onClick={() => onChange(value > 0 ? 0 : 255)}
+      >
+        <span className={styles.toggleDot} />
+      </button>
       <div
         className={`${styles.nameArea}${onRename ? ` ${styles.renameable}` : ''}`}
         onClick={startEdit}

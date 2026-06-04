@@ -26,42 +26,41 @@
   accent-color: var(--accent);
 }
 
-.buttons {
-  display: flex;
-  gap: 4px;
-}
-
-.maxBtn,
-.offBtn {
-  width: 22px;
-  height: 22px;
+.toggleBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--border-default);
   background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
-  color: var(--text-secondary);
-  transition: border-color 0.15s, color 0.15s;
+  transition: border-color 0.15s;
+  padding: 0;
 }
 
-.maxBtn {
-  border-radius: 50%;
+.toggleBtn:hover {
+  border-color: var(--text-secondary);
 }
 
-.maxBtn:hover {
+.toggleBtn.on {
   border-color: var(--accent);
-  color: var(--accent);
 }
 
-.offBtn {
-  border-radius: var(--radius-sm);
+.toggleDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-muted);
+  background: transparent;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
 }
 
-.offBtn:hover {
-  border-color: var(--status-error);
-  color: var(--status-error);
+.toggleBtn.on .toggleDot {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 6px var(--accent-glow);
 }
 
 .nameArea {
