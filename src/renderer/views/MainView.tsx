@@ -145,6 +145,7 @@ export function MainView({ fixtures, scenes, onScenesChange, onFixturesChange }:
               fixture.type === 'dimmer' ? (
                 <FixtureFader
                   key={fixture.id}
+                  channel={fixture.channel}
                   name={fixture.name}
                   value={getChannel(fixture.universe, fixture.channel)}
                   onChange={(v) => handleSetChannel(fixture, v)}
