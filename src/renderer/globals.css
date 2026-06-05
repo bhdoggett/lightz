@@ -45,6 +45,8 @@
   /* Component sizes */
   --fader-width: 3.5rem;  /* 56px */
   --fader-gap: 0.5rem;    /* 8px — consistent gap in both Scenes and Live grids */
+  --drag-indicator-width: 2px;
+  --drag-indicator-glow: var(--space-1); /* 4px blur radius */
 
   /* Typography */
   --font-sans: system-ui, -apple-system, sans-serif;

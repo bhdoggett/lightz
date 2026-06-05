@@ -19,6 +19,7 @@ declare global {
       listPorts: () => Promise<string[]>
       saveGroup: (group: Group) => Promise<Group[]>
       deleteGroup: (id: string) => Promise<void>
+      reorderGroups: (ids: string[]) => Promise<void>
       setGroupOverrides: (map: Record<string, GroupChannelOverride>) => Promise<void>
       exportShow: () => Promise<boolean>
       importShow: () => Promise<Config | null>

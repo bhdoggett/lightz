@@ -14,11 +14,12 @@ export function useIpc() {
   const setPort = useCallback((port: number) => window.electronAPI.setPort(port), [])
   const saveGroup = useCallback((g: Group) => window.electronAPI.saveGroup(g), [])
   const deleteGroup = useCallback((id: string) => window.electronAPI.deleteGroup(id), [])
+  const reorderGroups = useCallback((ids: string[]) => window.electronAPI.reorderGroups(ids), [])
   const setGroupOverrides = useCallback((map: Record<string, GroupChannelOverride>) => window.electronAPI.setGroupOverrides(map), [])
 
   return {
     getConfig, setChannel, saveScene, loadScene, deleteScene, updateScene,
     reorderScenes, updateFixture, deleteFixture, setPort,
-    saveGroup, deleteGroup, setGroupOverrides,
+    saveGroup, deleteGroup, reorderGroups, setGroupOverrides,
   }
 }

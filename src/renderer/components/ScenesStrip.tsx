@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import type { Scene } from '../../shared/types'
+import { useDragReorder } from '../hooks/useDragReorder'
 import styles from './ScenesStrip.module.css'
 
 interface SaveDialogProps {
@@ -80,50 +81,9 @@ interface Props {
 export function ScenesStrip({ scenes, activeSceneId, onActivate, onSave, onUpdate, onDelete, onReorder }: Props) {
   const [saving, setSaving] = useState(false)
   const [editing, setEditing] = useState(false)
-  const [dragId, setDragId] = useState<string | null>(null)
-  const [insertIndex, setInsertIndex] = useState<number | null>(null)
+  const { dragId, insertIndex, containerProps, itemProps } = useDragReorder(scenes, onReorder)
 
   const activeScene = scenes.find((s) => s.id === activeSceneId) ?? null
-
-  // Compute where to insert by finding the first button whose midpoint is to the right of the cursor
-  const computeInsertIndex = (e: React.DragEvent<HTMLDivElement>): number => {
-    const buttons = Array.from(
-      e.currentTarget.querySelectorAll<HTMLElement>('[data-scene-id]')
-    )
-    for (let i = 0; i < buttons.length; i++) {
-      const rect = buttons[i].getBoundingClientRect()
-      if (e.clientX < rect.left + rect.width / 2) return i
-    }
-    return scenes.length
-  }
-
-  const handleStripDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = 'move'
-    setInsertIndex(computeInsertIndex(e))
-  }
-
-  const handleStripDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    const sourceId = e.dataTransfer.getData('text/plain')
-    if (!sourceId || insertIndex === null) return
-    const sourceIndex = scenes.findIndex((s) => s.id === sourceId)
-    if (sourceIndex === -1) return
-    const reordered = [...scenes]
-    const [moved] = reordered.splice(sourceIndex, 1)
-    // Adjust for the gap left by removing the source item
-    const adjusted = insertIndex > sourceIndex ? insertIndex - 1 : insertIndex
-    reordered.splice(adjusted, 0, moved)
-    onReorder(reordered)
-    setDragId(null)
-    setInsertIndex(null)
-  }
-
-  const handleStripDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-      setInsertIndex(null)
-    }
-  }
 
   const showDialog = editing || saving
 
@@ -132,9 +92,7 @@ export function ScenesStrip({ scenes, activeSceneId, onActivate, onSave, onUpdat
       {/* Scenes row with drag-and-drop */}
       <div
         className={styles.scenesRow}
-        onDragOver={handleStripDragOver}
-        onDrop={handleStripDrop}
-        onDragLeave={handleStripDragLeave}
+        {...containerProps}
       >
         <span className={styles.scenesLabel}>Scenes:</span>
         {scenes.map((scene, index) => (
@@ -150,14 +108,7 @@ export function ScenesStrip({ scenes, activeSceneId, onActivate, onSave, onUpdat
                 scene.id === dragId ? styles.dragging : '',
               ].filter(Boolean).join(' ')}
               aria-pressed={scene.id === activeSceneId}
-              draggable
-              data-scene-id={scene.id}
-              onDragStart={(e) => {
-                setDragId(scene.id)
-                e.dataTransfer.effectAllowed = 'move'
-                e.dataTransfer.setData('text/plain', scene.id)
-              }}
-              onDragEnd={() => { setDragId(null); setInsertIndex(null) }}
+              {...itemProps(scene.id)}
             >
               {scene.name}
             </button>

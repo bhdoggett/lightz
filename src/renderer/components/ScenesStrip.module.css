@@ -36,10 +36,14 @@
   border: none;
   background: var(--bg-overlay);
   color: var(--text-primary);
-  cursor: pointer;
+  cursor: grab;
   font-weight: 400;
   font-size: 13px;
   transition: background 0.15s;
+}
+
+.sceneBtn:active {
+  cursor: grabbing;
 }
 
 .sceneBtn.active {
@@ -152,14 +156,15 @@
 
 .dragging {
   opacity: 0.4;
+  cursor: grabbing;
 }
 
 .insertIndicator {
-  width: 2px;
-  min-width: 2px;
+  width: var(--drag-indicator-width);
+  min-width: var(--drag-indicator-width);
   align-self: stretch;
   background: var(--accent);
-  border-radius: 1px;
-  box-shadow: 0 0 4px var(--accent-glow);
-  margin: 0 1px;
+  border-radius: calc(var(--drag-indicator-width) / 2);
+  box-shadow: 0 0 var(--drag-indicator-glow) var(--accent-glow);
+  margin: 0 calc(var(--drag-indicator-width) / 2);
 }

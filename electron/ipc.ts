@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
 import { v4 as uuid } from 'uuid'
 import { makeSceneId } from './slug'
-import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, setDevicePath, setDmxOutputPort, replaceConfig, updateScene, reorderScenes, saveGroup, deleteGroup } from './store'
+import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, setDevicePath, setDmxOutputPort, replaceConfig, updateScene, reorderScenes, saveGroup, deleteGroup, reorderGroups } from './store'
 import { exportShow, importShow } from './show'
 import { listShows, saveNamedShow, loadNamedShow, deleteNamedShow } from './shows-library'
 import { listSerialPorts } from './ports'
@@ -93,6 +93,10 @@ export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: 
 
   ipcMain.handle('group:delete', (_e, { id }: { id: string }) => {
     deleteGroup(id)
+  })
+
+  ipcMain.handle('group:reorder', (_e, { ids }: { ids: string[] }) => {
+    reorderGroups(ids)
   })
 
   ipcMain.handle('group:setOverrides', (_e, map: Record<string, GroupChannelOverride>) => {

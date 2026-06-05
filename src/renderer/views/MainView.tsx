@@ -80,6 +80,11 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     setGroupStates((prev) => { const n = { ...prev }; delete n[id]; return n })
   }, [groups, ipc, onGroupsChange])
 
+  const handleGroupReorder = useCallback(async (reordered: Group[]) => {
+    await ipc.reorderGroups(reordered.map((g) => g.id))
+    onGroupsChange(reordered)
+  }, [ipc, onGroupsChange])
+
   const handleSetChannel = useCallback((fixture: Fixture, value: number) => {
     setLocal(fixture.universe, fixture.channel, value)
     ipc.setChannel({ universe: fixture.universe, channel: fixture.channel, value })
@@ -213,6 +218,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
             onStateChange={handleStateChange}
             onSaveGroup={handleSaveGroup}
             onDeleteGroup={handleDeleteGroup}
+            onReorder={handleGroupReorder}
           />
           <div className={styles.addFixtureRow}>
             <button className={styles.addFixtureBtn} onClick={() => setAddingFixtures(true)}>

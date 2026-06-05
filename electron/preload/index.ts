@@ -27,6 +27,7 @@ const api = {
 
   saveGroup: (group: Group) => ipcRenderer.invoke('group:save', group),
   deleteGroup: (id: string) => ipcRenderer.invoke('group:delete', { id }),
+  reorderGroups: (ids: string[]) => ipcRenderer.invoke('group:reorder', { ids }),
   setGroupOverrides: (map: Record<string, GroupChannelOverride>) => ipcRenderer.invoke('group:setOverrides', map),
 
   exportShow: () => ipcRenderer.invoke('show:export'),
