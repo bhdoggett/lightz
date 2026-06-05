@@ -5,6 +5,16 @@
   gap: 4px;
   width: var(--fader-width);
   flex-shrink: 0;
+  border-bottom: 2px solid transparent;
+  transition: opacity 0.2s;
+}
+
+.grouped {
+  border-bottom-color: var(--group-color);
+}
+
+.muted {
+  opacity: 0.35;
 }
 
 .value {

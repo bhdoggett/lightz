@@ -144,14 +144,18 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   }, [fixtures, universe, ipc, onFixturesChange])
 
   const getFixtureGroupColor = useCallback((fixtureId: string): string | undefined => {
+    return groups.find((g) => g.fixtureIds.includes(fixtureId))?.color
+  }, [groups])
+
+  const isFixtureMuted = useCallback((fixtureId: string): boolean => {
     const group = groups.find((g) => g.fixtureIds.includes(fixtureId))
-    if (!group) return undefined
+    if (!group) return false
     const state = groupStates[group.id]
-    if (!state) return undefined
+    if (!state) return false
     const m = state.override === 'full' ? 1.0
             : state.override === 'mute' ? 0.0
             : state.fader / 100
-    return m < 1.0 ? group.color : undefined
+    return m === 0.0
   }, [groups, groupStates])
 
   const sorted = [...fixtures].sort((a, b) => a.channel - b.channel)
@@ -214,6 +218,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
                 onChange={(v) => handleSetChannel(fixture, v)}
                 onRename={(name) => handleFixtureRename(fixture, name)}
                 groupColor={getFixtureGroupColor(fixture.id)}
+                groupMuted={isFixtureMuted(fixture.id)}
               />
             ))}
             {fixtures.length === 0 && (

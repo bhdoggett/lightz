@@ -8,9 +8,10 @@ interface Props {
   onChange: (value: number) => void
   onRename?: (name: string) => void
   groupColor?: string
+  groupMuted?: boolean
 }
 
-export function RawFader({ channel, value, label, onChange, onRename, groupColor }: Props) {
+export function RawFader({ channel, value, label, onChange, onRename, groupColor, groupMuted }: Props) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -36,7 +37,14 @@ export function RawFader({ channel, value, label, onChange, onRename, groupColor
   }
 
   return (
-    <div className={styles.fader}>
+    <div
+      className={[
+        styles.fader,
+        groupColor ? styles.grouped : '',
+        groupMuted ? styles.muted : '',
+      ].filter(Boolean).join(' ')}
+      style={groupColor ? { '--group-color': groupColor } as React.CSSProperties : undefined}
+    >
       <div className={styles.valueRow}>
         <span className={`${styles.value}${value > 0 ? ` ${styles.active}` : ''}`}>
           {value}
