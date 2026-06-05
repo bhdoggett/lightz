@@ -56,4 +56,47 @@ describe('DmxManager', () => {
       expect(manager.clampValue(128)).toBe(128)
     })
   })
+
+  describe('group multipliers', () => {
+    beforeEach(() => {
+      manager = new DmxManager()
+    })
+
+    it('returns raw value when no multiplier set', () => {
+      manager.setChannel(0, 1, 200)
+      expect(manager.getEffectiveValue(0, 1)).toBe(200)
+    })
+
+    it('applies multiplier to stored value', () => {
+      manager.setChannel(0, 1, 200)
+      manager.setGroupMultipliers({ '0-1': 0.5 })
+      expect(manager.getEffectiveValue(0, 1)).toBe(100)
+    })
+
+    it('multiplier of 0 returns 0', () => {
+      manager.setChannel(0, 1, 200)
+      manager.setGroupMultipliers({ '0-1': 0 })
+      expect(manager.getEffectiveValue(0, 1)).toBe(0)
+    })
+
+    it('multiplier of 1.0 returns full value', () => {
+      manager.setChannel(0, 1, 200)
+      manager.setGroupMultipliers({ '0-1': 1.0 })
+      expect(manager.getEffectiveValue(0, 1)).toBe(200)
+    })
+
+    it('rounds fractional results', () => {
+      manager.setChannel(0, 1, 3)
+      manager.setGroupMultipliers({ '0-1': 0.5 })
+      expect(manager.getEffectiveValue(0, 1)).toBe(2) // Math.round(1.5) = 2
+    })
+
+    it('setGroupMultipliers replaces previous map', () => {
+      manager.setChannel(0, 1, 200)
+      manager.setGroupMultipliers({ '0-1': 0.5 })
+      manager.setGroupMultipliers({ '0-2': 0.5 }) // channel 1 multiplier gone
+      expect(manager.getEffectiveValue(0, 1)).toBe(200) // back to full
+      expect(manager.getEffectiveValue(0, 2)).toBe(0)   // channel 2 was never set
+    })
+  })
 })

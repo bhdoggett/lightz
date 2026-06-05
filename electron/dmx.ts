@@ -19,6 +19,7 @@ export class DmxManager {
   private sendInterval: ReturnType<typeof setInterval> | null = null
   private status: DmxStatus = 'disconnected'
   private onStatusChange?: (status: DmxStatus) => void
+  private groupMultipliers: Record<string, number> = {}
 
   connect(devicePath: string, outputPort: 0 | 1 | 2, onStatus: (s: DmxStatus) => void): void {
     this.onStatusChange = onStatus
@@ -70,7 +71,11 @@ export class DmxManager {
     // Merge both universe buffers into one — avoids alternating zeros/values
     const merged = Buffer.alloc(513, 0)
     for (let i = 1; i <= 512; i++) {
-      merged[i] = Math.max(this.buffers[0][i], this.buffers[1][i])
+      const mU0 = this.groupMultipliers[`0-${i}`] ?? 1.0
+      const mU1 = this.groupMultipliers[`1-${i}`] ?? 1.0
+      const effectiveU0 = this.clampValue(Math.round((this.universes[0][i] ?? 0) * mU0))
+      const effectiveU1 = this.clampValue(Math.round((this.universes[1][i] ?? 0) * mU1))
+      merged[i] = Math.max(effectiveU0, effectiveU1)
     }
     const hdr = Buffer.from([
       START,
@@ -159,6 +164,16 @@ export class DmxManager {
 
   clampValue(value: number): number {
     return Math.max(0, Math.min(255, value))
+  }
+
+  setGroupMultipliers(map: Record<string, number>): void {
+    this.groupMultipliers = { ...map }
+  }
+
+  getEffectiveValue(universe: 0 | 1, channel: number): number {
+    const raw = this.universes[universe][channel] ?? 0
+    const m = this.groupMultipliers[`${universe}-${channel}`] ?? 1.0
+    return this.clampValue(Math.round(raw * m))
   }
 
   private setStatus(status: DmxStatus): void {
