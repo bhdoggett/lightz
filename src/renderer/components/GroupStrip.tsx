@@ -58,6 +58,7 @@ export function GroupStrip({ groups, fixtures, groupStates, onStateChange, onSav
         <Modal
           title={editingGroup ? `Edit: ${editingGroup.name}` : 'New Group'}
           onClose={() => setEditingId(null)}
+          centered
         >
           <GroupEditor
             groups={groups}

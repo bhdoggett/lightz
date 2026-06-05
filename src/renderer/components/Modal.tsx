@@ -7,9 +7,10 @@ interface Props {
   children: ReactNode
   minWidth?: string
   maxWidth?: string
+  centered?: boolean  // center content horizontally (default false)
 }
 
-export function Modal({ title, onClose, children, minWidth = '360px', maxWidth = '560px' }: Props) {
+export function Modal({ title, onClose, children, minWidth = '360px', maxWidth = '560px', centered = false }: Props) {
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div
@@ -21,7 +22,7 @@ export function Modal({ title, onClose, children, minWidth = '360px', maxWidth =
           <span className={styles.title}>{title}</span>
           <button className={styles.closeBtn} onClick={onClose}>×</button>
         </div>
-        <div className={styles.body}>
+        <div className={`${styles.body}${centered ? ` ${styles.centered}` : ''}`}>
           {children}
         </div>
       </div>
