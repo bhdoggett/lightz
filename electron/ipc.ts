@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid'
 import { makeSceneId } from './slug'
 import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, setDevicePath, setDmxOutputPort, replaceConfig, updateScene, reorderScenes, saveGroup, deleteGroup } from './store'
 import { exportShow, importShow } from './show'
+import { listShows, saveNamedShow, loadNamedShow, deleteNamedShow } from './shows-library'
 import { listSerialPorts } from './ports'
 import type { DmxManager } from './dmx'
 import type { Fixture, SaveSceneArgs, SetChannelArgs, UpdateSceneArgs, Group, GroupChannelOverride } from '../src/shared/types'
@@ -96,5 +97,23 @@ export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: 
 
   ipcMain.handle('group:setOverrides', (_e, map: Record<string, GroupChannelOverride>) => {
     dmxManager.setGroupOverrides(map)
+  })
+
+  ipcMain.handle('show:list', () => listShows())
+
+  ipcMain.handle('show:saveNamed', (_e, { name }: { name: string }) => {
+    saveNamedShow(name, getConfig())
+    return listShows()
+  })
+
+  ipcMain.handle('show:loadNamed', (_e, { name }: { name: string }) => {
+    const config = loadNamedShow(name)
+    replaceConfig(config)
+    return config
+  })
+
+  ipcMain.handle('show:deleteNamed', (_e, { name }: { name: string }) => {
+    deleteNamedShow(name)
+    return listShows()
   })
 }

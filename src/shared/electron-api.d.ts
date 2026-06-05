@@ -1,4 +1,4 @@
-import type { Fixture, Config, Scene, SaveSceneArgs, SetChannelArgs, DmxStatus, UpdateSceneArgs, Group, GroupChannelOverride } from './types'
+import type { Fixture, Config, Scene, SaveSceneArgs, SetChannelArgs, DmxStatus, UpdateSceneArgs, Group, GroupChannelOverride, ShowInfo } from './types'
 
 declare global {
   interface Window {
@@ -22,6 +22,10 @@ declare global {
       setGroupOverrides: (map: Record<string, GroupChannelOverride>) => Promise<void>
       exportShow: () => Promise<boolean>
       importShow: () => Promise<Config | null>
+      listShows: () => Promise<ShowInfo[]>
+      saveNamedShow: (name: string) => Promise<ShowInfo[]>
+      loadNamedShow: (name: string) => Promise<Config>
+      deleteNamedShow: (name: string) => Promise<ShowInfo[]>
     }
   }
 }

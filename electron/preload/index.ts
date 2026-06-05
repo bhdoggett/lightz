@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { Fixture, SaveSceneArgs, SetChannelArgs, DmxStatus, UpdateSceneArgs, Group, GroupChannelOverride } from '../../src/shared/types'
+import type { Fixture, SaveSceneArgs, SetChannelArgs, DmxStatus, UpdateSceneArgs, Group, GroupChannelOverride, ShowInfo } from '../../src/shared/types'
 
 const api = {
   getConfig: () => ipcRenderer.invoke('config:get'),
@@ -31,6 +31,11 @@ const api = {
 
   exportShow: () => ipcRenderer.invoke('show:export'),
   importShow: () => ipcRenderer.invoke('show:import'),
+
+  listShows: () => ipcRenderer.invoke('show:list'),
+  saveNamedShow: (name: string) => ipcRenderer.invoke('show:saveNamed', { name }),
+  loadNamedShow: (name: string) => ipcRenderer.invoke('show:loadNamed', { name }),
+  deleteNamedShow: (name: string) => ipcRenderer.invoke('show:deleteNamed', { name }),
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)

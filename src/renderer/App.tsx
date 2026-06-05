@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { MainView } from './views/MainView'
 import { ConnectionBadge } from './components/ConnectionBadge'
 import { CompanionModal } from './components/CompanionModal'
+import { ShowsModal } from './components/ShowsModal'
 import type { Config, DmxStatus, Fixture, Scene, Group } from '../shared/types'
 import styles from './App.module.css'
 
@@ -9,6 +10,7 @@ export function App() {
   const [config, setConfig] = useState<Config | null>(null)
   const [dmxStatus, setDmxStatus] = useState<DmxStatus>('disconnected')
   const [companionOpen, setCompanionOpen] = useState(false)
+  const [showsOpen, setShowsOpen] = useState(false)
 
   useEffect(() => {
     window.electronAPI.getConfig().then(setConfig)
@@ -43,23 +45,13 @@ export function App() {
     setConfig((c) => c ? { ...c, dmxOutputPort: port } : c)
   }
 
-  const handleExport = () => window.electronAPI.exportShow()
-
-  const handleImport = async () => {
-    const imported = await window.electronAPI.importShow()
-    if (imported) setConfig(imported)
-  }
-
   return (
     <div className={styles.app}>
       <header className={styles.header}>
         <span className={styles.appName}>Church Lights</span>
         <div className={styles.headerRight}>
-          <button className={styles.showBtn} onClick={handleImport} title="Load a show file">
-            Open Show
-          </button>
-          <button className={styles.showBtn} onClick={handleExport} title="Save show to file">
-            Save Show
+          <button className={styles.showBtn} onClick={() => setShowsOpen(true)} title="Shows">
+            Shows
           </button>
           <div className={styles.showDivider} />
           <ConnectionBadge status={dmxStatus} />
@@ -79,6 +71,13 @@ export function App() {
           onGroupsChange={handleGroupsChange}
         />
       </div>
+
+      {showsOpen && (
+        <ShowsModal
+          onLoad={(imported) => setConfig(imported)}
+          onClose={() => setShowsOpen(false)}
+        />
+      )}
 
       {companionOpen && (
         <CompanionModal

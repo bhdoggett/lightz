@@ -47,6 +47,11 @@ export interface UpdateSceneArgs {
 }
 
 // Per-channel group override sent to DmxManager
+export interface ShowInfo {
+  name: string
+  modifiedAt: number  // ms timestamp
+}
+
 export type GroupChannelOverride =
   | { kind: 'full' }                    // output = 255
   | { kind: 'mute' }                    // output = 0
