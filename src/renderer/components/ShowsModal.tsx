@@ -4,7 +4,8 @@ import type { Config, ShowInfo } from '../../shared/types'
 import styles from './ShowsModal.module.css'
 
 interface Props {
-  onLoad: (config: Config) => void
+  onLoad: (config: Config, name: string) => void
+  onSaved?: (name: string) => void  // called after a successful save-as
   onClose: () => void
 }
 
@@ -14,7 +15,7 @@ function formatDate(ms: number): string {
   })
 }
 
-export function ShowsModal({ onLoad, onClose }: Props) {
+export function ShowsModal({ onLoad, onSaved, onClose }: Props) {
   const [shows, setShows] = useState<ShowInfo[]>([])
   const [newName, setNewName] = useState('')
   const [saving, setSaving] = useState(false)
@@ -34,7 +35,7 @@ export function ShowsModal({ onLoad, onClose }: Props) {
   const handleLoad = async (name: string) => {
     try {
       const config = await window.electronAPI.loadNamedShow(name)
-      onLoad(config)
+      onLoad(config, name)
       onClose()
     } catch (e) {
       setError(`Could not load "${name}": ${String(e)}`)
@@ -58,6 +59,7 @@ export function ShowsModal({ onLoad, onClose }: Props) {
     try {
       const updated = await window.electronAPI.saveNamedShow(name)
       setShows(updated)
+      onSaved?.(name)
       setNewName('')
     } catch (e) {
       setError(`Could not save show: ${String(e)}`)

@@ -11,6 +11,8 @@ export function App() {
   const [dmxStatus, setDmxStatus] = useState<DmxStatus>('disconnected')
   const [companionOpen, setCompanionOpen] = useState(false)
   const [showsOpen, setShowsOpen] = useState(false)
+  const [currentShowName, setCurrentShowName] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     window.electronAPI.getConfig().then(setConfig)
@@ -45,13 +47,33 @@ export function App() {
     setConfig((c) => c ? { ...c, dmxOutputPort: port } : c)
   }
 
+  const handleSaveCurrent = async () => {
+    if (!currentShowName) return
+    setSaving(true)
+    try {
+      await window.electronAPI.saveNamedShow(currentShowName)
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className={styles.app}>
       <header className={styles.header}>
         <span className={styles.appName}>Church Lights</span>
         <div className={styles.headerRight}>
+          {currentShowName && (
+            <button
+              className={styles.showBtn}
+              onClick={handleSaveCurrent}
+              disabled={saving}
+              title={`Save to "${currentShowName}"`}
+            >
+              {saving ? 'Saving…' : `Save`}
+            </button>
+          )}
           <button className={styles.showBtn} onClick={() => setShowsOpen(true)} title="Shows">
-            Shows
+            {currentShowName ?? 'Shows'}
           </button>
           <div className={styles.showDivider} />
           <ConnectionBadge status={dmxStatus} />
@@ -74,7 +96,8 @@ export function App() {
 
       {showsOpen && (
         <ShowsModal
-          onLoad={(imported) => setConfig(imported)}
+          onLoad={(imported, name) => { setConfig(imported); setCurrentShowName(name) }}
+          onSaved={(name) => setCurrentShowName(name)}
           onClose={() => setShowsOpen(false)}
         />
       )}
