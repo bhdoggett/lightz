@@ -60,6 +60,23 @@
   color: #fff;
 }
 
+.addFixtureBtn {
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-default);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  align-self: flex-start;
+  flex-shrink: 0;
+}
+
+.addFixtureBtn:hover {
+  color: var(--text-secondary);
+  border-color: var(--text-secondary);
+}
+
 .fixtures {
   flex: 1;
   padding: var(--space-6);

@@ -2,13 +2,14 @@ import { useState, useCallback, useEffect, useMemo } from 'react'
 import { ScenesStrip } from '../components/ScenesStrip'
 import { FixtureFader } from '../components/FixtureFader'
 import { GroupStrip } from '../components/GroupStrip'
+import { AddFixturesModal } from '../components/AddFixturesModal'
 import { LiveView } from './LiveView'
 import { useIpc } from '../hooks/useIpc'
 import { useDmxState } from '../hooks/useDmxState'
 import type { Fixture, Scene, Group, GroupChannelOverride } from '../../shared/types'
 import styles from './MainView.module.css'
 
-type Tab = 'scenes' | 'live'
+type Tab = 'custom' | 'live'
 type GroupState = { fader: number; override: 'full' | 'mute' | null }
 
 interface Props {
@@ -24,9 +25,10 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   const ipc = useIpc()
   const { getChannel, setChannel: setLocal, applyScene } = useDmxState()
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null)
-  const [tab, setTab] = useState<Tab>('scenes')
+  const [tab, setTab] = useState<Tab>('custom')
   const [universe, setUniverse] = useState<0 | 1>(0)
   const [groupStates, setGroupStates] = useState<Record<string, GroupState>>({})
+  const [addingFixtures, setAddingFixtures] = useState(false)
 
   // Initialise runtime state for any new group
   useEffect(() => {
@@ -114,6 +116,12 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     onScenesChange(reordered)
   }, [ipc, onScenesChange])
 
+  const handleAddFixtures = useCallback(async (newFixtures: Fixture[]) => {
+    const saved = await Promise.all(newFixtures.map((f) => ipc.updateFixture(f)))
+    onFixturesChange([...fixtures, ...saved])
+    setAddingFixtures(false)
+  }, [fixtures, ipc, onFixturesChange])
+
   const handleFixtureRename = useCallback(async (fixture: Fixture, name: string) => {
     if (!name) {
       await ipc.deleteFixture(fixture.id)
@@ -160,10 +168,10 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     <div className={styles.view}>
       <div className={styles.tabBar}>
         <button
-          className={`${styles.tab}${tab === 'scenes' ? ` ${styles.active}` : ''}`}
-          onClick={() => setTab('scenes')}
+          className={`${styles.tab}${tab === 'custom' ? ` ${styles.active}` : ''}`}
+          onClick={() => setTab('custom')}
         >
-          Scenes
+          Custom
         </button>
         <button
           className={`${styles.tab}${tab === 'live' ? ` ${styles.active}` : ''}`}
@@ -185,7 +193,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
         )}
       </div>
 
-      {tab === 'scenes' ? (
+      {tab === 'custom' && (
         <>
           <ScenesStrip
             scenes={scenes}
@@ -205,6 +213,9 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
             onDeleteGroup={handleDeleteGroup}
           />
           <div className={styles.fixtures}>
+            <button className={styles.addFixtureBtn} onClick={() => setAddingFixtures(true)}>
+              + Add Fixtures
+            </button>
             {sorted.map((fixture) => (
               <FixtureFader
                 key={fixture.id}
@@ -218,11 +229,21 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
               />
             ))}
             {fixtures.length === 0 && (
-              <p className={styles.empty}>No fixtures configured. Name channels in the Live tab.</p>
+              <p className={styles.empty}>No fixtures yet — click "+ Add Fixtures" to get started.</p>
             )}
           </div>
         </>
-      ) : (
+      )}
+
+      {addingFixtures && (
+        <AddFixturesModal
+          existingFixtures={fixtures}
+          onAdd={handleAddFixtures}
+          onClose={() => setAddingFixtures(false)}
+        />
+      )}
+
+      {tab === 'live' && (
         <LiveView
           universe={universe}
           fixtures={fixtures}
