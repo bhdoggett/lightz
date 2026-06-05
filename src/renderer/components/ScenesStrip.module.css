@@ -36,14 +36,10 @@
   border: none;
   background: var(--bg-overlay);
   color: var(--text-primary);
-  cursor: grab;
+  cursor: pointer;
   font-weight: 400;
   font-size: 13px;
   transition: background 0.15s;
-}
-
-.sceneBtn:active {
-  cursor: grabbing;
 }
 
 .sceneBtn.active {
