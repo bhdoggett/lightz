@@ -168,16 +168,16 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     <div className={styles.view}>
       <div className={styles.tabBar}>
         <button
-          className={`${styles.tab}${tab === 'custom' ? ` ${styles.active}` : ''}`}
-          onClick={() => setTab('custom')}
-        >
-          Custom
-        </button>
-        <button
           className={`${styles.tab}${tab === 'live' ? ` ${styles.active}` : ''}`}
           onClick={() => setTab('live')}
         >
           Live
+        </button>
+        <button
+          className={`${styles.tab}${tab === 'custom' ? ` ${styles.active}` : ''}`}
+          onClick={() => setTab('custom')}
+        >
+          Custom
         </button>
         {tab === 'live' && (
           <div className={styles.universeToggle}>
