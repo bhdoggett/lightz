@@ -20,7 +20,7 @@ interface Props {
   onFixturesChange: (fixtures: Fixture[]) => void
   onGroupsChange: (groups: Group[]) => void
   currentShowName?: string | null
-  onSave: () => void  // save or open Shows modal if no show loaded
+  onSave?: () => void
 }
 
 export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesChange, onGroupsChange, currentShowName = null, onSave }: Props) {
@@ -193,17 +193,6 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
             >U2</button>
           </div>
         )}
-        <button
-          className={`${styles.saveBtn}${currentShowName ? '' : ` ${styles.saveBtnDim}`}`}
-          onClick={onSave}
-          title={currentShowName ? `Save to "${currentShowName}"` : 'Save show'}
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="1" y="1" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
-            <rect x="3.5" y="1" width="5" height="4.5" rx="0.5" fill="currentColor"/>
-            <rect x="3" y="7" width="8" height="5" rx="0.5" fill="currentColor"/>
-          </svg>
-        </button>
       </div>
 
       {tab === 'custom' && (

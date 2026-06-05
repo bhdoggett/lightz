@@ -62,6 +62,20 @@ export function App() {
       <header className={styles.header}>
         <span className={styles.appName}>Church Lights</span>
         <div className={styles.headerRight}>
+          {currentShowName && (
+            <button
+              className={styles.saveIconBtn}
+              onClick={handleSaveCurrent}
+              disabled={saving}
+              title={`Save to "${currentShowName}"`}
+            >
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="1" y="1" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
+                <rect x="3.5" y="1" width="5" height="4.5" rx="0.5" fill="currentColor"/>
+                <rect x="3" y="7" width="8" height="5" rx="0.5" fill="currentColor"/>
+              </svg>
+            </button>
+          )}
           <button className={styles.showBtn} onClick={() => setShowsOpen(true)} title="Shows">
             {currentShowName ?? 'Shows'}
           </button>
@@ -82,7 +96,6 @@ export function App() {
           onFixturesChange={handleFixturesChange}
           onGroupsChange={handleGroupsChange}
           currentShowName={currentShowName}
-          onSave={currentShowName ? handleSaveCurrent : () => setShowsOpen(true)}
         />
       </div>
 

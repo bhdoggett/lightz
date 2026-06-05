@@ -43,6 +43,21 @@
   background: var(--bg-overlay);
 }
 
+.saveIconBtn {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+}
+
+.saveIconBtn:hover {
+  color: var(--text-primary);
+}
+
 .showBtn {
   padding: 4px 10px;
   border-radius: var(--radius-md);
