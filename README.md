@@ -1,4 +1,4 @@
-# Church Lights
+# Lightz
 
 A macOS desktop app for controlling DMX church lighting via an **Enttec USB DMX Pro Mk2**. Built for live worship environments — fast scene recall, DCA-style fixture groups, and Bitfocus Companion integration.
 
@@ -17,20 +17,20 @@ npm install
 npm run build:mac
 ```
 
-Open `dist-electron/Church Lights-0.1.0-arm64.dmg` (Apple Silicon) or `Church Lights-0.1.0.dmg` (Intel) from Finder. Drag **Church Lights** to Applications.
+Open `dist-electron/Lightz-0.1.0-arm64.dmg` (Apple Silicon) or `Lightz-0.1.0.dmg` (Intel) from Finder. Drag **Lightz** to Applications.
 
 ### Option B — Download pre-built .dmg
 
-**[→ All releases](https://github.com/bhdoggett/church-lights/releases)**
+**[→ All releases](https://github.com/bhdoggett/lightz/releases)**
 
 Download the right file for your Mac:
 
 | Download | For |
 |---|---|
-| [Church Lights-0.1.0-arm64.dmg](https://github.com/bhdoggett/church-lights/releases/download/v0.1.0/Church.Lights-0.1.0-arm64.dmg) | Apple Silicon (M1/M2/M3/M4) |
-| [Church Lights-0.1.0.dmg](https://github.com/bhdoggett/church-lights/releases/download/v0.1.0/Church.Lights-0.1.0.dmg) | Intel Mac |
+| [Lightz-0.1.0-arm64.dmg](https://github.com/bhdoggett/church-lights/releases/download/v0.1.0/Church.Lights-0.1.0-arm64.dmg) | Apple Silicon (M1/M2/M3/M4) |
+| [Lightz-0.1.0.dmg](https://github.com/bhdoggett/church-lights/releases/download/v0.1.0/Church.Lights-0.1.0.dmg) | Intel Mac |
 
-Double-click the `.dmg`, drag Church Lights to Applications, then open it. macOS may prompt you in **System Settings → Privacy & Security** on first launch — click **Open Anyway**.
+Double-click the `.dmg`, drag Lightz to Applications, then open it. macOS may prompt you in **System Settings → Privacy & Security** on first launch — click **Open Anyway**.
 
 ---
 
@@ -48,7 +48,7 @@ Double-click the `.dmg`, drag Church Lights to Applications, then open it. macOS
 ## First Launch
 
 1. Plug in the Enttec device via USB.
-2. Open Church Lights.
+2. Open Lightz.
 3. Click **⚙** (top right) → **Settings**.
 4. Under **DMX Device**, click **↺ Refresh** — your device should appear as `/dev/cu.usbmodem...`.
 5. Click the device path to select it, then click **Connect**.
@@ -85,10 +85,10 @@ Groups work like a soundboard DCA — a master control that scales a set of fixt
 ### Shows
 A show file captures your entire rig: fixture definitions, scenes, group setup, and device settings.
 
-- Shows are saved to **`~/Documents/Church Lights/`** as named JSON files — no file picker needed.
+- Shows are saved to **`~/Documents/Lightz/`** as named JSON files — no file picker needed.
 - Click **Shows** in the header to open, save, or manage shows.
 - **+ New Show** clears all fixtures, scenes, and groups (device settings preserved).
-- Share show files by copying the `.json` files from `~/Documents/Church Lights/`.
+- Share show files by copying the `.json` files from `~/Documents/Lightz/`.
 
 ---
 
@@ -114,7 +114,7 @@ Click any channel number on a fader to type a name. Named channels become fixtur
 
 ## Bitfocus Companion Integration
 
-Church Lights runs a local HTTP server that Companion can call to fire scenes.
+Lightz runs a local HTTP server that Companion can call to fire scenes.
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -159,7 +159,7 @@ npm test             # run test suite
 npm run build:mac    # build distributable .dmg files
 ```
 
-Output DMGs: `dist-electron/Church Lights-<version>[-arm64].dmg`
+Output DMGs: `dist-electron/Lightz-<version>[-arm64].dmg`
 
 ### Project Structure
 

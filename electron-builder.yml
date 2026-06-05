@@ -1,5 +1,5 @@
-appId: com.churchlights.app
-productName: Church Lights
+appId: com.lightz.app
+productName: Lightz
 directories:
   output: dist-electron
   buildResources: build
