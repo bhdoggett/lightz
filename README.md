@@ -1,6 +1,6 @@
 # Lightz
 
-A macOS desktop app for controlling DMX church lighting via an **Enttec USB DMX Pro Mk2**. Built for live worship environments — fast scene recall, DCA-style fixture groups, and Bitfocus Companion integration.
+A macOS desktop app for controlling DMX lighting via an **Enttec USB DMX Pro Mk2**. Built for live worship environments — fast scene recall, DCA-style fixture groups, and Bitfocus Companion integration.
 
 > **macOS only.** Windows is not supported — the Enttec driver relies on macOS serial port access.
 
@@ -11,8 +11,8 @@ A macOS desktop app for controlling DMX church lighting via an **Enttec USB DMX 
 ### Option A — Build from source (recommended for now)
 
 ```bash
-git clone https://github.com/bhdoggett/church-lights.git
-cd church-lights
+git clone https://github.com/bhdoggett/lightz.git
+cd lightz
 npm install
 npm run build:mac
 ```
@@ -27,8 +27,8 @@ Download the right file for your Mac:
 
 | Download | For |
 |---|---|
-| [Lightz-0.1.0-arm64.dmg](https://github.com/bhdoggett/church-lights/releases/download/v0.1.0/Church.Lights-0.1.0-arm64.dmg) | Apple Silicon (M1/M2/M3/M4) |
-| [Lightz-0.1.0.dmg](https://github.com/bhdoggett/church-lights/releases/download/v0.1.0/Church.Lights-0.1.0.dmg) | Intel Mac |
+| [Lightz-0.1.0-arm64.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.1.0/Lightz-0.1.0-arm64.dmg) | Apple Silicon (M1/M2/M3/M4) |
+| [Lightz-0.1.0.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.1.0/Lightz-0.1.0.dmg) | Intel Mac |
 
 Double-click the `.dmg`, drag Lightz to Applications, then open it. macOS may prompt you in **System Settings → Privacy & Security** on first launch — click **Open Anyway**.
 
