@@ -1,27 +1,79 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useMemo } from 'react'
 import { ScenesStrip } from '../components/ScenesStrip'
 import { FixtureFader } from '../components/FixtureFader'
+import { GroupStrip } from '../components/GroupStrip'
 import { LiveView } from './LiveView'
 import { useIpc } from '../hooks/useIpc'
 import { useDmxState } from '../hooks/useDmxState'
-import type { Fixture, Scene } from '../../shared/types'
+import type { Fixture, Scene, Group } from '../../shared/types'
 import styles from './MainView.module.css'
 
 type Tab = 'scenes' | 'live'
+type GroupState = { fader: number; override: 'full' | 'mute' | null }
 
 interface Props {
   fixtures: Fixture[]
   scenes: Scene[]
+  groups: Group[]
   onScenesChange: (scenes: Scene[]) => void
   onFixturesChange: (fixtures: Fixture[]) => void
+  onGroupsChange: (groups: Group[]) => void
 }
 
-export function MainView({ fixtures, scenes, onScenesChange, onFixturesChange }: Props) {
+export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesChange, onGroupsChange }: Props) {
   const ipc = useIpc()
   const { getChannel, setChannel: setLocal, applyScene } = useDmxState()
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('scenes')
   const [universe, setUniverse] = useState<0 | 1>(0)
+  const [groupStates, setGroupStates] = useState<Record<string, GroupState>>({})
+
+  // Initialise runtime state for any new group
+  useEffect(() => {
+    setGroupStates((prev) => {
+      const next = { ...prev }
+      for (const g of groups) {
+        if (!next[g.id]) next[g.id] = { fader: 100, override: null }
+      }
+      return next
+    })
+  }, [groups])
+
+  // Build and push multiplier map whenever groups or group states change
+  const multiplierMap = useMemo(() => {
+    const map: Record<string, number> = {}
+    for (const group of groups) {
+      const state = groupStates[group.id] ?? { fader: 100, override: null }
+      const m = state.override === 'full' ? 1.0
+              : state.override === 'mute' ? 0.0
+              : state.fader / 100
+      for (const fixtureId of group.fixtureIds) {
+        const fixture = fixtures.find((f) => f.id === fixtureId)
+        if (!fixture) continue
+        map[`${fixture.universe}-${fixture.channel}`] = m
+      }
+    }
+    return map
+  }, [groups, groupStates, fixtures])
+
+  useEffect(() => {
+    ipc.setGroupMultipliers(multiplierMap)
+  }, [multiplierMap, ipc])
+
+  const handleStateChange = useCallback((groupId: string, state: GroupState) => {
+    setGroupStates((prev) => ({ ...prev, [groupId]: state }))
+  }, [])
+
+  const handleSaveGroup = useCallback(async (group: Group) => {
+    const updated = await ipc.saveGroup(group)
+    if (updated) onGroupsChange(updated)
+  }, [ipc, onGroupsChange])
+
+  const handleDeleteGroup = useCallback(async (id: string) => {
+    await ipc.deleteGroup(id)
+    onGroupsChange(groups.filter((g) => g.id !== id))
+    setGroupStates((prev) => { const n = { ...prev }; delete n[id]; return n })
+  }, [groups, ipc, onGroupsChange])
 
   const handleSetChannel = useCallback((fixture: Fixture, value: number) => {
     setLocal(fixture.universe, fixture.channel, value)
@@ -61,7 +113,6 @@ export function MainView({ fixtures, scenes, onScenesChange, onFixturesChange }:
     onScenesChange(reordered)
   }, [ipc, onScenesChange])
 
-  // Rename a named fixture (from Scenes view) — empty name removes it
   const handleFixtureRename = useCallback(async (fixture: Fixture, name: string) => {
     if (!name) {
       await ipc.deleteFixture(fixture.id)
@@ -72,7 +123,6 @@ export function MainView({ fixtures, scenes, onScenesChange, onFixturesChange }:
     }
   }, [fixtures, ipc, onFixturesChange])
 
-  // Rename by channel from Live view — creates fixture if none exists, empty name removes it
   const handleChannelRename = useCallback(async (channel: number, name: string) => {
     const existing = fixtures.find((f) => f.universe === universe && f.channel === channel)
     if (!name) {
@@ -92,6 +142,17 @@ export function MainView({ fixtures, scenes, onScenesChange, onFixturesChange }:
       onFixturesChange([...fixtures, saved])
     }
   }, [fixtures, universe, ipc, onFixturesChange])
+
+  const getFixtureGroupColor = useCallback((fixtureId: string): string | undefined => {
+    const group = groups.find((g) => g.fixtureIds.includes(fixtureId))
+    if (!group) return undefined
+    const state = groupStates[group.id]
+    if (!state) return undefined
+    const m = state.override === 'full' ? 1.0
+            : state.override === 'mute' ? 0.0
+            : state.fader / 100
+    return m < 1.0 ? group.color : undefined
+  }, [groups, groupStates])
 
   const sorted = [...fixtures].sort((a, b) => a.channel - b.channel)
 
@@ -115,15 +176,11 @@ export function MainView({ fixtures, scenes, onScenesChange, onFixturesChange }:
             <button
               className={`${styles.uBtn}${universe === 0 ? ` ${styles.active}` : ''}`}
               onClick={() => setUniverse(0)}
-            >
-              U1
-            </button>
+            >U1</button>
             <button
               className={`${styles.uBtn}${universe === 1 ? ` ${styles.active}` : ''}`}
               onClick={() => setUniverse(1)}
-            >
-              U2
-            </button>
+            >U2</button>
           </div>
         )}
       </div>
@@ -139,6 +196,16 @@ export function MainView({ fixtures, scenes, onScenesChange, onFixturesChange }:
             onDelete={handleSceneDelete}
             onReorder={handleSceneReorder}
           />
+          {groups.length > 0 && (
+            <GroupStrip
+              groups={groups}
+              fixtures={fixtures}
+              groupStates={groupStates}
+              onStateChange={handleStateChange}
+              onSaveGroup={handleSaveGroup}
+              onDeleteGroup={handleDeleteGroup}
+            />
+          )}
           <div className={styles.fixtures}>
             {sorted.map((fixture) => (
               <FixtureFader
@@ -148,10 +215,11 @@ export function MainView({ fixtures, scenes, onScenesChange, onFixturesChange }:
                 value={getChannel(fixture.universe, fixture.channel)}
                 onChange={(v) => handleSetChannel(fixture, v)}
                 onRename={(name) => handleFixtureRename(fixture, name)}
+                groupColor={getFixtureGroupColor(fixture.id)}
               />
             ))}
             {fixtures.length === 0 && (
-              <p className={styles.empty}>No fixtures configured. Go to Setup to add fixtures.</p>
+              <p className={styles.empty}>No fixtures configured. Name channels in the Live tab.</p>
             )}
           </div>
         </>

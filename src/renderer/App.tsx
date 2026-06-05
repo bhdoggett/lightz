@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { MainView } from './views/MainView'
 import { ConnectionBadge } from './components/ConnectionBadge'
 import { CompanionModal } from './components/CompanionModal'
-import type { Config, DmxStatus, Fixture, Scene } from '../shared/types'
+import type { Config, DmxStatus, Fixture, Scene, Group } from '../shared/types'
 import styles from './App.module.css'
 
 export function App() {
@@ -24,6 +24,9 @@ export function App() {
 
   const handleScenesChange = (scenes: Scene[]) =>
     setConfig((c) => c ? { ...c, scenes } : c)
+
+  const handleGroupsChange = (groups: Group[]) =>
+    setConfig((c) => c ? { ...c, groups } : c)
 
   const handlePortChange = async (port: number) => {
     await window.electronAPI.setPort(port)
@@ -70,8 +73,10 @@ export function App() {
         <MainView
           fixtures={config.fixtures}
           scenes={config.scenes}
+          groups={config.groups}
           onScenesChange={handleScenesChange}
           onFixturesChange={handleFixturesChange}
+          onGroupsChange={handleGroupsChange}
         />
       </div>
 
