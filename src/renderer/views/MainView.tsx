@@ -212,10 +212,12 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
             onSaveGroup={handleSaveGroup}
             onDeleteGroup={handleDeleteGroup}
           />
-          <div className={styles.fixtures}>
+          <div className={styles.addFixtureRow}>
             <button className={styles.addFixtureBtn} onClick={() => setAddingFixtures(true)}>
               + Add Fixtures
             </button>
+          </div>
+          <div className={styles.fixtures}>
             {sorted.map((fixture) => (
               <FixtureFader
                 key={fixture.id}

@@ -60,16 +60,21 @@
   color: #fff;
 }
 
+.addFixtureRow {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3) var(--space-6) 0;
+  flex-shrink: 0;
+}
+
 .addFixtureBtn {
-  padding: 4px 12px;
+  padding: 5px 16px;
   border-radius: var(--radius-md);
   border: 1px dashed var(--border-default);
   background: transparent;
   color: var(--text-muted);
   font-size: 12px;
   cursor: pointer;
-  align-self: flex-start;
-  flex-shrink: 0;
 }
 
 .addFixtureBtn:hover {
