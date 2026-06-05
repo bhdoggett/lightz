@@ -1,6 +1,6 @@
 # Lightz
 
-A macOS desktop app for controlling DMX lighting via an **Enttec USB DMX Pro Mk2**. Built for live worship environments — fast scene recall, DCA-style fixture groups, and Bitfocus Companion integration.
+A macOS desktop app for controlling DMX lighting via an **Enttec USB DMX Pro Mk2**. Built for live environments — fast scene recall, DCA-style fixture groups, and Bitfocus Companion integration.
 
 > **macOS only.** Windows is not supported — the Enttec driver relies on macOS serial port access.
 
@@ -25,10 +25,10 @@ Open `dist-electron/Lightz-0.1.0-arm64.dmg` (Apple Silicon) or `Lightz-0.1.0.dmg
 
 Download the right file for your Mac:
 
-| Download | For |
-|---|---|
+| Download                                                                                                      | For                         |
+| ------------------------------------------------------------------------------------------------------------- | --------------------------- |
 | [Lightz-0.1.0-arm64.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.1.0/Lightz-0.1.0-arm64.dmg) | Apple Silicon (M1/M2/M3/M4) |
-| [Lightz-0.1.0.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.1.0/Lightz-0.1.0.dmg) | Intel Mac |
+| [Lightz-0.1.0.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.1.0/Lightz-0.1.0.dmg)             | Intel Mac                   |
 
 Double-click the `.dmg`, drag Lightz to Applications, then open it. macOS may prompt you in **System Settings → Privacy & Security** on first launch — click **Open Anyway**.
 
@@ -59,12 +59,15 @@ Double-click the `.dmg`, drag Lightz to Applications, then open it. macOS may pr
 ## Core Concepts
 
 ### Full tab — raw channel control
+
 All 512 DMX channels displayed as vertical sliders. Use this for initial patching and diagnosing which channel controls which fixture. Click a channel number to name it (this creates a fixture in the Custom tab).
 
 ### Custom tab — named fixture control
+
 Only your labeled fixtures appear here as named faders. Use this during a service.
 
 ### Scenes
+
 A scene is a snapshot of all fixture values at a moment in time. The scenes strip runs along the top of both tabs.
 
 - **Save Scene** — type a name and optional fade duration, click Save. Values are captured from current fader positions.
@@ -73,6 +76,7 @@ A scene is a snapshot of all fixture values at a moment in time. The scenes stri
 - **Drag to reorder** — drag scene buttons left/right to rearrange.
 
 ### Groups (DCA-style)
+
 Groups work like a soundboard DCA — a master control that scales a set of fixtures together.
 
 - Create a group via **+ Group** in the Custom tab.
@@ -83,6 +87,7 @@ Groups work like a soundboard DCA — a master control that scales a set of fixt
 - Groups reset to Full (100%) on every app launch — they are session controls, not saved state.
 
 ### Shows
+
 A show file captures your entire rig: fixture definitions, scenes, group setup, and device settings.
 
 - Shows are saved to **`~/Documents/Lightz/`** as named JSON files — no file picker needed.
@@ -95,19 +100,21 @@ A show file captures your entire rig: fixture definitions, scenes, group setup, 
 ## Adding Fixtures
 
 ### From the Custom tab
+
 Click **+ Add Fixtures** → select channels by range (`1-8`, `1,3,5`) or by clicking the channel grid → name each fixture → **Add Fixtures**.
 
 ### From the Full tab
+
 Click any channel number on a fader to type a name. Named channels become fixtures in the Custom tab automatically.
 
 ---
 
 ## Settings (⚙)
 
-| Setting | Description |
-|---|---|
-| **DMX Device** | Auto-detects USB serial devices. Click Refresh, then select your Enttec path. |
-| **Output Port** | Which physical output port on the Mk2 (matches QLC+ outputs 1/2/3). |
+| Setting                 | Description                                                                     |
+| ----------------------- | ------------------------------------------------------------------------------- |
+| **DMX Device**          | Auto-detects USB serial devices. Click Refresh, then select your Enttec path.   |
+| **Output Port**         | Which physical output port on the Mk2 (matches QLC+ outputs 1/2/3).             |
 | **Companion HTTP Port** | Default: 5551. Change only if another service uses that port. Restart required. |
 
 ---
@@ -116,11 +123,11 @@ Click any channel number on a fader to type a name. Named channels become fixtur
 
 Lightz runs a local HTTP server that Companion can call to fire scenes.
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/status` | Health check → `{ status: "ok" }` |
-| `GET` | `/scenes` | List all scenes → `[{ id, name }]` |
-| `POST` | `/scenes/:id/activate` | Activate a scene by slug ID |
+| Method | Endpoint               | Description                        |
+| ------ | ---------------------- | ---------------------------------- |
+| `GET`  | `/status`              | Health check → `{ status: "ok" }`  |
+| `GET`  | `/scenes`              | List all scenes → `[{ id, name }]` |
+| `POST` | `/scenes/:id/activate` | Activate a scene by slug ID        |
 
 ### Setup in Companion
 
@@ -133,13 +140,13 @@ Lightz runs a local HTTP server that Companion can call to fire scenes.
 
 ## Keyboard & Interaction Tips
 
-| Action | How |
-|---|---|
-| Rename a fixture | Click the channel number or fixture name on any fader |
-| Clear a fixture name | Rename to empty — removes the fixture |
-| Reorder scenes | Drag a scene button left or right |
-| Fire a scene | Click the scene button |
-| All Off (Full tab) | Click **✕ All Off** — zeros all 512 channels on the active universe |
+| Action               | How                                                                 |
+| -------------------- | ------------------------------------------------------------------- |
+| Rename a fixture     | Click the channel number or fixture name on any fader               |
+| Clear a fixture name | Rename to empty — removes the fixture                               |
+| Reorder scenes       | Drag a scene button left or right                                   |
+| Fire a scene         | Click the scene button                                              |
+| All Off (Full tab)   | Click **✕ All Off** — zeros all 512 channels on the active universe |
 
 ---
 
