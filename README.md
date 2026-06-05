@@ -39,7 +39,9 @@ Double-click the `.dmg`, drag Church Lights to Applications, then open it. macOS
 - **Enttec USB DMX Pro Mk2** (dual-universe USB-to-DMX interface)
 - **macOS 12 Monterey or later** (Apple Silicon and Intel supported)
 
-> **No additional driver needed.** macOS 12+ includes built-in support for the Enttec Mk2 — plug it in and it appears automatically in the Settings device list. No downloads from Enttec or FTDI required.
+> **No additional driver needed on macOS 12+.** The Enttec Mk2 appears automatically in the Settings device list — no downloads required.
+>
+> On **older macOS versions**, you may need to install the driver manually. Download it from the [Enttec support page](https://support.enttec.com/support/solutions/articles/103000261045-usb-dmx-pro-mk2-user-manual) or the [FTDI VCP driver page](https://ftdichip.com/drivers/vcp-drivers/) if the device is not detected after plugging in.
 
 ---
 
