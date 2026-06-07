@@ -5,12 +5,13 @@ interface Props {
   title: string
   onClose: () => void
   children: ReactNode
+  footer?: ReactNode
   minWidth?: string
   maxWidth?: string
   centered?: boolean  // center content horizontally (default false)
 }
 
-export function Modal({ title, onClose, children, minWidth = '360px', maxWidth = '560px', centered = false }: Props) {
+export function Modal({ title, onClose, children, footer, minWidth = '360px', maxWidth = '560px', centered = false }: Props) {
   return (
     <div className={styles.backdrop} onClick={onClose}>
       <div
@@ -25,6 +26,7 @@ export function Modal({ title, onClose, children, minWidth = '360px', maxWidth =
         <div className={`${styles.body}${centered ? ` ${styles.centered}` : ''}`}>
           {children}
         </div>
+        {footer && <div className={styles.footer}>{footer}</div>}
       </div>
     </div>
   )

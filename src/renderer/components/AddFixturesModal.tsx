@@ -64,7 +64,24 @@ export function AddFixturesModal({ existingFixtures, onAdd, onClose }: Props) {
   }
 
   return (
-    <Modal title="Add Fixtures" onClose={onClose} minWidth="520px" maxWidth="620px">
+    <Modal
+      title="Add Fixtures"
+      onClose={onClose}
+      minWidth="520px"
+      maxWidth="620px"
+      footer={
+        <div className={styles.footer}>
+          <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
+          <button
+            className={styles.addBtn}
+            disabled={sortedSelected.length === 0}
+            onClick={handleAdd}
+          >
+            Add {sortedSelected.length > 0 ? `${sortedSelected.length} ` : ''}Fixture{sortedSelected.length !== 1 ? 's' : ''}
+          </button>
+        </div>
+      }
+    >
       <div className={styles.body}>
 
         {/* Universe */}
@@ -129,18 +146,6 @@ export function AddFixturesModal({ existingFixtures, onAdd, onClose }: Props) {
             </div>
           </div>
         )}
-
-        {/* Footer */}
-        <div className={styles.footer}>
-          <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
-          <button
-            className={styles.addBtn}
-            disabled={sortedSelected.length === 0}
-            onClick={handleAdd}
-          >
-            Add {sortedSelected.length > 0 ? `${sortedSelected.length} ` : ''}Fixture{sortedSelected.length !== 1 ? 's' : ''}
-          </button>
-        </div>
 
       </div>
     </Modal>

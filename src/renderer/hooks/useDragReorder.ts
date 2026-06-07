@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type React from 'react'
 
 export function useDragReorder<T extends { id: string }>(
@@ -7,6 +7,9 @@ export function useDragReorder<T extends { id: string }>(
 ) {
   const [dragId, setDragId] = useState<string | null>(null)
   const [insertIndex, setInsertIndex] = useState<number | null>(null)
+  // dragstart fires with the draggable element as its target, not the element
+  // the gesture started on — so the originating element is captured on mousedown.
+  const pressedOnInput = useRef(false)
 
   const containerProps = {
     onDragOver: (e: React.DragEvent<HTMLDivElement>) => {
@@ -43,7 +46,15 @@ export function useDragReorder<T extends { id: string }>(
   const itemProps = (id: string) => ({
     draggable: true as const,
     'data-drag-id': id,
+    onMouseDown: (e: React.MouseEvent<HTMLElement>) => {
+      const target = e.target as HTMLElement
+      pressedOnInput.current = target.tagName === 'INPUT' || !!target.closest('[data-no-drag]')
+    },
     onDragStart: (e: React.DragEvent<HTMLElement>) => {
+      if (pressedOnInput.current) {
+        e.preventDefault()
+        return
+      }
       setDragId(id)
       e.dataTransfer.effectAllowed = 'move'
       e.dataTransfer.setData('text/plain', id)

@@ -42,7 +42,7 @@ export function GroupFader({ group, fader, override, onFaderChange, onOverrideCh
         >
           ✕
         </button>
-        <div className={styles.sliderWrap}>
+        <div className={styles.sliderWrap} data-no-drag>
           <span className={`${styles.value}${override !== null ? ` ${styles.overridden}` : ''}`}>
             {displayValue}
           </span>
