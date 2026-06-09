@@ -36,6 +36,11 @@ function createWindow(): void {
     },
   })
 
+  // Re-send current status once renderer is ready — startup connect fires before renderer loads
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow?.webContents.send('dmx:status', currentDmxStatus)
+  })
+
   if (process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
