@@ -83,6 +83,7 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose }: Props) {
   }
 
   const handleDelete = async (name: string) => {
+    if (!confirm(`Delete "${name}"?`)) return
     try {
       const updated = await window.electronAPI.deleteNamedShow(name)
       setShows(updated)
