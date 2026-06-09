@@ -32,6 +32,16 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   const [groupStates, setGroupStates] = useState<Record<string, GroupState>>({})
   const [addingFixtures, setAddingFixtures] = useState(false)
 
+  // Sync UI when Companion activates a scene externally
+  useEffect(() => {
+    window.electronAPI.onSceneActivated((sceneId) => {
+      const scene = scenes.find((s) => s.id === sceneId)
+      if (!scene) return
+      setActiveSceneId(sceneId)
+      applyScene(scene.values, fixtures)
+    })
+  }, [scenes, fixtures, applyScene])
+
   // Initialise runtime state for any new group
   useEffect(() => {
     setGroupStates((prev) => {

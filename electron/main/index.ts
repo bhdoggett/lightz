@@ -69,6 +69,7 @@ app.whenReady().then(() => {
         scene.fadeDuration,
         (fid) => cfg.fixtures.find((f) => f.id === fid)
       )
+      mainWindow?.webContents.send('scene:activated', sceneId)
     }
   )
   server.listen(config.companionPort, '127.0.0.1', () => {

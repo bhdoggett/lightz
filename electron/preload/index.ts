@@ -24,6 +24,10 @@ const api = {
     ipcRenderer.on('device:autoConnected', (_e, path) => cb(path))
   },
 
+  onSceneActivated: (cb: (sceneId: string) => void) => {
+    ipcRenderer.on('scene:activated', (_e, sceneId) => cb(sceneId))
+  },
+
   setDevicePath: (path: string) => ipcRenderer.invoke('config:setDevicePath', { path }),
   setDmxOutputPort: (port: 0 | 1 | 2) => ipcRenderer.invoke('config:setDmxOutputPort', { port }),
 

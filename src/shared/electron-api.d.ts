@@ -15,6 +15,7 @@ declare global {
       deleteFixture: (id: string) => Promise<void>
       onDmxStatus: (cb: (status: DmxStatus) => void) => void
       onDeviceAutoConnected: (cb: (path: string) => void) => void
+      onSceneActivated: (cb: (sceneId: string) => void) => void
       setDevicePath: (path: string) => Promise<void>
       setDmxOutputPort: (port: 0 | 1 | 2) => Promise<void>
       listPorts: () => Promise<string[]>
