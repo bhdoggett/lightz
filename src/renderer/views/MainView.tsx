@@ -119,8 +119,10 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
 
   const handleSceneUpdate = useCallback(async (id: string, name: string, fadeDuration: number) => {
     const updated = await ipc.updateScene({ id, name, fadeDuration })
-    if (updated) onScenesChange(scenes.map((s) => s.id === id ? updated : s))
-  }, [scenes, ipc, onScenesChange])
+    if (!updated) return
+    onScenesChange(scenes.map((s) => s.id === id ? updated : s))
+    if (activeSceneId === id) setActiveSceneId(updated.id)
+  }, [scenes, ipc, onScenesChange, activeSceneId])
 
   const handleSceneDelete = useCallback(async (id: string) => {
     await ipc.deleteScene(id)

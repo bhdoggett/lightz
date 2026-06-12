@@ -55,8 +55,7 @@ export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: 
   })
 
   ipcMain.handle('scene:update', (_e, args: UpdateSceneArgs) => {
-    updateScene(args.id, args.name, args.fadeDuration)
-    return getConfig().scenes.find((s) => s.id === args.id) ?? null
+    return updateScene(args.id, args.name, args.fadeDuration)
   })
 
   ipcMain.handle('scene:reorder', (_e, { ids }: { ids: string[] }) => {
