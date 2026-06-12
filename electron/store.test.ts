@@ -59,7 +59,7 @@ import Store from 'electron-store'
 const inst = () => (Store as any).mock.results[0].value
 
 describe('updateScene', () => {
-  it('updates name and fadeDuration in place, preserving values', () => {
+  it('regenerates the id from the new name, preserving values', () => {
     const scenes = [
       { id: 's1', name: 'Old Name', fadeDuration: 0, values: { f1: 100 } },
       { id: 's2', name: 'Other', fadeDuration: 500, values: {} },
@@ -68,19 +68,45 @@ describe('updateScene', () => {
       key === 'scenes' ? scenes : def
     )
     inst().set.mockClear()
-    updateScene('s1', 'New Name', 2000)
+    const result = updateScene('s1', 'New Name', 2000)
+    expect(result).toEqual({ id: 'new-name', name: 'New Name', fadeDuration: 2000, values: { f1: 100 } })
     expect(inst().set).toHaveBeenCalledWith('scenes', [
-      { id: 's1', name: 'New Name', fadeDuration: 2000, values: { f1: 100 } },
+      { id: 'new-name', name: 'New Name', fadeDuration: 2000, values: { f1: 100 } },
       { id: 's2', name: 'Other', fadeDuration: 500, values: {} },
     ])
   })
 
-  it('does nothing when id not found', () => {
+  it('keeps the same id when the name is unchanged', () => {
+    const scenes = [
+      { id: 'worship-mode', name: 'Worship Mode', fadeDuration: 0, values: {} },
+    ]
+    inst().get.mockImplementation((key: string, def: unknown) =>
+      key === 'scenes' ? scenes : def
+    )
+    inst().set.mockClear()
+    const result = updateScene('worship-mode', 'Worship Mode', 1500)
+    expect(result).toEqual({ id: 'worship-mode', name: 'Worship Mode', fadeDuration: 1500, values: {} })
+  })
+
+  it('appends a suffix when the new name collides with another scene id', () => {
+    const scenes = [
+      { id: 's1', name: 'Old Name', fadeDuration: 0, values: {} },
+      { id: 'bright', name: 'Bright', fadeDuration: 0, values: {} },
+    ]
+    inst().get.mockImplementation((key: string, def: unknown) =>
+      key === 'scenes' ? scenes : def
+    )
+    inst().set.mockClear()
+    const result = updateScene('s1', 'Bright', 0)
+    expect(result?.id).toBe('bright-2')
+  })
+
+  it('returns null when id not found', () => {
     inst().get.mockImplementation((key: string, def: unknown) =>
       key === 'scenes' ? [] : def
     )
     inst().set.mockClear()
-    updateScene('nonexistent', 'X', 0)
+    expect(updateScene('nonexistent', 'X', 0)).toBeNull()
     expect(inst().set).not.toHaveBeenCalled()
   })
 })
