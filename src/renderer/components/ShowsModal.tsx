@@ -8,6 +8,8 @@ interface Props {
   onSaved?: (name: string) => void
   onNew: (config: Config) => void
   onClose: () => void
+  dirty?: boolean
+  currentShowName?: string | null
 }
 
 function formatDate(ms: number): string {
@@ -38,7 +40,12 @@ function parseShowFile(file: File): Promise<{ config: Config; name: string }> {
   })
 }
 
-export function ShowsModal({ onLoad, onSaved, onNew, onClose }: Props) {
+type PendingAction =
+  | { type: 'load'; name: string }
+  | { type: 'new' }
+  | { type: 'drop'; config: Config; name: string }
+
+export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, currentShowName }: Props) {
   const [shows, setShows] = useState<ShowInfo[]>([])
   const [newName, setNewName] = useState('')
   const [saving, setSaving] = useState(false)
@@ -46,6 +53,7 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose }: Props) {
   const [loadingName, setLoadingName] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const dragCounter = useRef(0)
 
   const refresh = useCallback(async () => {
@@ -59,8 +67,7 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose }: Props) {
 
   useEffect(() => { refresh() }, [refresh])
 
-  const handleNew = async () => {
-    if (!confirm('Clear all fixtures, scenes, and groups?')) return
+  const executeNew = async () => {
     setResetting(true)
     try {
       const config = await window.electronAPI.resetShow()
@@ -73,7 +80,7 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose }: Props) {
     }
   }
 
-  const handleLoad = async (name: string) => {
+  const executeLoad = async (name: string) => {
     if (loadingName) return
     setError(null)
     setLoadingName(name)
@@ -85,6 +92,24 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose }: Props) {
       setError(`Could not load "${name}": ${String(e)}`)
       setLoadingName(null)
     }
+  }
+
+  const handleNew = () => {
+    if (dirty) { setPendingAction({ type: 'new' }); return }
+    executeNew()
+  }
+
+  const handleLoad = (name: string) => {
+    if (dirty) { setPendingAction({ type: 'load', name }); return }
+    executeLoad(name)
+  }
+
+  const confirmPending = () => {
+    if (!pendingAction) return
+    setPendingAction(null)
+    if (pendingAction.type === 'new') executeNew()
+    else if (pendingAction.type === 'load') executeLoad(pendingAction.name)
+    else { onLoad(pendingAction.config, pendingAction.name); onClose() }
   }
 
   const handleDelete = async (name: string) => {
@@ -141,6 +166,7 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose }: Props) {
     setError(null)
     try {
       const { config, name } = await parseShowFile(file)
+      if (dirty) { setPendingAction({ type: 'drop', config, name }); return }
       onLoad(config, name)
       onClose()
     } catch (err) {
@@ -150,6 +176,24 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose }: Props) {
 
   return (
     <Modal title="Shows" onClose={onClose} minWidth="420px" maxWidth="520px">
+      {pendingAction && (
+        <div className={styles.unsavedWarning}>
+          <span className={styles.warningIcon}>⚠</span>
+          <p className={styles.warningText}>
+            {currentShowName
+              ? <>Unsaved changes to <strong>{currentShowName}</strong> will be lost.</>
+              : <>You have unsaved changes that will be lost.</>}
+          </p>
+          <div className={styles.warningActions}>
+            <button className={styles.warningConfirmBtn} onClick={confirmPending}>
+              {pendingAction.type === 'new' ? 'Discard & New' : 'Discard & Load'}
+            </button>
+            <button className={styles.warningCancelBtn} onClick={() => setPendingAction(null)}>
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
       {error && (
         <p style={{ color: 'var(--status-error)', fontSize: 12, marginBottom: 'var(--space-3)' }}>
           {error}

@@ -158,6 +158,8 @@ export function App() {
           onSaved={(name) => { setCurrentShowName(name); setDirty(false) }}
           onNew={(fresh) => { setConfig(fresh); setCurrentShowName(null); setDirty(false) }}
           onClose={() => setShowsOpen(false)}
+          dirty={dirty}
+          currentShowName={currentShowName}
         />
       )}
 

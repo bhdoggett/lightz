@@ -1,3 +1,67 @@
+.unsavedWarning {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: color-mix(in srgb, var(--status-warning) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-warning) 40%, transparent);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+}
+
+.warningIcon {
+  font-size: 16px;
+  line-height: 1;
+  color: var(--status-warning);
+}
+
+.warningText {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.warningText strong {
+  color: var(--text-primary);
+}
+
+.warningActions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+.warningConfirmBtn {
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--status-warning);
+  color: #000;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.warningConfirmBtn:hover {
+  filter: brightness(1.1);
+}
+
+.warningCancelBtn {
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.warningCancelBtn:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
 .newBtn {
   width: 100%;
   padding: 7px;
