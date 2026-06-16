@@ -68,6 +68,38 @@
   color: var(--status-connected);
 }
 
+/* Cross-fade between save and check glyphs */
+.saveIconStack {
+  position: relative;
+  display: inline-flex;
+  width: 14px;
+  height: 14px;
+}
+
+.saveIconGlyph {
+  position: absolute;
+  inset: 0;
+  opacity: 1;
+  transition: opacity 200ms ease;
+}
+
+.saveIconGlyph.glyphHidden {
+  opacity: 0;
+}
+
+.saveSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in srgb, currentColor 35%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: saveSpin 0.6s linear infinite;
+}
+
+@keyframes saveSpin {
+  to { transform: rotate(360deg); }
+}
+
 .showBtn {
   padding: 4px 10px;
   border-radius: var(--radius-md);

@@ -43,6 +43,7 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose }: Props) {
   const [newName, setNewName] = useState('')
   const [saving, setSaving] = useState(false)
   const [resetting, setResetting] = useState(false)
+  const [loadingName, setLoadingName] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
   const dragCounter = useRef(0)
@@ -73,12 +74,16 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose }: Props) {
   }
 
   const handleLoad = async (name: string) => {
+    if (loadingName) return
+    setError(null)
+    setLoadingName(name)
     try {
       const config = await window.electronAPI.loadNamedShow(name)
       onLoad(config, name)
       onClose()
     } catch (e) {
       setError(`Could not load "${name}": ${String(e)}`)
+      setLoadingName(null)
     }
   }
 
@@ -175,12 +180,21 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose }: Props) {
               <div key={show.name} className={styles.showRow}>
                 <span className={styles.showName}>{show.name}</span>
                 <span className={styles.showDate}>{formatDate(show.modifiedAt)}</span>
-                <button className={styles.loadBtn} onClick={() => handleLoad(show.name)}>
-                  Load
+                <button
+                  className={styles.loadBtn}
+                  onClick={() => handleLoad(show.name)}
+                  disabled={loadingName !== null}
+                >
+                  {loadingName === show.name ? (
+                    <span className={styles.spinner} aria-label="Loading" />
+                  ) : (
+                    'Load'
+                  )}
                 </button>
                 <button
                   className={styles.deleteBtn}
                   onClick={() => handleDelete(show.name)}
+                  disabled={loadingName !== null}
                   title="Delete show"
                 >
                   ×

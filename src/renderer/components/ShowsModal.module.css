@@ -67,6 +67,26 @@
   background: var(--accent-hover);
 }
 
+.loadBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid color-mix(in srgb, #fff 40%, transparent);
+  border-top-color: #fff;
+  border-radius: 50%;
+  vertical-align: middle;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .deleteBtn {
   width: 26px;
   height: 26px;

@@ -131,6 +131,7 @@ export function ScenesStrip({ scenes, activeSceneId, onActivate, onSave, onUpdat
       {editing && activeScene ? (
         <div className={styles.dialogRow}>
           <EditDialog
+            key={activeScene.id}
             initialName={activeScene.name}
             initialFade={activeScene.fadeDuration}
             onUpdate={(name, fade) => { onUpdate(activeScene.id, name, fade); setEditing(false) }}

@@ -104,17 +104,26 @@ export function App() {
                     : `Save to "${currentShowName}"`
               }
             >
-              {justSaved ? (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <span className={styles.saveIconStack}>
+                <span
+                  className={[styles.saveIconGlyph, styles.saveSpinner, saving ? '' : styles.glyphHidden].filter(Boolean).join(' ')}
+                  aria-label="Saving"
+                />
+                <svg
+                  className={[styles.saveIconGlyph, justSaved && !saving ? '' : styles.glyphHidden].filter(Boolean).join(' ')}
+                  width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"
+                >
                   <path d="M2.5 7.5L5.5 10.5L11.5 3.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <svg
+                  className={[styles.saveIconGlyph, justSaved || saving ? styles.glyphHidden : ''].filter(Boolean).join(' ')}
+                  width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg"
+                >
                   <rect x="1" y="1" width="12" height="12" rx="1.5" stroke="currentColor" strokeWidth="1.2"/>
                   <rect x="3.5" y="1" width="5" height="4.5" rx="0.5" fill="currentColor"/>
                   <rect x="3" y="7" width="8" height="5" rx="0.5" fill="currentColor"/>
                 </svg>
-              )}
+              </span>
             </button>
           )}
           <button className={styles.showBtn} onClick={() => setShowsOpen(true)} title="Shows">
