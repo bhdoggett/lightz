@@ -50,7 +50,8 @@
   --drag-indicator-glow: var(--space-1); /* 4px blur radius */
 
   /* Typography */
-  --font-sans: system-ui, -apple-system, sans-serif;
+  --font-sans: 'Barlow', system-ui, -apple-system, sans-serif;
+  --font-display: 'Barlow Condensed', system-ui, sans-serif;
   --font-mono: ui-monospace, 'Cascadia Code', monospace;
 }
 

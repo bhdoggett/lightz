@@ -15,9 +15,11 @@
 }
 
 .appName {
+  font-family: var(--font-display);
   font-weight: 700;
-  font-size: 16px;
-  letter-spacing: 0.04em;
+  font-size: 20px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: var(--text-primary);
 }
 
