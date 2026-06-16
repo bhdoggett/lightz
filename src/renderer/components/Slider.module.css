@@ -11,7 +11,11 @@
 .slider::-webkit-slider-runnable-track {
   width: 4px;
   border-radius: 2px;
-  background: linear-gradient(to bottom, var(--text-primary) 0%, var(--bg-overlay) 100%);
+  background: linear-gradient(
+    to bottom,
+    var(--bg-overlay) calc(100% - var(--fill-pct, 0%)),
+    var(--accent) calc(100% - var(--fill-pct, 0%))
+  );
 }
 
 .slider::-webkit-slider-thumb {
