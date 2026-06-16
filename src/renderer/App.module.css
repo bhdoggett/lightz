@@ -58,6 +58,16 @@
   color: var(--text-primary);
 }
 
+.saveIconBtn.dirty,
+.saveIconBtn.dirty:hover {
+  color: var(--status-warning);
+}
+
+.saveIconBtn.saved,
+.saveIconBtn.saved:hover {
+  color: var(--status-connected);
+}
+
 .showBtn {
   padding: 4px 10px;
   border-radius: var(--radius-md);

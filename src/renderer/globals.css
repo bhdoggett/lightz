@@ -26,6 +26,7 @@
   --status-connected: #22c55e;
   --status-disconnected: #6b7280;
   --status-error: #ef4444;
+  --status-warning: #f59e0b;
 
   /* Spacing (base 16px) */
   --space-1: 0.25rem;   /* 4px */

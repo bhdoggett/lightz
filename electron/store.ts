@@ -1,5 +1,6 @@
 import Store from 'electron-store'
 import type { Config, Fixture, Scene, Group } from '../src/shared/types'
+import { makeSceneId } from './slug'
 
 const store = new Store<Config>({
   defaults: {
@@ -76,12 +77,15 @@ export function deleteGroup(id: string): void {
   store.set('groups', store.get('groups', []).filter((g) => g.id !== id))
 }
 
-export function updateScene(id: string, name: string, fadeDuration: number): void {
+export function updateScene(id: string, name: string, fadeDuration: number): Scene | null {
   const scenes = store.get('scenes', [])
   const idx = scenes.findIndex((s) => s.id === id)
-  if (idx < 0) return
-  scenes[idx] = { ...scenes[idx], name, fadeDuration }
+  if (idx < 0) return null
+  const otherIds = scenes.filter((s) => s.id !== id).map((s) => s.id)
+  const newId = makeSceneId(name, otherIds)
+  scenes[idx] = { ...scenes[idx], id: newId, name, fadeDuration }
   store.set('scenes', scenes)
+  return scenes[idx]
 }
 
 export function reorderGroups(ids: string[]): void {
