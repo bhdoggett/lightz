@@ -55,19 +55,21 @@ describe('config store', () => {
 
 import Store from 'electron-store'
 
-// Helper to get the single mock instance created when store.ts was imported
 const inst = () => (Store as any).mock.results[0].value
+
+function mockScenes(scenes: unknown[]) {
+  inst().get.mockImplementation((key: string, def: unknown) =>
+    key === 'scenes' ? scenes : def
+  )
+  inst().set.mockClear()
+}
 
 describe('updateScene', () => {
   it('regenerates the id from the new name, preserving values', () => {
-    const scenes = [
+    mockScenes([
       { id: 's1', name: 'Old Name', fadeDuration: 0, values: { f1: 100 } },
       { id: 's2', name: 'Other', fadeDuration: 500, values: {} },
-    ]
-    inst().get.mockImplementation((key: string, def: unknown) =>
-      key === 'scenes' ? scenes : def
-    )
-    inst().set.mockClear()
+    ])
     const result = updateScene('s1', 'New Name', 2000)
     expect(result).toEqual({ id: 'new-name', name: 'New Name', fadeDuration: 2000, values: { f1: 100 } })
     expect(inst().set).toHaveBeenCalledWith('scenes', [
@@ -77,35 +79,22 @@ describe('updateScene', () => {
   })
 
   it('keeps the same id when the name is unchanged', () => {
-    const scenes = [
-      { id: 'worship-mode', name: 'Worship Mode', fadeDuration: 0, values: {} },
-    ]
-    inst().get.mockImplementation((key: string, def: unknown) =>
-      key === 'scenes' ? scenes : def
-    )
-    inst().set.mockClear()
+    mockScenes([{ id: 'worship-mode', name: 'Worship Mode', fadeDuration: 0, values: {} }])
     const result = updateScene('worship-mode', 'Worship Mode', 1500)
     expect(result).toEqual({ id: 'worship-mode', name: 'Worship Mode', fadeDuration: 1500, values: {} })
   })
 
   it('appends a suffix when the new name collides with another scene id', () => {
-    const scenes = [
+    mockScenes([
       { id: 's1', name: 'Old Name', fadeDuration: 0, values: {} },
       { id: 'bright', name: 'Bright', fadeDuration: 0, values: {} },
-    ]
-    inst().get.mockImplementation((key: string, def: unknown) =>
-      key === 'scenes' ? scenes : def
-    )
-    inst().set.mockClear()
+    ])
     const result = updateScene('s1', 'Bright', 0)
     expect(result?.id).toBe('bright-2')
   })
 
   it('returns null when id not found', () => {
-    inst().get.mockImplementation((key: string, def: unknown) =>
-      key === 'scenes' ? [] : def
-    )
-    inst().set.mockClear()
+    mockScenes([])
     expect(updateScene('nonexistent', 'X', 0)).toBeNull()
     expect(inst().set).not.toHaveBeenCalled()
   })
@@ -113,15 +102,11 @@ describe('updateScene', () => {
 
 describe('reorderScenes', () => {
   it('reorders scenes by given id list', () => {
-    const scenes = [
+    mockScenes([
       { id: 's1', name: 'A', fadeDuration: 0, values: {} },
       { id: 's2', name: 'B', fadeDuration: 0, values: {} },
       { id: 's3', name: 'C', fadeDuration: 0, values: {} },
-    ]
-    inst().get.mockImplementation((key: string, def: unknown) =>
-      key === 'scenes' ? scenes : def
-    )
-    inst().set.mockClear()
+    ])
     reorderScenes(['s3', 's1', 's2'])
     expect(inst().set).toHaveBeenCalledWith('scenes', [
       { id: 's3', name: 'C', fadeDuration: 0, values: {} },
@@ -131,14 +116,10 @@ describe('reorderScenes', () => {
   })
 
   it('drops scenes whose id is not in the list', () => {
-    const scenes = [
+    mockScenes([
       { id: 's1', name: 'A', fadeDuration: 0, values: {} },
       { id: 's2', name: 'B', fadeDuration: 0, values: {} },
-    ]
-    inst().get.mockImplementation((key: string, def: unknown) =>
-      key === 'scenes' ? scenes : def
-    )
-    inst().set.mockClear()
+    ])
     reorderScenes(['s1'])
     expect(inst().set).toHaveBeenCalledWith('scenes', [
       { id: 's1', name: 'A', fadeDuration: 0, values: {} },

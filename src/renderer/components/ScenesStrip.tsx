@@ -3,14 +3,17 @@ import type { Scene } from '../../shared/types'
 import { useDragReorder } from '../hooks/useDragReorder'
 import styles from './ScenesStrip.module.css'
 
-interface SaveDialogProps {
+interface SceneDialogProps {
+  initialName?: string
+  initialFade?: number
   onConfirm: (name: string, fadeDuration: number) => void
+  onDelete?: () => void
   onCancel: () => void
 }
 
-function SaveDialog({ onConfirm, onCancel }: SaveDialogProps) {
-  const [name, setName] = useState('')
-  const [fade, setFade] = useState(0)
+function SceneDialog({ initialName = '', initialFade = 0, onConfirm, onDelete, onCancel }: SceneDialogProps) {
+  const [name, setName] = useState(initialName)
+  const [fade, setFade] = useState(initialFade)
   return (
     <div className={styles.dialog}>
       <input
@@ -28,41 +31,10 @@ function SaveDialog({ onConfirm, onCancel }: SaveDialogProps) {
           onChange={(e) => setFade(Number(e.target.value))}
         />
       </label>
-      <button className={styles.confirmBtn} onClick={() => name.trim() && onConfirm(name.trim(), fade)}>Save</button>
-      <button className={styles.cancelBtn} onClick={onCancel}>Cancel</button>
-    </div>
-  )
-}
-
-interface EditDialogProps {
-  initialName: string
-  initialFade: number
-  onUpdate: (name: string, fadeDuration: number) => void
-  onDelete: () => void
-  onCancel: () => void
-}
-
-function EditDialog({ initialName, initialFade, onUpdate, onDelete, onCancel }: EditDialogProps) {
-  const [name, setName] = useState(initialName)
-  const [fade, setFade] = useState(initialFade)
-  return (
-    <div className={styles.dialog}>
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <label>
-        Fade (ms):
-        <input
-          type="number"
-          value={fade}
-          min={0}
-          step={500}
-          onChange={(e) => setFade(Number(e.target.value))}
-        />
-      </label>
-      <button className={styles.confirmBtn} onClick={() => name.trim() && onUpdate(name.trim(), fade)}>Update</button>
-      <button className={styles.deleteBtn} onClick={onDelete}>Delete</button>
+      <button className={styles.confirmBtn} onClick={() => name.trim() && onConfirm(name.trim(), fade)}>
+        {onDelete ? 'Update' : 'Save'}
+      </button>
+      {onDelete && <button className={styles.deleteBtn} onClick={onDelete}>Delete</button>}
       <button className={styles.cancelBtn} onClick={onCancel}>Cancel</button>
     </div>
   )
@@ -130,18 +102,18 @@ export function ScenesStrip({ scenes, activeSceneId, onActivate, onSave, onUpdat
       {/* Dialog row — centered below scenes */}
       {editing && activeScene ? (
         <div className={styles.dialogRow}>
-          <EditDialog
+          <SceneDialog
             key={activeScene.id}
             initialName={activeScene.name}
             initialFade={activeScene.fadeDuration}
-            onUpdate={(name, fade) => { onUpdate(activeScene.id, name, fade); setEditing(false) }}
+            onConfirm={(name, fade) => { onUpdate(activeScene.id, name, fade); setEditing(false) }}
             onDelete={() => { onDelete(activeScene.id); setEditing(false) }}
             onCancel={() => setEditing(false)}
           />
         </div>
       ) : saving ? (
         <div className={styles.dialogRow}>
-          <SaveDialog
+          <SceneDialog
             onConfirm={(name, fade) => { onSave(name, fade); setSaving(false) }}
             onCancel={() => setSaving(false)}
           />

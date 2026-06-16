@@ -33,15 +33,6 @@
   outline: 1px solid var(--accent);
 }
 
-.inlineCode {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--accent);
-  background: var(--bg-surface);
-  padding: 1px 5px;
-  border-radius: var(--radius-sm);
-}
-
 .portInput {
   width: 100px;
   padding: 6px 10px;
@@ -170,19 +161,6 @@
 
 .refreshBtn:hover {
   color: var(--text-primary);
-}
-
-.routingGrid {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 8px 12px;
-  align-items: center;
-}
-
-.routingLabel {
-  color: var(--text-secondary);
-  font-size: 13px;
-  white-space: nowrap;
 }
 
 .routingSelect {

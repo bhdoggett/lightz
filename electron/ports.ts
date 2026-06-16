@@ -12,7 +12,7 @@ export function listSerialPorts(): string[] {
   }
 }
 
-export function isEnttecPort(path: string): boolean {
+function isEnttecPort(path: string): boolean {
   return /cu\.usbserial-EN/.test(path)
 }
 
