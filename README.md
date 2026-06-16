@@ -17,7 +17,7 @@ npm install
 npm run build:mac
 ```
 
-Open `dist-electron/Lightz-0.1.4-arm64.dmg` (Apple Silicon) or `Lightz-0.1.4.dmg` (Intel) from Finder. Drag **Lightz** to Applications.
+Open `dist-electron/Lightz-0.1.5-arm64.dmg` (Apple Silicon) or `Lightz-0.1.5.dmg` (Intel) from Finder. Drag **Lightz** to Applications.
 
 ### Option B — Download pre-built .dmg
 
@@ -27,8 +27,8 @@ Download the right file for your Mac:
 
 | Download                                                                                                      | For                         |
 | ------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| [Lightz-0.1.4-arm64.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.1.4/Lightz-0.1.4-arm64.dmg) | Apple Silicon (M1/M2/M3/M4) |
-| [Lightz-0.1.4.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.1.4/Lightz-0.1.4.dmg)             | Intel Mac                   |
+| [Lightz-0.1.5-arm64.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.1.5/Lightz-0.1.5-arm64.dmg) | Apple Silicon (M1/M2/M3/M4) |
+| [Lightz-0.1.5.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.1.5/Lightz-0.1.5.dmg)             | Intel Mac                   |
 
 Double-click the `.dmg`, drag Lightz to Applications, then open it. macOS may prompt you in **System Settings → Privacy & Security** on first launch — click **Open Anyway**.
 
@@ -49,7 +49,7 @@ Double-click the `.dmg`, drag Lightz to Applications, then open it. macOS may pr
 
 1. Plug in the Enttec device via USB.
 2. Open Lightz.
-3. Click **⚙** (top right) → **Settings**.
+3. Click the **Settings** icon (top right).
 4. Under **DMX Device**, click **↺ Refresh** — your device should appear as `/dev/cu.usbmodem...`.
 5. Click the device path to select it, then click **Connect**.
 6. The connection badge in the header turns green: **DMX Connected**.
@@ -109,7 +109,7 @@ Click any channel number on a fader to type a name. Named channels become fixtur
 
 ---
 
-## Settings (⚙)
+## Settings
 
 | Setting                 | Description                                                                     |
 | ----------------------- | ------------------------------------------------------------------------------- |
