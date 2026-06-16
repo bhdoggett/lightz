@@ -45,6 +45,13 @@
 .sceneBtn.active {
   background: var(--accent);
   font-weight: 700;
+  animation: sceneActivate 0.35s ease-out;
+}
+
+@keyframes sceneActivate {
+  0%   { transform: scale(1);    box-shadow: none; }
+  35%  { transform: scale(1.07); box-shadow: 0 0 10px var(--accent-glow); }
+  100% { transform: scale(1);    box-shadow: none; }
 }
 
 .sceneBtn:hover:not(.active) {
