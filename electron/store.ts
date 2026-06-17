@@ -136,6 +136,7 @@ export function replaceConfig(config: Config): void {
   store.set('fixtures', config.fixtures)
   store.set('scenes', config.scenes)
   store.set('groups', config.groups ?? [])
+  store.set('fixtureTemplates', config.fixtureTemplates ?? [])
   store.set('companionPort', config.companionPort)
   store.set('devicePath', config.devicePath ?? '')
   store.set('dmxOutputPort', config.dmxOutputPort ?? 0)

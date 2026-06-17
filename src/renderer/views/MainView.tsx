@@ -76,8 +76,10 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
         const fixture = fixtures.find((f) => f.id === fixtureId)
         if (!fixture) continue
         if (fixture.channels) {
-          for (const ch of fixture.channels) {
-            map[`${ch.universe}-${ch.channel}`] = channelOverride
+          if (state.override !== 'full') {
+            for (const ch of fixture.channels) {
+              map[`${ch.universe}-${ch.channel}`] = channelOverride
+            }
           }
         } else {
           map[`${fixture.universe}-${fixture.channel}`] = channelOverride
