@@ -3,10 +3,12 @@ import { ScenesStrip } from '../components/ScenesStrip'
 import { FixtureFader } from '../components/FixtureFader'
 import { GroupStrip } from '../components/GroupStrip'
 import { AddFixturesModal } from '../components/AddFixturesModal'
+import { MultiFixtureFader } from '../components/MultiFixtureFader'
+import { CreateFixtureModal } from '../components/CreateFixtureModal'
 import { LiveView } from './LiveView'
 import { useIpc } from '../hooks/useIpc'
 import { useDmxState } from '../hooks/useDmxState'
-import type { Fixture, Scene, Group, GroupChannelOverride } from '../../shared/types'
+import type { Fixture, Scene, Group, GroupChannelOverride, FixtureTemplate } from '../../shared/types'
 import styles from './MainView.module.css'
 
 type Tab = 'custom' | 'full'
@@ -31,6 +33,8 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   const [universe, setUniverse] = useState<0 | 1>(0)
   const [groupStates, setGroupStates] = useState<Record<string, GroupState>>({})
   const [addingFixtures, setAddingFixtures] = useState(false)
+  const [creatingFixture, setCreatingFixture] = useState(false)
+  const [fixtureTemplates, setFixtureTemplates] = useState<FixtureTemplate[]>(() => [])
 
   // Sync UI when Companion activates a scene externally
   useEffect(() => {
@@ -41,6 +45,12 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
       applyScene(scene.values, fixtures)
     })
   }, [scenes, fixtures, applyScene])
+
+  useEffect(() => {
+    window.electronAPI.getConfig().then((cfg) => {
+      setFixtureTemplates(cfg.fixtureTemplates ?? [])
+    })
+  }, [])
 
   // Initialise runtime state for any new group
   useEffect(() => {
@@ -65,7 +75,13 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
       for (const fixtureId of group.fixtureIds) {
         const fixture = fixtures.find((f) => f.id === fixtureId)
         if (!fixture) continue
-        map[`${fixture.universe}-${fixture.channel}`] = channelOverride
+        if (fixture.channels) {
+          for (const ch of fixture.channels) {
+            map[`${ch.universe}-${ch.channel}`] = channelOverride
+          }
+        } else {
+          map[`${fixture.universe}-${fixture.channel}`] = channelOverride
+        }
       }
     }
     return map
@@ -100,6 +116,31 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     ipc.setChannel({ universe: fixture.universe, channel: fixture.channel, value })
   }, [ipc, setLocal])
 
+  const handleMultiFixtureChange = useCallback((fixture: Fixture, newValues: Record<string, number>) => {
+    for (const [id, value] of Object.entries(newValues)) {
+      const ch = fixture.channels?.find((c) => c.id === id)
+      if (!ch) continue
+      setLocal(ch.universe, ch.channel, value)
+      ipc.setChannel({ universe: ch.universe, channel: ch.channel, value })
+    }
+  }, [ipc, setLocal])
+
+  const handleCreateFixture = useCallback(async (fixture: Fixture) => {
+    const saved = await ipc.updateFixture(fixture)
+    onFixturesChange([...fixtures, saved])
+    setCreatingFixture(false)
+  }, [fixtures, ipc, onFixturesChange])
+
+  const handleSaveTemplate = useCallback(async (template: FixtureTemplate) => {
+    const updated = await window.electronAPI.saveFixtureTemplate(template)
+    setFixtureTemplates(updated)
+  }, [])
+
+  const handleDeleteTemplate = useCallback(async (id: string) => {
+    const updated = await window.electronAPI.deleteFixtureTemplate(id)
+    setFixtureTemplates(updated)
+  }, [])
+
   const handleActivate = useCallback(async (id: string) => {
     const scene = scenes.find((s) => s.id === id)
     if (!scene) return
@@ -111,7 +152,13 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   const handleSave = useCallback(async (name: string, fadeDuration: number) => {
     const values: Record<string, number> = {}
     for (const f of fixtures) {
-      values[f.id] = getChannel(f.universe, f.channel)
+      if (f.channels) {
+        for (const ch of f.channels) {
+          values[ch.id] = getChannel(ch.universe, ch.channel)
+        }
+      } else {
+        values[f.id] = getChannel(f.universe, f.channel)
+      }
     }
     const saved = await ipc.saveScene({ name, fadeDuration, values })
     onScenesChange([...scenes, saved])
@@ -240,20 +287,36 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
             <button className={styles.addFixtureBtn} onClick={() => setAddingFixtures(true)}>
               Edit Fixtures
             </button>
+            <button className={styles.addFixtureBtn} onClick={() => setCreatingFixture(true)}>
+              + Add Fixture
+            </button>
           </div>
           <div className={styles.fixtures}>
-            {sorted.map((fixture) => (
-              <FixtureFader
-                key={fixture.id}
-                channel={fixture.channel}
-                name={fixture.name}
-                value={getChannel(fixture.universe, fixture.channel)}
-                onChange={(v) => handleSetChannel(fixture, v)}
-                onRename={(name) => handleFixtureRename(fixture, name)}
-                groupColor={getFixtureGroupColor(fixture.id)}
-                groupOverride={getFixtureOverride(fixture.id)}
-              />
-            ))}
+            {sorted.map((fixture) =>
+              fixture.channels ? (
+                <MultiFixtureFader
+                  key={fixture.id}
+                  fixture={fixture}
+                  values={Object.fromEntries(
+                    fixture.channels.map((ch) => [ch.id, getChannel(ch.universe, ch.channel)])
+                  )}
+                  onChange={(newValues) => handleMultiFixtureChange(fixture, newValues)}
+                  groupColor={getFixtureGroupColor(fixture.id)}
+                  groupOverride={getFixtureOverride(fixture.id)}
+                />
+              ) : (
+                <FixtureFader
+                  key={fixture.id}
+                  channel={fixture.channel}
+                  name={fixture.name}
+                  value={getChannel(fixture.universe, fixture.channel)}
+                  onChange={(v) => handleSetChannel(fixture, v)}
+                  onRename={(name) => handleFixtureRename(fixture, name)}
+                  groupColor={getFixtureGroupColor(fixture.id)}
+                  groupOverride={getFixtureOverride(fixture.id)}
+                />
+              )
+            )}
             {fixtures.length === 0 && (
               <p className={styles.empty}>No fixtures yet — click "+ Add Fixtures" to get started.</p>
             )}
@@ -266,6 +329,17 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
           existingFixtures={fixtures}
           onApply={handleEditFixtures}
           onClose={() => setAddingFixtures(false)}
+        />
+      )}
+
+      {creatingFixture && (
+        <CreateFixtureModal
+          templates={fixtureTemplates}
+          existingFixtures={fixtures}
+          onApply={handleCreateFixture}
+          onTemplateSave={handleSaveTemplate}
+          onTemplateDelete={handleDeleteTemplate}
+          onClose={() => setCreatingFixture(false)}
         />
       )}
 
