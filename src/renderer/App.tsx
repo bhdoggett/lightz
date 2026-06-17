@@ -98,7 +98,7 @@ export function App() {
   return (
     <div className={styles.app}>
       <header className={styles.header}>
-        <span className={styles.appName}>Lightz</span>
+        <span className={styles.appName}>Light<span className={styles.appNameZ}>z</span></span>
         <div className={styles.headerRight}>
           {currentShowName && (
             <button

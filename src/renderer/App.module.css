@@ -14,6 +14,10 @@
   flex-shrink: 0;
 }
 
+.appNameZ {
+  color: #d4e85c;
+}
+
 .appName {
   font-family: var(--font-display);
   font-weight: 700;
