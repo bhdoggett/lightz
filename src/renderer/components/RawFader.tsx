@@ -3,7 +3,8 @@ import { Slider } from './Slider'
 import styles from './RawFader.module.css'
 
 interface Props {
-  channel: number
+  channel?: number
+  universe?: 0 | 1
   value: number
   label?: string
   onChange: (value: number) => void
@@ -13,7 +14,7 @@ interface Props {
   groupOverride?: 'full' | 'mute' | null
 }
 
-export function RawFader({ channel, value, label, onChange, onRename, fillColor, groupColor, groupOverride }: Props) {
+export function RawFader({ channel, universe, value, label, onChange, onRename, fillColor, groupColor, groupOverride }: Props) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -60,7 +61,7 @@ export function RawFader({ channel, value, label, onChange, onRename, fillColor,
           />
         )}
       </div>
-      <Slider value={value} onChange={onChange} fillColor={groupColor ?? fillColor} disabled={groupOverride !== null && groupOverride !== undefined} />
+      <Slider value={value} onChange={onChange} fillColor={fillColor} disabled={groupOverride !== null && groupOverride !== undefined} />
       <button
         className={`${styles.toggleBtn}${value > 0 ? ` ${styles.on}` : ''}`}
         aria-label="toggle"
@@ -93,7 +94,13 @@ export function RawFader({ channel, value, label, onChange, onRename, fillColor,
           />
         ) : (
           <>
-            <span className={styles.channel}>{String(channel).padStart(3, '0')}</span>
+            {channel !== undefined && (
+              <span className={styles.channel}>
+                {universe !== undefined
+                  ? `${universe + 1}-${String(channel).padStart(3, '0')}`
+                  : String(channel).padStart(3, '0')}
+              </span>
+            )}
             {label && (
               <span className={styles.label} data-testid="raw-fader-label">{label}</span>
             )}

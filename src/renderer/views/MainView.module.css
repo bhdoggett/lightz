@@ -36,6 +36,24 @@
   font-weight: 600;
 }
 
+.allOffBtn {
+  margin-left: auto;
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--status-error);
+  background: transparent;
+  color: var(--status-error);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.allOffBtn:hover {
+  background: var(--status-error);
+  color: #fff;
+}
+
 .saveBtn {
   margin-left: auto;
   width: 30px;
@@ -83,9 +101,61 @@
   color: #fff;
 }
 
+.section {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.fixturesSection {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+}
+
+.sectionLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: var(--space-2) var(--space-4);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.sectionLabel:hover {
+  color: var(--text-secondary);
+}
+
+.sectionActions {
+  display: flex;
+  gap: var(--space-3);
+  padding-right: var(--space-4);
+  margin-left: auto;
+}
+
+.universeGroup {
+  display: flex;
+  flex-direction: column;
+}
+
 .addFixtureRow {
   display: flex;
   justify-content: center;
+  gap: var(--space-3);
   padding: var(--space-3) var(--space-6) 0;
   flex-shrink: 0;
 }
@@ -106,13 +176,11 @@
 }
 
 .fixtures {
-  flex: 1;
   padding: var(--space-6);
   display: flex;
   flex-wrap: wrap;
   gap: var(--fader-gap);
   align-content: flex-start;
-  overflow-y: auto;
 }
 
 .empty {

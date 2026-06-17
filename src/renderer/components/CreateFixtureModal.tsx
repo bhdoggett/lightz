@@ -47,7 +47,8 @@ export function CreateFixtureModal({ templates, existingFixtures, initialFixture
   const editing = !!initialFixture
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [name, setName] = useState(initialFixture?.name ?? '')
-  const [startChannel, setStartChannel] = useState(initialFixture?.channel ?? 1)
+  const [startChannelRaw, setStartChannelRaw] = useState(String(initialFixture?.channel ?? 1))
+  const startChannel = Math.max(1, parseInt(startChannelRaw, 10) || 1)
   const [universe, setUniverse] = useState<0 | 1>(initialFixture?.channels?.[0]?.universe ?? 0)
   const [channels, setChannels] = useState<ChannelDraft[]>(
     initialFixture?.channels?.map((ch) => ({
@@ -122,8 +123,8 @@ export function CreateFixtureModal({ templates, existingFixtures, initialFixture
               type="number"
               min={1}
               max={512}
-              value={startChannel}
-              onChange={(e) => setStartChannel(Number(e.target.value))}
+              value={startChannelRaw}
+              onChange={(e) => setStartChannelRaw(e.target.value)}
             />
           </label>
           <div className={styles.universeRow}>

@@ -22,40 +22,42 @@ export function GroupFader({ group, fader, override, onFaderChange, onOverrideCh
   return (
     <div className={styles.fader}>
       <div className={styles.colorBar} style={{ background: group.color }} />
-      <button className={styles.name} onClick={onEdit} title={`Edit ${group.name}`}>
-        {group.name}
-      </button>
-      <div className={styles.controls}>
-        <button
-          className={`${styles.overrideBtn} ${styles.fullBtn}${override === 'full' ? ` ${styles.active}` : ''}`}
-          aria-label="full"
-          title="Full override"
-          onClick={handleFullToggle}
-        >
-          ○
+      <div className={styles.nameAndOverrides}>
+        <button className={styles.name} onClick={onEdit} title={`Edit ${group.name}`}>
+          {group.name}
         </button>
-        <button
-          className={`${styles.overrideBtn} ${styles.muteBtn}${override === 'mute' ? ` ${styles.active}` : ''}`}
-          aria-label="mute"
-          title="Mute override"
-          onClick={handleMuteToggle}
-        >
-          ✕
-        </button>
-        <div className={styles.sliderWrap} data-no-drag>
-          <span className={`${styles.value}${override !== null ? ` ${styles.overridden}` : ''}`}>
-            {displayValue}
-          </span>
-          <Slider
-            value={fader}
-            min={0}
-            max={100}
-            height={60}
-            fillColor={group.color}
-            disabled={override !== null}
-            onChange={onFaderChange}
-          />
+        <div className={styles.overrides}>
+          <button
+            className={`${styles.overrideBtn} ${styles.fullBtn}${override === 'full' ? ` ${styles.active}` : ''}`}
+            aria-label="full"
+            title="Full override"
+            onClick={handleFullToggle}
+          >
+            ○
+          </button>
+          <button
+            className={`${styles.overrideBtn} ${styles.muteBtn}${override === 'mute' ? ` ${styles.active}` : ''}`}
+            aria-label="mute"
+            title="Mute override"
+            onClick={handleMuteToggle}
+          >
+            ✕
+          </button>
         </div>
+      </div>
+      <div className={styles.sliderWrap} data-no-drag>
+        <span className={`${styles.value}${override !== null ? ` ${styles.overridden}` : ''}`}>
+          {displayValue}
+        </span>
+        <Slider
+          value={fader}
+          min={0}
+          max={100}
+          height={60}
+          fillColor={group.color}
+          disabled={override !== null}
+          onChange={onFaderChange}
+        />
       </div>
     </div>
   )

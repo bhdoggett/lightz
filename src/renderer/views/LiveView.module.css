@@ -1,43 +1,42 @@
 .view {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
-.toolbar {
+.universeSection {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.universeLabel {
   display: flex;
   align-items: center;
-  padding: var(--space-2) var(--space-4);
-  border-bottom: 1px solid var(--border-subtle);
-  flex-shrink: 0;
-  justify-content: flex-start;
-}
-
-.allOffBtn {
-  padding: 5px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--status-error);
-  background: transparent;
-  color: var(--status-error);
-  font-size: 12px;
+  gap: 6px;
+  font-size: 11px;
   font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: var(--space-2) var(--space-4);
+  background: none;
+  border: none;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  text-align: left;
+  width: 100%;
 }
 
-.allOffBtn:hover {
-  background: var(--status-error);
-  color: #fff;
+.universeLabel:hover {
+  color: var(--text-secondary);
 }
 
 .strip {
-  flex: 1;
   display: flex;
   flex-wrap: wrap;
   gap: var(--fader-gap);
-  padding: var(--space-4);
-  overflow-y: auto;
+  padding: var(--space-3) var(--space-4) var(--space-4);
   align-content: flex-start;
   align-items: flex-start;
 }

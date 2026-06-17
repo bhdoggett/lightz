@@ -3,6 +3,7 @@ import type { Fixture, FixtureChannel } from '../../shared/types'
 import { channelValuesToDisplayHex, pickerHexToChannelValues, isColorRole, roleToFillColor } from '../utils/colorSync'
 import { computeRatios, applyRatios } from '../utils/gangFader'
 import { RawFader } from './RawFader'
+import { ColorPickerPopover } from './ColorPickerPopover'
 import styles from './MultiFixtureFader.module.css'
 
 interface Props {
@@ -19,6 +20,7 @@ export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit,
   const channels = fixture.channels!
   const [expanded, setExpanded] = useState(false)
   const ratiosRef = useRef<Record<string, number>>({})
+  const cardRef = useRef<HTMLDivElement>(null)
   const [channelLinks, setChannelLinks] = useState<Record<string, boolean>>(
     () => Object.fromEntries(channels.map((ch) => [ch.id, ch.linked]))
   )
@@ -28,6 +30,8 @@ export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit,
   const colorChannels = channels.filter((ch) => isColorRole(ch.role))
   const linkedChannels = effectiveChannels.filter((ch) => ch.linked)
   const displayHex = channelValuesToDisplayHex(colorChannels, values)
+  // Chroma hex excludes white so the picker cursor tracks only what the picker controls
+  const chromaHex = channelValuesToDisplayHex(colorChannels.filter((ch) => ch.role !== 'white'), values)
 
   const masterDisplay = Math.max(...linkedChannels.map((ch) => values[ch.id] ?? 0), 0)
 
@@ -53,8 +57,8 @@ export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit,
     onChange({ ...values, [ch.id]: newVal })
   }
 
-  const handleColorPick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const derived = pickerHexToChannelValues(e.target.value, colorChannels)
+  const handleColorPick = (hex: string) => {
+    const derived = pickerHexToChannelValues(hex, colorChannels)
     const next = { ...values }
     for (const [id, val] of Object.entries(derived)) next[id] = val
     onChange(next)
@@ -74,10 +78,10 @@ export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit,
   )
 
   const colorPicker = colorChannels.length > 0 ? (
-    <input
-      type="color"
-      className={styles.colorPicker}
-      value={displayHex}
+    <ColorPickerPopover
+      color={chromaHex}
+      swatchColor={displayHex}
+      anchorRef={cardRef}
       onChange={handleColorPick}
       onClick={(e) => e.stopPropagation()}
     />
@@ -99,15 +103,17 @@ export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit,
 
   const masterPanel = (
     <>
-      <RawFader
-        channel={0}
-        value={masterDisplay}
-        label={fixture.name}
-        onChange={handleMasterChange}
-        onRename={onRename}
-        groupColor={groupColor}
-        groupOverride={groupOverride}
-      />
+      <div>
+        <RawFader
+          value={masterDisplay}
+          label={fixture.name}
+          onChange={handleMasterChange}
+          onRename={onRename}
+          fillColor={groupColor}
+          groupColor={groupColor}
+          groupOverride={groupOverride}
+        />
+      </div>
       <div className={styles.controlRow}>
         {gearBtn}
         {colorPicker}
@@ -117,7 +123,7 @@ export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit,
   )
 
   return (
-    <div className={styles.card}>
+    <div ref={cardRef} className={styles.card}>
       {expanded ? (
         <div className={styles.expandedPanel}>
           <div className={styles.masterPanel}>
@@ -131,6 +137,7 @@ export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit,
                   <div key={ch.id} className={styles.subFaderWrap}>
                     <RawFader
                       channel={ch.channel}
+                      universe={ch.universe}
                       value={values[ch.id] ?? 0}
                       label={ch.label}
                       onChange={(v) => handleChannelChange(ch, v)}

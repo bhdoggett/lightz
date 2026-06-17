@@ -28,8 +28,6 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 1;
-  min-width: 0;
   background: none;
   border: none;
   text-align: left;
@@ -40,9 +38,16 @@
   color: var(--accent);
 }
 
-.controls {
+.nameAndOverrides {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.overrides {
+  display: flex;
   gap: var(--space-1);
 }
 

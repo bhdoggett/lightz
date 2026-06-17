@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import type { Scene } from '../../shared/types'
 import { useDragReorder } from '../hooks/useDragReorder'
 import styles from './ScenesStrip.module.css'
@@ -14,12 +14,21 @@ interface SceneDialogProps {
 function SceneDialog({ initialName = '', initialFade = 0, onConfirm, onDelete, onCancel }: SceneDialogProps) {
   const [name, setName] = useState(initialName)
   const [fade, setFade] = useState(initialFade)
+  const nameRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => { nameRef.current?.focus() }, [])
+
   return (
     <div className={styles.dialog}>
       <input
+        ref={nameRef}
         placeholder="Scene name"
         value={name}
         onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && name.trim()) onConfirm(name.trim(), fade)
+          if (e.key === 'Escape') onCancel()
+        }}
       />
       <label>
         Fade (ms):
@@ -53,20 +62,27 @@ interface Props {
 export function ScenesStrip({ scenes, activeSceneId, onActivate, onSave, onUpdate, onDelete, onReorder }: Props) {
   const [saving, setSaving] = useState(false)
   const [editing, setEditing] = useState(false)
+  const stripRef = useRef<HTMLDivElement>(null)
   const { dragId, insertIndex, containerProps, itemProps } = useDragReorder(scenes, onReorder)
 
   const activeScene = scenes.find((s) => s.id === activeSceneId) ?? null
-
   const showDialog = editing || saving
 
+  useEffect(() => {
+    if (!showDialog) return
+    const handleOutside = (e: MouseEvent) => {
+      if (stripRef.current && !stripRef.current.contains(e.target as Node)) {
+        setSaving(false)
+        setEditing(false)
+      }
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [showDialog])
+
   return (
-    <div className={styles.strip}>
-      {/* Scenes row with drag-and-drop */}
-      <div
-        className={styles.scenesRow}
-        {...containerProps}
-      >
-        <span className={styles.scenesLabel}>Scenes:</span>
+    <div ref={stripRef} className={styles.strip}>
+      <div className={styles.scenesRow} {...containerProps}>
         {scenes.map((scene, index) => (
           <React.Fragment key={scene.id}>
             {dragId && insertIndex === index && (
@@ -89,36 +105,31 @@ export function ScenesStrip({ scenes, activeSceneId, onActivate, onSave, onUpdat
         {dragId && insertIndex === scenes.length && (
           <div className={styles.insertIndicator} aria-hidden="true" />
         )}
-        {!showDialog && (
-          <>
-            <button className={styles.saveBtn} onClick={() => setSaving(true)}>+ Save Scene</button>
-            {activeSceneId && (
-              <button className={styles.editBtn} onClick={() => setEditing(true)}>Edit</button>
-            )}
-          </>
+        <button className={styles.saveBtn} onClick={() => { setEditing(false); setSaving((v) => !v) }}>+ Save Scene</button>
+        {activeSceneId && (
+          <button className={styles.editBtn} onClick={() => { setSaving(false); setEditing((v) => !v) }}>Edit</button>
         )}
       </div>
 
-      {/* Dialog row — centered below scenes */}
-      {editing && activeScene ? (
-        <div className={styles.dialogRow}>
-          <SceneDialog
-            key={activeScene.id}
-            initialName={activeScene.name}
-            initialFade={activeScene.fadeDuration}
-            onConfirm={(name, fade) => { onUpdate(activeScene.id, name, fade); setEditing(false) }}
-            onDelete={() => { onDelete(activeScene.id); setEditing(false) }}
-            onCancel={() => setEditing(false)}
-          />
+      {showDialog && (
+        <div className={styles.popover} onMouseDown={(e) => e.stopPropagation()}>
+          {editing && activeScene ? (
+            <SceneDialog
+              key={activeScene.id}
+              initialName={activeScene.name}
+              initialFade={activeScene.fadeDuration}
+              onConfirm={(name, fade) => { onUpdate(activeScene.id, name, fade); setEditing(false) }}
+              onDelete={() => { onDelete(activeScene.id); setEditing(false) }}
+              onCancel={() => setEditing(false)}
+            />
+          ) : saving ? (
+            <SceneDialog
+              onConfirm={(name, fade) => { onSave(name, fade); setSaving(false) }}
+              onCancel={() => setSaving(false)}
+            />
+          ) : null}
         </div>
-      ) : saving ? (
-        <div className={styles.dialogRow}>
-          <SceneDialog
-            onConfirm={(name, fade) => { onSave(name, fade); setSaving(false) }}
-            onCancel={() => setSaving(false)}
-          />
-        </div>
-      ) : null}
+      )}
     </div>
   )
 }

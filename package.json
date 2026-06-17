@@ -17,8 +17,9 @@
   },
   "dependencies": {
     "electron-store": "^8.2.0",
-    "serialport": "^11.0.1",
     "express": "^4.18.2",
+    "react-colorful": "^5.7.0",
+    "serialport": "^11.0.1",
     "slugify": "^1.6.6",
     "uuid": "^9.0.0"
   },

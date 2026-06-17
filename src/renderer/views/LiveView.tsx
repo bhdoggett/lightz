@@ -1,61 +1,65 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { RawFader } from '../components/RawFader'
 import { useIpc } from '../hooks/useIpc'
 import type { Fixture } from '../../shared/types'
 import styles from './LiveView.module.css'
 
 interface Props {
-  universe: 0 | 1
   fixtures: Fixture[]
   getChannel: (universe: 0 | 1, channel: number) => number
   setChannel: (universe: 0 | 1, channel: number, value: number) => void
-  onRename: (channel: number, name: string) => void
-  onAllOff: () => void
+  onRename: (universe: 0 | 1, channel: number, name: string) => void
 }
 
-export function LiveView({ universe, fixtures, getChannel, setChannel, onRename, onAllOff }: Props) {
+export function LiveView({ fixtures, getChannel, setChannel, onRename }: Props) {
   const ipc = useIpc()
+  const [collapsed, setCollapsed] = useState<Record<0 | 1, boolean>>({ 0: false, 1: false })
 
   const fixtureByChannel = useMemo(() => {
-    const map: Record<number, Fixture> = {}
+    const map: Record<0 | 1, Record<number, Fixture>> = { 0: {}, 1: {} }
     for (const f of fixtures) {
-      if (f.universe === universe) map[f.channel] = f
+      if (f.universe === 0 || f.universe === 1) map[f.universe][f.channel] = f
     }
     return map
-  }, [fixtures, universe])
+  }, [fixtures])
 
-  const handleChange = useCallback((channel: number, value: number) => {
+  const handleChange = useCallback((universe: 0 | 1, channel: number, value: number) => {
     setChannel(universe, channel, value)
     ipc.setChannel({ universe, channel, value })
-  }, [universe, ipc, setChannel])
+  }, [ipc, setChannel])
 
-  const handleAllOff = useCallback(() => {
-    for (let ch = 1; ch <= 512; ch++) {
-      setChannel(universe, ch, 0)
-      ipc.setChannel({ universe, channel: ch, value: 0 })
-    }
-    onAllOff()
-  }, [universe, ipc, setChannel, onAllOff])
+  const channels = Array.from({ length: 512 }, (_, i) => i + 1)
 
   return (
     <div className={styles.view}>
-      <div className={styles.toolbar}>
-        <button className={styles.allOffBtn} onClick={handleAllOff} title="Turn all channels off">
-          ✕ All Off
-        </button>
-      </div>
-      <div className={styles.strip}>
-        {Array.from({ length: 512 }, (_, i) => i + 1).map((ch) => (
-          <RawFader
-            key={ch}
-            channel={ch}
-            value={getChannel(universe, ch)}
-            label={fixtureByChannel[ch]?.name}
-            onChange={(v) => handleChange(ch, v)}
-            onRename={(name) => onRename(ch, name)}
-          />
-        ))}
-      </div>
+      {([0, 1] as const).map((u) => (
+        <div key={u} className={styles.universeSection}>
+          <button
+            className={styles.universeLabel}
+            onClick={() => setCollapsed((prev) => ({ ...prev, [u]: !prev[u] }))}
+          >
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: collapsed[u] ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+            Universe {u + 1}
+          </button>
+          {!collapsed[u] && (
+            <div className={styles.strip}>
+              {channels.map((ch) => (
+                <RawFader
+                  key={ch}
+                  channel={ch}
+                  universe={u}
+                  value={getChannel(u, ch)}
+                  label={fixtureByChannel[u][ch]?.name}
+                  onChange={(v) => handleChange(u, ch, v)}
+                  onRename={(name) => onRename(u, ch, name)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   )
 }

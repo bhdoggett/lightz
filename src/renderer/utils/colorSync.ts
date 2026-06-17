@@ -68,7 +68,6 @@ export function pickerHexToChannelValues(
 ): Record<string, number> {
   const [r, g, b] = hexToRgb(hex)
   const warmth = Math.max(0, r - Math.max(g, b))
-  const neutral = Math.min(r, g, b)
   const result: Record<string, number> = {}
 
   for (const ch of channels) {
@@ -77,8 +76,7 @@ export function pickerHexToChannelValues(
       case 'green': result[ch.id] = g; break
       case 'blue':  result[ch.id] = b; break
       case 'amber': result[ch.id] = warmth; break
-      case 'white': result[ch.id] = neutral; break
-      // uv: not derivable from RGB — omit so caller can preserve current value
+      // white and uv: not set by picker — caller preserves current sub-fader values
     }
   }
   return result

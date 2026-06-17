@@ -42,16 +42,6 @@
   width: 100%;
 }
 
-.colorPicker {
-  width: 26px;
-  height: 26px;
-  border: none;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  background: none;
-  padding: 0;
-  flex-shrink: 0;
-}
 
 .gearBtn {
   background: none;

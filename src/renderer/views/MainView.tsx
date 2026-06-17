@@ -30,7 +30,6 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   const { getChannel, setChannel: setLocal, applyScene } = useDmxState()
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('custom')
-  const [universe, setUniverse] = useState<0 | 1>(0)
   const [groupStates, setGroupStates] = useState<Record<string, GroupState>>({})
   const [addingFixtures, setAddingFixtures] = useState(false)
   const [creatingFixture, setCreatingFixture] = useState(false)
@@ -108,6 +107,16 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     onGroupsChange(groups.filter((g) => g.id !== id))
     setGroupStates((prev) => { const n = { ...prev }; delete n[id]; return n })
   }, [groups, ipc, onGroupsChange])
+
+  const handleAllOff = useCallback(() => {
+    for (const u of [0, 1] as const) {
+      for (let ch = 1; ch <= 512; ch++) {
+        setLocal(u, ch, 0)
+        ipc.setChannel({ universe: u, channel: ch, value: 0 })
+      }
+    }
+    setActiveSceneId(null)
+  }, [ipc, setLocal])
 
   const handleGroupReorder = useCallback(async (reordered: Group[]) => {
     await ipc.reorderGroups(reordered.map((g) => g.id))
@@ -210,7 +219,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     }
   }, [fixtures, ipc, onFixturesChange])
 
-  const handleChannelRename = useCallback(async (channel: number, name: string) => {
+  const handleChannelRename = useCallback(async (universe: 0 | 1, channel: number, name: string) => {
     const existing = fixtures.find((f) => f.universe === universe && f.channel === channel)
     if (!name) {
       if (existing) {
@@ -228,7 +237,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     } else {
       onFixturesChange([...fixtures, saved])
     }
-  }, [fixtures, universe, ipc, onFixturesChange])
+  }, [fixtures, ipc, onFixturesChange])
 
   const getFixtureGroupColor = useCallback((fixtureId: string): string | undefined => {
     return groups.find((g) => g.fixtureIds.includes(fixtureId))?.color
@@ -240,7 +249,14 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     return groupStates[group.id]?.override ?? null
   }, [groups, groupStates])
 
+  const [sectionsCollapsed, setSectionsCollapsed] = useState<Record<string, boolean>>({ scenes: false, groups: false, fixturesU0: false, fixturesU1: false })
+  const toggleSection = (key: string) => setSectionsCollapsed((prev) => ({ ...prev, [key]: !prev[key] }))
+
   const sorted = [...fixtures].sort((a, b) => a.channel - b.channel)
+  const fixturesByUniverse = {
+    0: sorted.filter((f) => (f.channels ? f.channels[0]?.universe : f.universe) === 0),
+    1: sorted.filter((f) => (f.channels ? f.channels[0]?.universe : f.universe) === 1),
+  }
 
   return (
     <div className={styles.view}>
@@ -257,79 +273,105 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
         >
           Custom
         </button>
-        {tab === 'full' && (
-          <div className={styles.universeToggle}>
-            <button
-              className={`${styles.uBtn}${universe === 0 ? ` ${styles.active}` : ''}`}
-              onClick={() => setUniverse(0)}
-            >U1</button>
-            <button
-              className={`${styles.uBtn}${universe === 1 ? ` ${styles.active}` : ''}`}
-              onClick={() => setUniverse(1)}
-            >U2</button>
-          </div>
-        )}
+        <button className={styles.allOffBtn} onClick={handleAllOff} title="Turn all channels off">
+          ✕ All Off
+        </button>
       </div>
 
       {tab === 'custom' && (
         <>
-          <ScenesStrip
-            scenes={scenes}
-            activeSceneId={activeSceneId}
-            onActivate={handleActivate}
-            onSave={handleSave}
-            onUpdate={handleSceneUpdate}
-            onDelete={handleSceneDelete}
-            onReorder={handleSceneReorder}
-          />
-          <GroupStrip
-            groups={groups}
-            fixtures={fixtures}
-            groupStates={groupStates}
-            onStateChange={handleStateChange}
-            onSaveGroup={handleSaveGroup}
-            onDeleteGroup={handleDeleteGroup}
-            onReorder={handleGroupReorder}
-          />
+          <div className={styles.section}>
+            <button className={styles.sectionLabel} onClick={() => toggleSection('scenes')}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: sectionsCollapsed.scenes ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+              Scenes
+            </button>
+            {!sectionsCollapsed.scenes && (
+              <ScenesStrip
+                scenes={scenes}
+                activeSceneId={activeSceneId}
+                onActivate={handleActivate}
+                onSave={handleSave}
+                onUpdate={handleSceneUpdate}
+                onDelete={handleSceneDelete}
+                onReorder={handleSceneReorder}
+              />
+            )}
+          </div>
+          <div className={styles.section}>
+            <button className={styles.sectionLabel} onClick={() => toggleSection('groups')}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: sectionsCollapsed.groups ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+              Groups
+            </button>
+            {!sectionsCollapsed.groups && (
+              <GroupStrip
+                groups={groups}
+                fixtures={fixtures}
+                groupStates={groupStates}
+                onStateChange={handleStateChange}
+                onSaveGroup={handleSaveGroup}
+                onDeleteGroup={handleDeleteGroup}
+                onReorder={handleGroupReorder}
+              />
+            )}
+          </div>
           <div className={styles.addFixtureRow}>
             <button className={styles.addFixtureBtn} onClick={() => setAddingFixtures(true)}>
-              Edit Fixtures
+              + Add Channels
             </button>
             <button className={styles.addFixtureBtn} onClick={() => setCreatingFixture(true)}>
-              + Add Fixture
+              + Add Custom Fixture
             </button>
           </div>
-          <div className={styles.fixtures}>
-            {sorted.map((fixture) =>
-              fixture.channels ? (
-                <MultiFixtureFader
-                  key={fixture.id}
-                  fixture={fixture}
-                  values={Object.fromEntries(
-                    fixture.channels.map((ch) => [ch.id, getChannel(ch.universe, ch.channel)])
-                  )}
-                  onChange={(newValues) => handleMultiFixtureChange(fixture, newValues)}
-                  onRename={(name) => handleFixtureRename(fixture, name)}
-                  onEdit={() => setEditingFixture(fixture)}
-                  groupColor={getFixtureGroupColor(fixture.id)}
-                  groupOverride={getFixtureOverride(fixture.id)}
-                />
-              ) : (
-                <FixtureFader
-                  key={fixture.id}
-                  channel={fixture.channel}
-                  name={fixture.name}
-                  value={getChannel(fixture.universe, fixture.channel)}
-                  onChange={(v) => handleSetChannel(fixture, v)}
-                  onRename={(name) => handleFixtureRename(fixture, name)}
-                  groupColor={getFixtureGroupColor(fixture.id)}
-                  groupOverride={getFixtureOverride(fixture.id)}
-                />
-              )
-            )}
+          <div className={styles.fixturesSection}>
             {fixtures.length === 0 && (
-              <p className={styles.empty}>No fixtures yet — click "+ Add Fixtures" to get started.</p>
+              <p className={styles.empty}>No fixtures yet — click "+ Add Channels" to get started.</p>
             )}
+            {([0, 1] as const).map((u) => fixturesByUniverse[u].length === 0 ? null : (
+              <div key={u} className={styles.universeGroup}>
+                <button className={styles.sectionLabel} onClick={() => toggleSection(`fixturesU${u}`)}>
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: sectionsCollapsed[`fixturesU${u}`] ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>
+                    <path d="M6 9l6 6 6-6"/>
+                  </svg>
+                  Universe {u + 1}
+                </button>
+                {!sectionsCollapsed[`fixturesU${u}`] && (
+                  <div className={styles.fixtures}>
+                    {fixturesByUniverse[u].map((fixture) =>
+                      fixture.channels ? (
+                        <MultiFixtureFader
+                          key={fixture.id}
+                          fixture={fixture}
+                          values={Object.fromEntries(
+                            fixture.channels.map((ch) => [ch.id, getChannel(ch.universe, ch.channel)])
+                          )}
+                          onChange={(newValues) => handleMultiFixtureChange(fixture, newValues)}
+                          onRename={(name) => handleFixtureRename(fixture, name)}
+                          onEdit={() => setEditingFixture(fixture)}
+                          groupColor={getFixtureGroupColor(fixture.id)}
+                          groupOverride={getFixtureOverride(fixture.id)}
+                        />
+                      ) : (
+                        <FixtureFader
+                          key={fixture.id}
+                          channel={fixture.channel}
+                          universe={fixture.universe}
+                          name={fixture.name}
+                          value={getChannel(fixture.universe, fixture.channel)}
+                          onChange={(v) => handleSetChannel(fixture, v)}
+                          onRename={(name) => handleFixtureRename(fixture, name)}
+                          groupColor={getFixtureGroupColor(fixture.id)}
+                          groupOverride={getFixtureOverride(fixture.id)}
+                        />
+                      )
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </>
       )}
@@ -377,12 +419,10 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
             onReorder={handleSceneReorder}
           />
           <LiveView
-            universe={universe}
             fixtures={fixtures}
             getChannel={getChannel}
             setChannel={setLocal}
             onRename={handleChannelRename}
-            onAllOff={() => setActiveSceneId(null)}
           />
         </>
       )}
