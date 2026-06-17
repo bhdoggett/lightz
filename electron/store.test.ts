@@ -1,5 +1,9 @@
 // @vitest-environment node
 import { describe, it, expect, vi } from 'vitest'
+import Store from 'electron-store'
+
+import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, updateScene, reorderScenes, saveGroup, deleteGroup, saveFixtureTemplate, deleteFixtureTemplate } from './store'
+import type { Fixture, Scene, Group, FixtureTemplate } from '../src/shared/types'
 
 vi.mock('electron-store', () => {
   return {
@@ -10,9 +14,6 @@ vi.mock('electron-store', () => {
     })),
   }
 })
-
-import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, updateScene, reorderScenes, saveGroup, deleteGroup } from './store'
-import type { Fixture, Scene, Group } from '../src/shared/types'
 
 const fixture: Fixture = {
   id: 'f1', name: 'Chandelier L', channel: 1, universe: 0, type: 'dimmer',
@@ -52,8 +53,6 @@ describe('config store', () => {
     expect(true).toBe(true)
   })
 })
-
-import Store from 'electron-store'
 
 const inst = () => (Store as any).mock.results[0].value
 
@@ -168,9 +167,6 @@ describe('deleteGroup', () => {
     expect(inst().set).toHaveBeenCalledWith('groups', [groups[1]])
   })
 })
-
-import { saveFixtureTemplate, deleteFixtureTemplate } from './store'
-import type { FixtureTemplate } from '../src/shared/types'
 
 describe('fixture templates', () => {
   const template: FixtureTemplate = {
