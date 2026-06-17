@@ -6,11 +6,15 @@ import { ShowsModal } from './components/ShowsModal'
 import type { Config, DmxStatus, Fixture, Scene, Group } from '../shared/types'
 import styles from './App.module.css'
 
+const APP_VERSION = '0.1.6'
+
 export function App() {
   const [config, setConfig] = useState<Config | null>(null)
   const [dmxStatus, setDmxStatus] = useState<DmxStatus>('disconnected')
   const [companionOpen, setCompanionOpen] = useState(false)
   const [showsOpen, setShowsOpen] = useState(false)
+  const [aboutOpen, setAboutOpen] = useState(false)
+  const aboutRef = useRef<HTMLDivElement>(null)
   const [currentShowName, setCurrentShowName] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [dirty, setDirty] = useState(false)
@@ -31,6 +35,15 @@ export function App() {
       setDirty(true)
     })
   }, [])
+
+  useEffect(() => {
+    if (!aboutOpen) return
+    const handleOutside = (e: MouseEvent) => {
+      if (aboutRef.current && !aboutRef.current.contains(e.target as Node)) setAboutOpen(false)
+    }
+    document.addEventListener('mousedown', handleOutside)
+    return () => document.removeEventListener('mousedown', handleOutside)
+  }, [aboutOpen])
 
   if (!config) {
     return <div className={styles.loading}>Loading...</div>
@@ -137,6 +150,36 @@ export function App() {
               <path d="M19.622 10.395l-1.097-2.65L20 6l-2-2-1.735 1.483-2.707-1.113L12.935 2h-1.954l-.632 2.401-2.645 1.115L6 4 4 6l1.453 1.789-1.08 2.657L2 11v2l2.401.655L5.516 16.3 4 18l2 2 1.791-1.46 2.606 1.072L11 22h2l.604-2.387 2.651-1.098C16.697 19.187 18 20 18 20l2-2-1.484-1.752 1.098-2.652 2.386-.62V11l-2.378-.605Z"/>
             </svg>
           </button>
+          <div ref={aboutRef} className={styles.aboutWrap}>
+            <button className={styles.iconBtn} onClick={() => setAboutOpen((v) => !v)} title="About">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+            </button>
+            {aboutOpen && (
+              <div className={styles.aboutPopover}>
+                <p className={styles.aboutName}>Lightz <span className={styles.aboutVersion}>v{APP_VERSION}</span></p>
+                <a
+                  className={styles.aboutLink}
+                  href="https://github.com/bhdoggett/lightz/releases"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Releases &amp; changelog
+                </a>
+                <a
+                  className={styles.aboutLink}
+                  href="https://github.com/bhdoggett/lightz"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  GitHub repo
+                </a>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
