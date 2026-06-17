@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeMasterValue, applyMasterGang } from './gangFader'
+import { computeMasterValue, applyMasterGang, computeRatios, applyRatios } from './gangFader'
 import type { FixtureChannel } from '../../shared/types'
 
 const linked = (id: string, channel = 1): FixtureChannel => ({
@@ -70,5 +70,53 @@ describe('applyMasterGang', () => {
     const result = applyMasterGang(channels, values, 100)
     expect(result.r).toBe(100)
     expect(result.g).toBe(100)
+  })
+})
+
+describe('computeRatios', () => {
+  it('normalizes to max linked channel value', () => {
+    const channels = [linked('r'), linked('g', 2), unlinked('s', 3)]
+    const values = { r: 200, g: 100, s: 50 }
+    const ratios = computeRatios(channels, values)
+    expect(ratios.r).toBeCloseTo(1.0)
+    expect(ratios.g).toBeCloseTo(0.5)
+    expect('s' in ratios).toBe(false)
+  })
+
+  it('returns equal shares when all linked channels are zero', () => {
+    const channels = [linked('r'), linked('g', 2)]
+    const ratios = computeRatios(channels, { r: 0, g: 0 })
+    expect(ratios.r).toBeCloseTo(0.5)
+    expect(ratios.g).toBeCloseTo(0.5)
+  })
+})
+
+describe('applyRatios', () => {
+  it('scales each linked channel by ratio × master', () => {
+    const channels = [linked('r'), linked('g', 2)]
+    const ratios = { r: 1.0, g: 0.5 }
+    const result = applyRatios(channels, ratios, 200)
+    expect(result.r).toBe(200)
+    expect(result.g).toBe(100)
+  })
+
+  it('preserves proportions through zero and back up', () => {
+    const channels = [linked('r'), linked('g', 2)]
+    // Start: r=200, g=100 → ratios r=1.0, g=0.5
+    const ratios = computeRatios(channels, { r: 200, g: 100 })
+    // Drag to zero
+    const zeroed = applyRatios(channels, ratios, 0)
+    expect(zeroed.r).toBe(0)
+    expect(zeroed.g).toBe(0)
+    // Pull back to 150 using same ratios
+    const restored = applyRatios(channels, ratios, 150)
+    expect(restored.r).toBe(150)
+    expect(restored.g).toBe(75)
+  })
+
+  it('clamps at 255', () => {
+    const channels = [linked('r')]
+    const result = applyRatios(channels, { r: 1.0 }, 300)
+    expect(result.r).toBe(255)
   })
 })

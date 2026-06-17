@@ -4,6 +4,39 @@ function linkedChannels(channels: FixtureChannel[]): FixtureChannel[] {
   return channels.filter((ch) => ch.linked)
 }
 
+// Returns per-channel ratios (0–1) normalized to the max linked channel value.
+// When max is 0 (all channels zero), returns equal shares (1/n per channel).
+export function computeRatios(
+  channels: FixtureChannel[],
+  values: Record<string, number>
+): Record<string, number> {
+  const linked = channels.filter((ch) => ch.linked)
+  if (linked.length === 0) return {}
+  const max = Math.max(...linked.map((ch) => values[ch.id] ?? 0))
+  if (max === 0) {
+    const share = 1 / linked.length
+    return Object.fromEntries(linked.map((ch) => [ch.id, share]))
+  }
+  return Object.fromEntries(linked.map((ch) => [ch.id, (values[ch.id] ?? 0) / max]))
+}
+
+// Applies ratios at masterLevel to produce new absolute channel values.
+// Unlinked channels are not in ratios and must be merged by the caller.
+export function applyRatios(
+  channels: FixtureChannel[],
+  ratios: Record<string, number>,
+  masterLevel: number
+): Record<string, number> {
+  const linked = channels.filter((ch) => ch.linked)
+  const share = 1 / Math.max(linked.length, 1)
+  return Object.fromEntries(
+    linked.map((ch) => [
+      ch.id,
+      Math.min(255, Math.max(0, Math.round(masterLevel * (ratios[ch.id] ?? share)))),
+    ])
+  )
+}
+
 export function computeMasterValue(
   channels: FixtureChannel[],
   values: Record<string, number>
