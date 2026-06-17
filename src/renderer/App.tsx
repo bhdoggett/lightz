@@ -160,22 +160,12 @@ export function App() {
             {aboutOpen && (
               <div className={styles.aboutPopover}>
                 <p className={styles.aboutName}>Lightz <span className={styles.aboutVersion}>v{APP_VERSION}</span></p>
-                <a
-                  className={styles.aboutLink}
-                  href="https://github.com/bhdoggett/lightz/releases"
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <button className={styles.aboutLink} onClick={() => window.electronAPI.openExternal('https://github.com/bhdoggett/lightz/releases')}>
                   Releases &amp; changelog
-                </a>
-                <a
-                  className={styles.aboutLink}
-                  href="https://github.com/bhdoggett/lightz"
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                </button>
+                <button className={styles.aboutLink} onClick={() => window.electronAPI.openExternal('https://github.com/bhdoggett/lightz')}>
                   GitHub repo
-                </a>
+                </button>
               </div>
             )}
           </div>

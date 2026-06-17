@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { ipcMain, shell } from 'electron'
 import { v4 as uuid } from 'uuid'
 import { makeSceneId } from './slug'
 import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, setDevicePath, setDmxOutputPort, replaceConfig, updateScene, reorderScenes, saveGroup, deleteGroup, reorderGroups, saveFixtureTemplate, deleteFixtureTemplate } from './store'
@@ -143,4 +143,6 @@ export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: 
     deleteNamedShow(name)
     return listShows()
   })
+
+  ipcMain.handle('shell:openExternal', (_e, url: string) => shell.openExternal(url))
 }

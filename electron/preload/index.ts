@@ -50,6 +50,8 @@ const api = {
   saveNamedShow: (name: string) => ipcRenderer.invoke('show:saveNamed', { name }),
   loadNamedShow: (name: string) => ipcRenderer.invoke('show:loadNamed', { name }),
   deleteNamedShow: (name: string) => ipcRenderer.invoke('show:deleteNamed', { name }),
+
+  openExternal: (url: string) => ipcRenderer.invoke('shell:openExternal', url),
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)

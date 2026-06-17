@@ -32,6 +32,7 @@ declare global {
       saveNamedShow: (name: string) => Promise<ShowInfo[]>
       loadNamedShow: (name: string) => Promise<Config>
       deleteNamedShow: (name: string) => Promise<ShowInfo[]>
+      openExternal: (url: string) => Promise<void>
     }
   }
 }
