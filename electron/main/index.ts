@@ -72,9 +72,17 @@ app.whenReady().then(() => {
       if (!scene) return
       dmxManager.activateScene(
         scene.values,
-        cfg.fixtures,
         scene.fadeDuration,
-        (fid) => cfg.fixtures.find((f) => f.id === fid)
+        (id) => {
+          const f = cfg.fixtures.find((f) => f.id === id)
+          if (f && !f.channels) return { channel: f.channel, universe: f.universe, type: f.type }
+          for (const fixture of cfg.fixtures) {
+            if (!fixture.channels) continue
+            const ch = fixture.channels.find((c) => c.id === id)
+            if (ch) return { channel: ch.channel, universe: ch.universe, type: 'dimmer' }
+          }
+          return undefined
+        }
       )
       mainWindow?.webContents.send('scene:activated', sceneId)
     }

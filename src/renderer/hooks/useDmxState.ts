@@ -17,12 +17,24 @@ export function useDmxState() {
   )
 
   const applyScene = useCallback(
-    (values: Record<string, number>, fixtures: Array<{ id: string; channel: number; universe: 0 | 1 }>) => {
+    (values: Record<string, number>, fixtures: import('../../shared/types').Fixture[]) => {
       const next: Record<ChannelKey, number> = {}
-      for (const [fixtureId, value] of Object.entries(values)) {
-        const fixture = fixtures.find((f) => f.id === fixtureId)
-        if (!fixture) continue
-        next[`${fixture.universe}-${fixture.channel}`] = value
+      for (const [id, value] of Object.entries(values)) {
+        // Single-channel fixture
+        const f = fixtures.find((f) => f.id === id)
+        if (f && !f.channels) {
+          next[`${f.universe}-${f.channel}`] = value
+          continue
+        }
+        // Multi-channel sub-channel
+        for (const fixture of fixtures) {
+          if (!fixture.channels) continue
+          const ch = fixture.channels.find((c) => c.id === id)
+          if (ch) {
+            next[`${ch.universe}-${ch.channel}`] = value
+            break
+          }
+        }
       }
       setChannels((prev) => ({ ...prev, ...next }))
     },

@@ -106,9 +106,8 @@ export class DmxManager {
 
   activateScene(
     targetValues: Record<string, number>,
-    fixtures: Array<{ id: string; channel: number; universe: 0 | 1; type: string }>,
     fadeDuration: number,
-    getFixtureById: (id: string) => typeof fixtures[0] | undefined
+    resolveChannel: (id: string) => { channel: number; universe: 0 | 1; type: string } | undefined
   ): void {
     if (this.fadeInterval) {
       clearInterval(this.fadeInterval)
@@ -117,7 +116,7 @@ export class DmxManager {
 
     const targets: [UniverseState, UniverseState] = [{}, {}]
     for (const [fixtureId, value] of Object.entries(targetValues)) {
-      const fixture = getFixtureById(fixtureId)
+      const fixture = resolveChannel(fixtureId)
       if (!fixture) continue
       if (fixture.type === 'switch') {
         this.setChannel(fixture.universe, fixture.channel, value)
