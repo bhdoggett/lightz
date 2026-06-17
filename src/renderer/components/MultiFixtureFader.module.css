@@ -1,0 +1,99 @@
+.card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.collapsed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.expanded {
+  flex-direction: row;
+  align-items: stretch;
+}
+
+.expandedPanel {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+
+.pickerRow {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  justify-content: center;
+}
+
+.colorPicker {
+  width: 100%;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: none;
+  padding: 0;
+}
+
+.subFaders {
+  display: flex;
+  flex-direction: row;
+  gap: var(--space-1);
+  padding: var(--space-2);
+}
+
+.subFaderWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  opacity: 0.3;
+  padding: 2px;
+}
+
+.linkBtn.linked {
+  opacity: 1;
+}
+
+.expandedFooter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.fixtureName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  flex: 1;
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--text-muted);
+  padding: 2px;
+  line-height: 1;
+}
+
+.toggleBtn.on {
+  color: var(--status-connected);
+}
