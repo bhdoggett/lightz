@@ -25,15 +25,13 @@
 }
 
 .popover {
+  composes: popover from global;
   position: absolute;
   top: 100%;
-  left: 0;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 200;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  padding: 8px 12px;
+  padding: 14px 12px;
 }
 
 .sceneBtn {
@@ -84,9 +82,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 12px;
-  background: var(--bg-overlay);
-  border-radius: var(--radius-lg);
 }
 
 .dialog input {

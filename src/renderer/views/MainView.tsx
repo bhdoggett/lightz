@@ -409,15 +409,25 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
 
       {tab === 'full' && (
         <>
-          <ScenesStrip
-            scenes={scenes}
-            activeSceneId={activeSceneId}
-            onActivate={handleActivate}
-            onSave={handleSave}
-            onUpdate={handleSceneUpdate}
-            onDelete={handleSceneDelete}
-            onReorder={handleSceneReorder}
-          />
+          <div className={styles.section}>
+            <button className={styles.sectionLabel} onClick={() => toggleSection('scenes')}>
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: sectionsCollapsed.scenes ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+              Scenes
+            </button>
+            {!sectionsCollapsed.scenes && (
+              <ScenesStrip
+                scenes={scenes}
+                activeSceneId={activeSceneId}
+                onActivate={handleActivate}
+                onSave={handleSave}
+                onUpdate={handleSceneUpdate}
+                onDelete={handleSceneDelete}
+                onReorder={handleSceneReorder}
+              />
+            )}
+          </div>
           <LiveView
             fixtures={fixtures}
             getChannel={getChannel}
