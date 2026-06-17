@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import type { Fixture, SaveSceneArgs, SetChannelArgs, DmxStatus, UpdateSceneArgs, Group, GroupChannelOverride, ShowInfo } from '../../src/shared/types'
+import type { Fixture, SaveSceneArgs, SetChannelArgs, DmxStatus, UpdateSceneArgs, Group, GroupChannelOverride, ShowInfo, FixtureTemplate } from '../../src/shared/types'
 
 const api = {
   getConfig: () => ipcRenderer.invoke('config:get'),
@@ -15,6 +15,10 @@ const api = {
 
   updateFixture: (fixture: Fixture) => ipcRenderer.invoke('fixture:update', fixture),
   deleteFixture: (id: string) => ipcRenderer.invoke('fixture:delete', { id }),
+  saveFixtureTemplate: (template: FixtureTemplate) =>
+    ipcRenderer.invoke('fixture:saveTemplate', template),
+  deleteFixtureTemplate: (id: string) =>
+    ipcRenderer.invoke('fixture:deleteTemplate', { id }),
 
   onDmxStatus: (cb: (status: DmxStatus) => void) => {
     ipcRenderer.on('dmx:status', (_e, status) => cb(status))

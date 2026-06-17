@@ -168,3 +168,38 @@ describe('deleteGroup', () => {
     expect(inst().set).toHaveBeenCalledWith('groups', [groups[1]])
   })
 })
+
+import { saveFixtureTemplate, deleteFixtureTemplate } from './store'
+import type { FixtureTemplate } from '../src/shared/types'
+
+describe('fixture templates', () => {
+  const template: FixtureTemplate = {
+    id: 't1',
+    name: 'Mirage Q6',
+    channels: [
+      { role: 'red', label: 'Red', linked: true, offset: 0 },
+      { role: 'green', label: 'Green', linked: true, offset: 1 },
+      { role: 'blue', label: 'Blue', linked: true, offset: 2 },
+    ],
+  }
+
+  it('saveFixtureTemplate adds a template', () => {
+    inst().get.mockImplementation((key: string, def: unknown) =>
+      key === 'fixtureTemplates' ? [] : def
+    )
+    inst().set.mockClear()
+    const result = saveFixtureTemplate(template)
+    expect(result).toEqual([template])
+    expect(inst().set).toHaveBeenCalledWith('fixtureTemplates', [template])
+  })
+
+  it('deleteFixtureTemplate removes by id', () => {
+    inst().get.mockImplementation((key: string, def: unknown) =>
+      key === 'fixtureTemplates' ? [template] : def
+    )
+    inst().set.mockClear()
+    const result = deleteFixtureTemplate('t1')
+    expect(result).toEqual([])
+    expect(inst().set).toHaveBeenCalledWith('fixtureTemplates', [])
+  })
+})

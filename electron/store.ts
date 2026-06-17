@@ -1,5 +1,5 @@
 import Store from 'electron-store'
-import type { Config, Fixture, Scene, Group } from '../src/shared/types'
+import type { Config, Fixture, Scene, Group, FixtureTemplate } from '../src/shared/types'
 import { makeSceneId } from './slug'
 
 const store = new Store<Config>({
@@ -7,6 +7,7 @@ const store = new Store<Config>({
     fixtures: [],
     scenes: [],
     groups: [],
+    fixtureTemplates: [],
     companionPort: 5551,
     devicePath: '',
     dmxOutputPort: 0,
@@ -23,6 +24,7 @@ export function getConfig(): Config {
     fixtures: store.get('fixtures', []),
     scenes: store.get('scenes', []),
     groups: store.get('groups', []),
+    fixtureTemplates: store.get('fixtureTemplates', []),
     companionPort: store.get('companionPort', 5551),
     devicePath: store.get('devicePath', ''),
     dmxOutputPort: store.get('dmxOutputPort', 0),
@@ -75,6 +77,24 @@ export function saveGroup(group: Group): void {
 
 export function deleteGroup(id: string): void {
   store.set('groups', store.get('groups', []).filter((g) => g.id !== id))
+}
+
+export function saveFixtureTemplate(template: FixtureTemplate): FixtureTemplate[] {
+  const templates = store.get('fixtureTemplates', [])
+  const idx = templates.findIndex((t) => t.id === template.id)
+  if (idx >= 0) {
+    templates[idx] = template
+  } else {
+    templates.push(template)
+  }
+  store.set('fixtureTemplates', templates)
+  return templates
+}
+
+export function deleteFixtureTemplate(id: string): FixtureTemplate[] {
+  const templates = store.get('fixtureTemplates', []).filter((t) => t.id !== id)
+  store.set('fixtureTemplates', templates)
+  return templates
 }
 
 export function updateScene(id: string, name: string, fadeDuration: number): Scene | null {

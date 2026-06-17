@@ -1,4 +1,4 @@
-import type { Fixture, Config, Scene, SaveSceneArgs, SetChannelArgs, DmxStatus, UpdateSceneArgs, Group, GroupChannelOverride, ShowInfo } from './types'
+import type { Fixture, Config, Scene, SaveSceneArgs, SetChannelArgs, DmxStatus, UpdateSceneArgs, Group, GroupChannelOverride, ShowInfo, FixtureTemplate } from './types'
 
 declare global {
   interface Window {
@@ -13,6 +13,8 @@ declare global {
       reorderScenes: (ids: string[]) => Promise<void>
       updateFixture: (fixture: Fixture) => Promise<Fixture>
       deleteFixture: (id: string) => Promise<void>
+      saveFixtureTemplate: (template: FixtureTemplate) => Promise<FixtureTemplate[]>
+      deleteFixtureTemplate: (id: string) => Promise<FixtureTemplate[]>
       onDmxStatus: (cb: (status: DmxStatus) => void) => void
       onDeviceAutoConnected: (cb: (path: string) => void) => void
       onSceneActivated: (cb: (sceneId: string) => void) => void

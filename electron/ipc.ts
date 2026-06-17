@@ -1,12 +1,12 @@
 import { ipcMain } from 'electron'
 import { v4 as uuid } from 'uuid'
 import { makeSceneId } from './slug'
-import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, setDevicePath, setDmxOutputPort, replaceConfig, updateScene, reorderScenes, saveGroup, deleteGroup, reorderGroups } from './store'
+import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, setDevicePath, setDmxOutputPort, replaceConfig, updateScene, reorderScenes, saveGroup, deleteGroup, reorderGroups, saveFixtureTemplate, deleteFixtureTemplate } from './store'
 import { exportShow, importShow } from './show'
 import { listShows, saveNamedShow, loadNamedShow, deleteNamedShow } from './shows-library'
 import { listSerialPorts } from './ports'
 import type { DmxManager } from './dmx'
-import type { Fixture, SaveSceneArgs, SetChannelArgs, UpdateSceneArgs, Group, GroupChannelOverride } from '../src/shared/types'
+import type { Fixture, SaveSceneArgs, SetChannelArgs, UpdateSceneArgs, Group, GroupChannelOverride, FixtureTemplate } from '../src/shared/types'
 
 export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: string) => void): void {
   ipcMain.handle('config:get', () => getConfig())
@@ -100,6 +100,14 @@ export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: 
 
   ipcMain.handle('group:setOverrides', (_e, map: Record<string, GroupChannelOverride>) => {
     dmxManager.setGroupOverrides(map)
+  })
+
+  ipcMain.handle('fixture:saveTemplate', (_e, template: FixtureTemplate) => {
+    return saveFixtureTemplate(template)
+  })
+
+  ipcMain.handle('fixture:deleteTemplate', (_e, { id }: { id: string }) => {
+    return deleteFixtureTemplate(id)
   })
 
   ipcMain.handle('show:reset', () => {
