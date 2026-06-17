@@ -1,11 +1,36 @@
 export type FixtureType = 'dimmer' | 'switch'
 
+export type ChannelRole =
+  | 'red' | 'green' | 'blue' | 'amber' | 'white' | 'uv'
+  | 'dimmer' | 'strobe' | 'other'
+
+export interface FixtureChannel {
+  id: string
+  role: ChannelRole
+  label: string
+  channel: number
+  universe: 0 | 1
+  linked: boolean
+}
+
+export interface FixtureTemplate {
+  id: string
+  name: string
+  channels: Array<{
+    role: ChannelRole
+    label: string
+    linked: boolean
+    offset: number
+  }>
+}
+
 export interface Fixture {
   id: string
   name: string
   channel: number      // 1–512
   universe: 0 | 1     // Enttec Mk2 has two universes
   type: FixtureType
+  channels?: FixtureChannel[]
 }
 
 export interface Scene {
@@ -19,6 +44,7 @@ export interface Config {
   fixtures: Fixture[]
   scenes: Scene[]
   groups: Group[]
+  fixtureTemplates: FixtureTemplate[]
   companionPort: number // default 5551
   devicePath: string   // e.g. /dev/tty.usbserial-XXXXX, empty = no connection
   dmxOutputPort: 0 | 1 | 2 // MK2 output port (matches QLC+ output 1/2/3)
