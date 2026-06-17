@@ -5,8 +5,7 @@ import { CompanionModal } from './components/CompanionModal'
 import { ShowsModal } from './components/ShowsModal'
 import type { Config, DmxStatus, Fixture, Scene, Group } from '../shared/types'
 import styles from './App.module.css'
-
-const APP_VERSION = '0.1.6'
+import { version as APP_VERSION } from '../../package.json'
 
 export function App() {
   const [config, setConfig] = useState<Config | null>(null)
