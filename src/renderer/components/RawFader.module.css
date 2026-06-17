@@ -90,9 +90,19 @@
   cursor: pointer;
 }
 
+.renameable .label {
+  text-decoration: underline;
+  text-decoration-color: var(--border-subtle);
+  text-underline-offset: 2px;
+}
+
 .renameable:hover .channel,
 .renameable:hover .label {
   color: var(--accent);
+}
+
+.renameable:hover .label {
+  text-decoration-color: var(--accent);
 }
 
 .channel {

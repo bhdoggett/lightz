@@ -31,30 +31,39 @@ const PRESETS: Record<string, Array<{ role: ChannelRole; label: string; linked: 
 
 const ALL_ROLES: ChannelRole[] = ['red', 'green', 'blue', 'amber', 'white', 'uv', 'dimmer', 'strobe', 'other']
 
-type ChannelDraft = { role: ChannelRole; label: string; linked: boolean; draftId: string }
+type ChannelDraft = { role: ChannelRole; label: string; linked: boolean; draftId: string; channelId?: string }
 
 interface Props {
   templates: FixtureTemplate[]
   existingFixtures: Fixture[]
+  initialFixture?: Fixture
   onApply: (fixture: Fixture) => void
   onTemplateSave: (template: FixtureTemplate) => void
   onTemplateDelete: (id: string) => void
   onClose: () => void
 }
 
-export function CreateFixtureModal({ templates, existingFixtures, onApply, onTemplateSave, onTemplateDelete, onClose }: Props) {
+export function CreateFixtureModal({ templates, existingFixtures, initialFixture, onApply, onTemplateSave, onTemplateDelete, onClose }: Props) {
+  const editing = !!initialFixture
   const [step, setStep] = useState<1 | 2 | 3>(1)
-  const [name, setName] = useState('')
-  const [startChannel, setStartChannel] = useState(1)
-  const [universe, setUniverse] = useState<0 | 1>(0)
-  const [channels, setChannels] = useState<ChannelDraft[]>([])
+  const [name, setName] = useState(initialFixture?.name ?? '')
+  const [startChannel, setStartChannel] = useState(initialFixture?.channel ?? 1)
+  const [universe, setUniverse] = useState<0 | 1>(initialFixture?.channels?.[0]?.universe ?? 0)
+  const [channels, setChannels] = useState<ChannelDraft[]>(
+    initialFixture?.channels?.map((ch) => ({
+      role: ch.role, label: ch.label, linked: ch.linked,
+      draftId: crypto.randomUUID(), channelId: ch.id,
+    })) ?? []
+  )
   const [templateName, setTemplateName] = useState('')
 
   const usedChannels = new Set(
-    existingFixtures.flatMap((f) =>
-      f.channels ? f.channels.filter((c) => c.universe === universe).map((c) => c.channel)
-               : f.universe === universe ? [f.channel] : []
-    )
+    existingFixtures
+      .filter((f) => f.id !== initialFixture?.id)
+      .flatMap((f) =>
+        f.channels ? f.channels.filter((c) => c.universe === universe).map((c) => c.channel)
+                 : f.universe === universe ? [f.channel] : []
+      )
   )
 
   const applyPreset = (key: string) => setChannels(PRESETS[key].map((c) => ({ ...c, draftId: crypto.randomUUID() })))
@@ -64,7 +73,7 @@ export function CreateFixtureModal({ templates, existingFixtures, onApply, onTem
 
   const handleApply = () => {
     const fixtureChannels: FixtureChannel[] = channels.map((c, i) => ({
-      id: crypto.randomUUID(),
+      id: c.channelId ?? crypto.randomUUID(),
       role: c.role,
       label: c.label,
       linked: c.linked,
@@ -72,7 +81,7 @@ export function CreateFixtureModal({ templates, existingFixtures, onApply, onTem
       universe,
     }))
     onApply({
-      id: crypto.randomUUID(),
+      id: initialFixture?.id ?? crypto.randomUUID(),
       name,
       channel: startChannel,
       universe,
@@ -97,7 +106,7 @@ export function CreateFixtureModal({ templates, existingFixtures, onApply, onTem
     .filter((ch) => usedChannels.has(ch))
 
   return (
-    <Modal title="Add Multi-Channel Fixture" onClose={onClose} minWidth="480px" maxWidth="560px">
+    <Modal title={editing ? 'Edit Fixture' : 'Add Multi-Channel Fixture'} onClose={onClose} minWidth="480px" maxWidth="560px">
       {step === 1 && (
         <div className={styles.step}>
           <input
@@ -182,7 +191,12 @@ export function CreateFixtureModal({ templates, existingFixtures, onApply, onTem
                     next[i] = { ...next[i], linked: !next[i].linked }
                     setChannels(next)
                   }}
-                >🔗</button>
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                  </svg>
+                </button>
                 <button className={styles.deleteRowBtn} onClick={() => setChannels(channels.filter((_, j) => j !== i))}>×</button>
               </div>
             ))}
@@ -230,7 +244,14 @@ export function CreateFixtureModal({ templates, existingFixtures, onApply, onTem
                 <span className={styles.channelNum}>{startChannel + i}</span>
                 <span className={styles.roleTag}>{ch.role}</span>
                 <span className={styles.labelText}>{ch.label}</span>
-                {ch.linked && <span className={styles.linkedTag}>🔗</span>}
+                {ch.linked && (
+                  <span className={styles.linkedTag}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                    </svg>
+                  </span>
+                )}
               </div>
             ))}
           </div>
@@ -241,7 +262,7 @@ export function CreateFixtureModal({ templates, existingFixtures, onApply, onTem
           )}
           <div className={styles.footer}>
             <button className={styles.cancelBtn} onClick={() => setStep(2)}>Back</button>
-            <button className={styles.nextBtn} onClick={handleApply}>Add Fixture</button>
+            <button className={styles.nextBtn} onClick={handleApply}>{editing ? 'Save Changes' : 'Add Fixture'}</button>
           </div>
         </div>
       )}

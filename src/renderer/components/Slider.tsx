@@ -6,18 +6,19 @@ interface Props {
   min?: number
   max?: number
   height?: number
+  fillColor?: string
   disabled?: boolean
   onChange: (value: number) => void
 }
 
-export function Slider({ value, min = 0, max = 255, height = 120, disabled = false, onChange }: Props) {
+export function Slider({ value, min = 0, max = 255, height = 120, fillColor, disabled = false, onChange }: Props) {
   const fillPct = `${((value - min) / (max - min)) * 100}%`
   return (
     <input
       type="range"
       role="slider"
       className={styles.slider}
-      style={{ height: `${height}px`, ['--fill-pct']: fillPct } as React.CSSProperties}
+      style={{ height: `${height}px`, ['--fill-pct']: fillPct, ...(fillColor ? { ['--fill-color']: fillColor } : {}) } as React.CSSProperties}
       min={min}
       max={max}
       value={value}

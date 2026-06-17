@@ -8,7 +8,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  cursor: pointer;
+  gap: 4px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+  padding: var(--space-2);
 }
 
 .expandedPanel {
@@ -30,43 +34,57 @@
   gap: 4px;
 }
 
-.fixtureName {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  text-align: center;
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: var(--radius-sm);
-  max-width: 64px;
-  word-break: break-word;
-}
-
-.fixtureName:hover {
-  color: var(--text-primary);
-  background: var(--bg-raised);
-}
-
-.rightPanel {
+.controlRow {
   display: flex;
-  flex-direction: column;
-}
-
-.pickerRow {
-  padding: var(--space-2);
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  justify-content: center;
+  flex-direction: row;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
 }
 
 .colorPicker {
-  width: 100%;
-  height: 36px;
+  width: 26px;
+  height: 26px;
   border: none;
   border-radius: var(--radius-sm);
   cursor: pointer;
   background: none;
   padding: 0;
+  flex-shrink: 0;
+}
+
+.gearBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 2px;
+  display: flex;
+  flex-shrink: 0;
+}
+
+.gearBtn:hover {
+  color: var(--text-secondary);
+}
+
+.expandBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 2px;
+  display: flex;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.expandBtn:hover {
+  color: var(--text-secondary);
+}
+
+.rightPanel {
+  display: flex;
+  flex-direction: column;
 }
 
 .subFaders {
@@ -87,25 +105,12 @@
   background: none;
   border: none;
   cursor: pointer;
-  font-size: 10px;
-  opacity: 0.3;
+  color: var(--text-secondary);
+  opacity: 0.35;
   padding: 2px;
+  display: flex;
 }
 
 .linkBtn.linked {
   opacity: 1;
-}
-
-.toggleBtn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  color: var(--text-muted);
-  padding: 2px;
-  line-height: 1;
-}
-
-.toggleBtn.on {
-  color: var(--status-connected);
 }

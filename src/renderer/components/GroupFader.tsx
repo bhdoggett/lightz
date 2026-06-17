@@ -51,6 +51,7 @@ export function GroupFader({ group, fader, override, onFaderChange, onOverrideCh
             min={0}
             max={100}
             height={60}
+            fillColor={group.color}
             disabled={override !== null}
             onChange={onFaderChange}
           />

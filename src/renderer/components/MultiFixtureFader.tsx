@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react'
 import type { Fixture, FixtureChannel } from '../../shared/types'
-import { channelValuesToDisplayHex, pickerHexToChannelValues, isColorRole } from '../utils/colorSync'
+import { channelValuesToDisplayHex, pickerHexToChannelValues, isColorRole, roleToFillColor } from '../utils/colorSync'
 import { computeRatios, applyRatios } from '../utils/gangFader'
 import { RawFader } from './RawFader'
 import styles from './MultiFixtureFader.module.css'
@@ -9,15 +9,15 @@ interface Props {
   fixture: Fixture
   values: Record<string, number>
   onChange: (values: Record<string, number>) => void
+  onRename?: (name: string) => void
+  onEdit?: () => void
   groupColor?: string
   groupOverride?: 'full' | 'mute' | null
 }
 
-export function MultiFixtureFader({ fixture, values, onChange, groupColor, groupOverride }: Props) {
+export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit, groupColor, groupOverride }: Props) {
   const channels = fixture.channels!
   const [expanded, setExpanded] = useState(false)
-  const [isOn, setIsOn] = useState(true)
-  const savedValues = useRef<Record<string, number>>({})
   const ratiosRef = useRef<Record<string, number>>({})
   const [channelLinks, setChannelLinks] = useState<Record<string, boolean>>(
     () => Object.fromEntries(channels.map((ch) => [ch.id, ch.linked]))
@@ -29,25 +29,10 @@ export function MultiFixtureFader({ fixture, values, onChange, groupColor, group
   const linkedChannels = effectiveChannels.filter((ch) => ch.linked)
   const displayHex = channelValuesToDisplayHex(colorChannels, values)
 
-  // masterDisplay = max of linked channel values (the "ceiling" of the current state)
   const masterDisplay = Math.max(...linkedChannels.map((ch) => values[ch.id] ?? 0), 0)
 
-  // Keep ratios current whenever master is non-zero (ratios survive the zero crossing)
   if (masterDisplay > 0) {
     ratiosRef.current = computeRatios(effectiveChannels, values)
-  }
-
-  const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    if (isOn) {
-      savedValues.current = { ...values }
-      const zeroed: Record<string, number> = {}
-      for (const ch of channels) zeroed[ch.id] = 0
-      onChange(zeroed)
-    } else {
-      onChange({ ...savedValues.current })
-    }
-    setIsOn((prev) => !prev)
   }
 
   const handleMasterChange = (newVal: number) => {
@@ -58,13 +43,10 @@ export function MultiFixtureFader({ fixture, values, onChange, groupColor, group
   const handleLinkToggle = async (channelId: string) => {
     const newLinked = !(channelLinks[channelId] ?? true)
     setChannelLinks((prev) => ({ ...prev, [channelId]: newLinked }))
-
-    // Persist the change to the store
     const updatedChannels = channels.map((ch) =>
       ch.id === channelId ? { ...ch, linked: newLinked } : ch
     )
-    const updatedFixture = { ...fixture, channels: updatedChannels }
-    await window.electronAPI.updateFixture(updatedFixture)
+    await window.electronAPI.updateFixture({ ...fixture, channels: updatedChannels })
   }
 
   const handleChannelChange = (ch: FixtureChannel, newVal: number) => {
@@ -78,26 +60,60 @@ export function MultiFixtureFader({ fixture, values, onChange, groupColor, group
     onChange(next)
   }
 
-  const masterFader = (
-    <RawFader
-      channel={0}
-      value={masterDisplay}
-      label="Master"
-      onChange={handleMasterChange}
-      groupColor={displayHex}
-    />
+  const gearBtn = (
+    <button
+      className={styles.gearBtn}
+      onClick={(e) => { e.stopPropagation(); onEdit?.() }}
+      title="Edit fixture"
+    >
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
+        <path d="M19.622 10.395l-1.097-2.65L20 6l-2-2-1.735 1.483-2.707-1.113L12.935 2h-1.954l-.632 2.401-2.645 1.115L6 4 4 6l1.453 1.789-1.08 2.657L2 11v2l2.401.655L5.516 16.3 4 18l2 2 1.791-1.46 2.606 1.072L11 22h2l.604-2.387 2.651-1.098C16.697 19.187 18 20 18 20l2-2-1.484-1.752 1.098-2.652 2.386-.62V11l-2.378-.605Z"/>
+      </svg>
+    </button>
   )
 
-  const toggleBtn = (
+  const colorPicker = colorChannels.length > 0 ? (
+    <input
+      type="color"
+      className={styles.colorPicker}
+      value={displayHex}
+      onChange={handleColorPick}
+      onClick={(e) => e.stopPropagation()}
+    />
+  ) : null
+
+  const expandBtn = (
     <button
-      role="switch"
-      aria-checked={isOn}
-      className={`${styles.toggleBtn}${isOn ? ` ${styles.on}` : ''}`}
-      onClick={handleToggle}
-      title={isOn ? 'Turn off' : 'Turn on'}
+      className={styles.expandBtn}
+      onClick={(e) => { e.stopPropagation(); setExpanded((prev) => !prev) }}
+      title={expanded ? 'Collapse channels' : 'Expand channels'}
     >
-      ●
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        {expanded
+          ? <path d="M15 18l-6-6 6-6"/>
+          : <path d="M9 18l6-6-6-6"/>}
+      </svg>
     </button>
+  )
+
+  const masterPanel = (
+    <>
+      <RawFader
+        channel={0}
+        value={masterDisplay}
+        label={fixture.name}
+        onChange={handleMasterChange}
+        onRename={onRename}
+        groupColor={groupColor}
+        groupOverride={groupOverride}
+      />
+      <div className={styles.controlRow}>
+        {gearBtn}
+        {colorPicker}
+        {expandBtn}
+      </div>
+    </>
   )
 
   return (
@@ -105,64 +121,42 @@ export function MultiFixtureFader({ fixture, values, onChange, groupColor, group
       {expanded ? (
         <div className={styles.expandedPanel}>
           <div className={styles.masterPanel}>
-            {toggleBtn}
-            {masterFader}
-            <span
-              className={styles.fixtureName}
-              onClick={() => setExpanded(false)}
-              title="Click to collapse"
-            >
-              {fixture.name}
-            </span>
+            {masterPanel}
           </div>
           <div className={styles.rightPanel}>
-            <div className={styles.pickerRow}>
-              <input
-                type="color"
-                className={styles.colorPicker}
-                value={displayHex}
-                onChange={handleColorPick}
-              />
-            </div>
             <div className={styles.subFaders}>
               {channels.map((ch) => {
                 const isLinked = channelLinks[ch.id] ?? ch.linked
                 return (
-                <div key={ch.id} className={styles.subFaderWrap}>
-                  <button
-                    className={`${styles.linkBtn}${isLinked ? ` ${styles.linked}` : ''}`}
-                    title={isLinked ? 'Unlink from master' : 'Link to master'}
-                    onClick={(e) => { e.stopPropagation(); handleLinkToggle(ch.id) }}
-                  >
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                      <path d="M6.5 9.5L9.5 6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                      <path d="M8 6.5L9.5 5C10.5 4 12 4 13 5C14 6 14 7.5 13 8.5L11.5 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                      <path d="M8 9.5L6.5 11C5.5 12 4 12 3 11C2 10 2 8.5 3 7.5L4.5 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
-                  </button>
-                  <RawFader
-                    channel={ch.channel}
-                    value={values[ch.id] ?? 0}
-                    label={ch.label}
-                    onChange={(v) => handleChannelChange(ch, v)}
-                    groupColor={groupColor}
-                    groupOverride={groupOverride}
-                  />
-                </div>
-              )})}
+                  <div key={ch.id} className={styles.subFaderWrap}>
+                    <RawFader
+                      channel={ch.channel}
+                      value={values[ch.id] ?? 0}
+                      label={ch.label}
+                      onChange={(v) => handleChannelChange(ch, v)}
+                      fillColor={roleToFillColor(ch.role)}
+                      groupColor={groupColor}
+                      groupOverride={groupOverride}
+                    />
+                    <button
+                      className={`${styles.linkBtn}${isLinked ? ` ${styles.linked}` : ''}`}
+                      title={isLinked ? 'Unlink from master' : 'Link to master'}
+                      onClick={(e) => { e.stopPropagation(); handleLinkToggle(ch.id) }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                      </svg>
+                    </button>
+                  </div>
+                )
+              })}
             </div>
           </div>
         </div>
       ) : (
-        <div className={styles.collapsed} onClick={() => setExpanded(true)}>
-          {toggleBtn}
-          <RawFader
-            channel={0}
-            value={masterDisplay}
-            label={fixture.name}
-            onChange={handleMasterChange}
-            groupColor={displayHex}
-          />
+        <div className={styles.collapsed}>
+          {masterPanel}
         </div>
       )}
     </div>

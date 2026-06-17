@@ -34,6 +34,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   const [groupStates, setGroupStates] = useState<Record<string, GroupState>>({})
   const [addingFixtures, setAddingFixtures] = useState(false)
   const [creatingFixture, setCreatingFixture] = useState(false)
+  const [editingFixture, setEditingFixture] = useState<Fixture | null>(null)
   const [fixtureTemplates, setFixtureTemplates] = useState<FixtureTemplate[]>(() => [])
 
   // Sync UI when Companion activates a scene externally
@@ -129,8 +130,13 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
 
   const handleCreateFixture = useCallback(async (fixture: Fixture) => {
     const saved = await ipc.updateFixture(fixture)
-    onFixturesChange([...fixtures, saved])
+    const exists = fixtures.some((f) => f.id === saved.id)
+    onFixturesChange(exists
+      ? fixtures.map((f) => f.id === saved.id ? saved : f)
+      : [...fixtures, saved]
+    )
     setCreatingFixture(false)
+    setEditingFixture(null)
   }, [fixtures, ipc, onFixturesChange])
 
   const handleSaveTemplate = useCallback(async (template: FixtureTemplate) => {
@@ -303,6 +309,8 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
                     fixture.channels.map((ch) => [ch.id, getChannel(ch.universe, ch.channel)])
                   )}
                   onChange={(newValues) => handleMultiFixtureChange(fixture, newValues)}
+                  onRename={(name) => handleFixtureRename(fixture, name)}
+                  onEdit={() => setEditingFixture(fixture)}
                   groupColor={getFixtureGroupColor(fixture.id)}
                   groupOverride={getFixtureOverride(fixture.id)}
                 />
@@ -342,6 +350,18 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
           onTemplateSave={handleSaveTemplate}
           onTemplateDelete={handleDeleteTemplate}
           onClose={() => setCreatingFixture(false)}
+        />
+      )}
+
+      {editingFixture && (
+        <CreateFixtureModal
+          templates={fixtureTemplates}
+          existingFixtures={fixtures}
+          initialFixture={editingFixture}
+          onApply={handleCreateFixture}
+          onTemplateSave={handleSaveTemplate}
+          onTemplateDelete={handleDeleteTemplate}
+          onClose={() => setEditingFixture(null)}
         />
       )}
 
