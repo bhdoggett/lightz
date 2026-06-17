@@ -31,7 +31,7 @@ const PRESETS: Record<string, Array<{ role: ChannelRole; label: string; linked: 
 
 const ALL_ROLES: ChannelRole[] = ['red', 'green', 'blue', 'amber', 'white', 'uv', 'dimmer', 'strobe', 'other']
 
-type ChannelDraft = { role: ChannelRole; label: string; linked: boolean }
+type ChannelDraft = { role: ChannelRole; label: string; linked: boolean; draftId: string }
 
 interface Props {
   templates: FixtureTemplate[]
@@ -57,10 +57,10 @@ export function CreateFixtureModal({ templates, existingFixtures, onApply, onTem
     )
   )
 
-  const applyPreset = (key: string) => setChannels(PRESETS[key].map((c) => ({ ...c })))
+  const applyPreset = (key: string) => setChannels(PRESETS[key].map((c) => ({ ...c, draftId: crypto.randomUUID() })))
 
   const applyTemplate = (t: FixtureTemplate) =>
-    setChannels(t.channels.map((c) => ({ role: c.role, label: c.label, linked: c.linked })))
+    setChannels(t.channels.map((c) => ({ role: c.role, label: c.label, linked: c.linked, draftId: crypto.randomUUID() })))
 
   const handleApply = () => {
     const fixtureChannels: FixtureChannel[] = channels.map((c, i) => ({
@@ -152,7 +152,7 @@ export function CreateFixtureModal({ templates, existingFixtures, onApply, onTem
 
           <div className={styles.channelList}>
             {channels.map((ch, i) => (
-              <div key={i} className={styles.channelRow}>
+              <div key={ch.draftId} className={styles.channelRow}>
                 <span className={styles.channelNum}>{startChannel + i}</span>
                 <select
                   className={styles.roleSelect}
@@ -188,7 +188,7 @@ export function CreateFixtureModal({ templates, existingFixtures, onApply, onTem
             ))}
             <button
               className={styles.addRowBtn}
-              onClick={() => setChannels([...channels, { role: 'other', label: 'Ch', linked: false }])}
+              onClick={() => setChannels([...channels, { role: 'other', label: 'Ch', linked: false, draftId: crypto.randomUUID() }])}
             >
               + Add channel
             </button>
@@ -226,7 +226,7 @@ export function CreateFixtureModal({ templates, existingFixtures, onApply, onTem
           </p>
           <div className={styles.channelList}>
             {channels.map((ch, i) => (
-              <div key={i} className={styles.summaryRow}>
+              <div key={ch.draftId} className={styles.summaryRow}>
                 <span className={styles.channelNum}>{startChannel + i}</span>
                 <span className={styles.roleTag}>{ch.role}</span>
                 <span className={styles.labelText}>{ch.label}</span>
