@@ -33,6 +33,21 @@ declare global {
       loadNamedShow: (name: string) => Promise<Config>
       deleteNamedShow: (name: string) => Promise<ShowInfo[]>
       openExternal: (url: string) => Promise<void>
+
+      onMenuNewShow: (cb: () => void) => void
+      onMenuSaveShow: (cb: () => void) => void
+      onMenuOpenShows: (cb: () => void) => void
+      onMenuExportShow: (cb: () => void) => void
+      onMenuImportShow: (cb: () => void) => void
+      onMenuViewFull: (cb: () => void) => void
+      onMenuViewCustom: (cb: () => void) => void
+      onMenuAllOff: (cb: () => void) => void
+      onMenuOpenSettings: (cb: () => void) => void
+      onMenuSaveScene: (cb: () => void) => void
+      onMenuAddScene: (cb: () => void) => void
+      onMenuAddChannels: (cb: () => void) => void
+      onMenuAddFixture: (cb: () => void) => void
+      onMenuAddGroup: (cb: () => void) => void
     }
   }
 }

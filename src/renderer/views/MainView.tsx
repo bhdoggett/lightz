@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { ScenesStrip } from '../components/ScenesStrip'
 import { FixtureFader } from '../components/FixtureFader'
 import { GroupStrip } from '../components/GroupStrip'
@@ -35,6 +35,26 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   const [creatingFixture, setCreatingFixture] = useState(false)
   const [editingFixture, setEditingFixture] = useState<Fixture | null>(null)
   const [fixtureTemplates, setFixtureTemplates] = useState<FixtureTemplate[]>(() => [])
+
+  const [sceneSaveTrigger, setSceneSaveTrigger] = useState(0)
+  const [groupAddTrigger, setGroupAddTrigger] = useState(0)
+
+  useEffect(() => {
+    window.electronAPI.onMenuViewFull(() => setTab('full'))
+    window.electronAPI.onMenuViewCustom(() => setTab('custom'))
+    window.electronAPI.onMenuAddChannels(() => { setTab('custom'); setAddingFixtures(true) })
+    window.electronAPI.onMenuAddFixture(() => { setTab('custom'); setCreatingFixture(true) })
+    window.electronAPI.onMenuAddScene(() => {
+      setTab('custom')
+      setSectionsCollapsed((prev) => ({ ...prev, scenes: false }))
+      setSceneSaveTrigger((n) => n + 1)
+    })
+    window.electronAPI.onMenuAddGroup(() => {
+      setTab('custom')
+      setSectionsCollapsed((prev) => ({ ...prev, groups: false }))
+      setGroupAddTrigger((n) => n + 1)
+    })
+  }, [])
 
   // Sync UI when Companion activates a scene externally
   useEffect(() => {
@@ -118,6 +138,12 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     setActiveSceneId(null)
   }, [ipc, setLocal])
 
+  const allOffRef = useRef(handleAllOff)
+  allOffRef.current = handleAllOff
+  useEffect(() => {
+    window.electronAPI.onMenuAllOff(() => allOffRef.current())
+  }, [])
+
   const handleGroupReorder = useCallback(async (reordered: Group[]) => {
     await ipc.reorderGroups(reordered.map((g) => g.id))
     onGroupsChange(reordered)
@@ -187,6 +213,30 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     onScenesChange(scenes.map((s) => s.id === id ? updated : s))
     if (activeSceneId === id) setActiveSceneId(updated.id)
   }, [scenes, ipc, onScenesChange, activeSceneId])
+
+  const handleSaveSceneValues = useCallback(async () => {
+    if (!activeSceneId) return
+    const scene = scenes.find((s) => s.id === activeSceneId)
+    if (!scene) return
+    const values: Record<string, number> = {}
+    for (const f of fixtures) {
+      if (f.channels) {
+        for (const ch of f.channels) {
+          values[ch.id] = getChannel(ch.universe, ch.channel)
+        }
+      } else {
+        values[f.id] = getChannel(f.universe, f.channel)
+      }
+    }
+    const updated = await ipc.updateScene({ id: scene.id, name: scene.name, fadeDuration: scene.fadeDuration, values })
+    if (updated) onScenesChange(scenes.map((s) => s.id === scene.id ? updated : s))
+  }, [activeSceneId, scenes, fixtures, getChannel, ipc, onScenesChange])
+
+  const saveSceneRef = useRef(handleSaveSceneValues)
+  saveSceneRef.current = handleSaveSceneValues
+  useEffect(() => {
+    window.electronAPI.onMenuSaveScene(() => saveSceneRef.current())
+  }, [])
 
   const handleSceneDelete = useCallback(async (id: string) => {
     await ipc.deleteScene(id)
@@ -296,6 +346,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
                 onUpdate={handleSceneUpdate}
                 onDelete={handleSceneDelete}
                 onReorder={handleSceneReorder}
+                saveTrigger={sceneSaveTrigger}
               />
             )}
           </div>
@@ -315,6 +366,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
                 onSaveGroup={handleSaveGroup}
                 onDeleteGroup={handleDeleteGroup}
                 onReorder={handleGroupReorder}
+                addTrigger={groupAddTrigger}
               />
             )}
           </div>

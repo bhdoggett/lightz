@@ -57,13 +57,18 @@ interface Props {
   onUpdate: (id: string, name: string, fadeDuration: number) => void
   onDelete: (id: string) => void
   onReorder: (scenes: Scene[]) => void
+  saveTrigger?: number
 }
 
-export function ScenesStrip({ scenes, activeSceneId, onActivate, onSave, onUpdate, onDelete, onReorder }: Props) {
+export function ScenesStrip({ scenes, activeSceneId, onActivate, onSave, onUpdate, onDelete, onReorder, saveTrigger = 0 }: Props) {
   const [saving, setSaving] = useState(false)
   const [editing, setEditing] = useState(false)
   const stripRef = useRef<HTMLDivElement>(null)
   const { dragId, insertIndex, containerProps, itemProps } = useDragReorder(scenes, onReorder)
+
+  useEffect(() => {
+    if (saveTrigger > 0) { setEditing(false); setSaving(true) }
+  }, [saveTrigger])
 
   const activeScene = scenes.find((s) => s.id === activeSceneId) ?? null
   const showDialog = editing || saving

@@ -19,6 +19,7 @@ export function App() {
   const [dirty, setDirty] = useState(false)
   const [justSaved, setJustSaved] = useState(false)
   const justSavedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const saveTriggerRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     return () => {
@@ -32,6 +33,33 @@ export function App() {
     window.electronAPI.onDeviceAutoConnected((path) => {
       setConfig((c) => c ? { ...c, devicePath: path } : c)
       setDirty(true)
+    })
+
+    window.electronAPI.onMenuNewShow(async () => {
+      const config = await window.electronAPI.resetShow()
+      setConfig(config)
+      setCurrentShowName(null)
+      setDirty(false)
+    })
+
+    window.electronAPI.onMenuSaveShow(() => {
+      saveTriggerRef.current?.()
+    })
+
+    window.electronAPI.onMenuOpenShows(() => setShowsOpen(true))
+    window.electronAPI.onMenuOpenSettings(() => setCompanionOpen(true))
+
+    window.electronAPI.onMenuExportShow(() => {
+      window.electronAPI.exportShow()
+    })
+
+    window.electronAPI.onMenuImportShow(async () => {
+      const imported = await window.electronAPI.importShow()
+      if (imported) {
+        setConfig(imported)
+        setCurrentShowName(null)
+        setDirty(false)
+      }
     })
   }, [])
 
@@ -94,6 +122,7 @@ export function App() {
       setSaving(false)
     }
   }
+  saveTriggerRef.current = currentShowName ? handleSaveCurrent : () => setShowsOpen(true)
 
   return (
     <div className={styles.app}>

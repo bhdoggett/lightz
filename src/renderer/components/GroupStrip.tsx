@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { GroupFader } from './GroupFader'
 import { GroupEditor } from './GroupEditor'
 import { Modal } from './Modal'
@@ -16,10 +16,15 @@ interface Props {
   onSaveGroup: (group: Group) => void
   onDeleteGroup: (id: string) => void
   onReorder: (groups: Group[]) => void
+  addTrigger?: number
 }
 
-export function GroupStrip({ groups, fixtures, groupStates, onStateChange, onSaveGroup, onDeleteGroup, onReorder }: Props) {
+export function GroupStrip({ groups, fixtures, groupStates, onStateChange, onSaveGroup, onDeleteGroup, onReorder, addTrigger = 0 }: Props) {
   const [editingId, setEditingId] = useState<string | 'new' | null>(null)
+
+  useEffect(() => {
+    if (addTrigger > 0) setEditingId('new')
+  }, [addTrigger])
   const { dragId, insertIndex, containerProps, itemProps } = useDragReorder(groups, onReorder)
 
   const editingGroup = editingId === 'new' ? null

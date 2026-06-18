@@ -52,6 +52,21 @@ const api = {
   deleteNamedShow: (name: string) => ipcRenderer.invoke('show:deleteNamed', { name }),
 
   openExternal: (url: string) => ipcRenderer.invoke('shell:openExternal', url),
+
+  onMenuNewShow: (cb: () => void) => { ipcRenderer.on('menu:newShow', cb) },
+  onMenuSaveShow: (cb: () => void) => { ipcRenderer.on('menu:saveShow', cb) },
+  onMenuOpenShows: (cb: () => void) => { ipcRenderer.on('menu:openShows', cb) },
+  onMenuExportShow: (cb: () => void) => { ipcRenderer.on('menu:exportShow', cb) },
+  onMenuImportShow: (cb: () => void) => { ipcRenderer.on('menu:importShow', cb) },
+  onMenuViewFull: (cb: () => void) => { ipcRenderer.on('menu:viewFull', cb) },
+  onMenuViewCustom: (cb: () => void) => { ipcRenderer.on('menu:viewCustom', cb) },
+  onMenuAllOff: (cb: () => void) => { ipcRenderer.on('menu:allOff', cb) },
+  onMenuOpenSettings: (cb: () => void) => { ipcRenderer.on('menu:openSettings', cb) },
+  onMenuSaveScene: (cb: () => void) => { ipcRenderer.on('menu:saveScene', cb) },
+  onMenuAddScene: (cb: () => void) => { ipcRenderer.on('menu:addScene', cb) },
+  onMenuAddChannels: (cb: () => void) => { ipcRenderer.on('menu:addChannels', cb) },
+  onMenuAddFixture: (cb: () => void) => { ipcRenderer.on('menu:addFixture', cb) },
+  onMenuAddGroup: (cb: () => void) => { ipcRenderer.on('menu:addGroup', cb) },
 }
 
 contextBridge.exposeInMainWorld('electronAPI', api)

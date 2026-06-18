@@ -70,6 +70,7 @@ export interface UpdateSceneArgs {
   id: string
   name: string
   fadeDuration: number
+  values?: Record<string, number>
 }
 
 // Per-channel group override sent to DmxManager
