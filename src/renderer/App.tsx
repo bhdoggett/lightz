@@ -186,17 +186,21 @@ export function App() {
                 <line x1="12" y1="8" x2="12.01" y2="8"/>
               </svg>
             </button>
-            {aboutOpen && (
-              <div className={styles.aboutPopover}>
-                <p className={styles.aboutName}>Lightz <span className={styles.aboutVersion}>v{APP_VERSION}</span></p>
-                <button className={styles.aboutLink} onClick={() => window.electronAPI.openExternal('https://github.com/bhdoggett/lightz/releases')}>
-                  Releases &amp; changelog
-                </button>
-                <button className={styles.aboutLink} onClick={() => window.electronAPI.openExternal('https://github.com/bhdoggett/lightz')}>
-                  GitHub repo
-                </button>
-              </div>
-            )}
+            {aboutOpen && (() => {
+              const rect = aboutRef.current?.getBoundingClientRect()
+              const style = rect ? { top: rect.bottom + 8, right: window.innerWidth - rect.right } : {}
+              return (
+                <div className={styles.aboutPopover} style={style}>
+                  <p className={styles.aboutName}>Lightz <span className={styles.aboutVersion}>v{APP_VERSION}</span></p>
+                  <button className={styles.aboutLink} onClick={() => window.electronAPI.openExternal('https://github.com/bhdoggett/lightz/releases')}>
+                    Releases &amp; changelog
+                  </button>
+                  <button className={styles.aboutLink} onClick={() => window.electronAPI.openExternal('https://github.com/bhdoggett/lightz')}>
+                    GitHub repo
+                  </button>
+                </div>
+              )
+            })()}
           </div>
         </div>
       </header>
