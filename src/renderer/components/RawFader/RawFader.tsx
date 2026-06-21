@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Slider } from './Slider'
+import { Slider } from '../Slider'
 import styles from './RawFader.module.css'
 
 interface Props {

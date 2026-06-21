@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { GroupEditor } from './GroupEditor'
-import type { Group, Fixture } from '../../shared/types'
+import type { Group, Fixture } from '../../../shared/types'
 
 const fixtures: Fixture[] = [
   { id: 'f1', name: 'Front Wash', channel: 1, universe: 0, type: 'dimmer' },

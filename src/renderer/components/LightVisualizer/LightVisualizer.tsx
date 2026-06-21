@@ -9,6 +9,9 @@ interface Props {
   getChannel: (universe: 0 | 1, channel: number) => number
   overrideMap?: Record<string, GroupChannelOverride>
   onFixtureVizChange?: (fixtureId: string, vizPositions: VizPosition[]) => void
+  popped?: boolean
+  onPopout?: () => void
+  onDock?: () => void
 }
 
 const MIN_HEIGHT = 32
@@ -52,7 +55,7 @@ function hasFixtureAt(fixtures: Fixture[], axis: 'col' | 'row', index: number, g
   return false
 }
 
-export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixtureVizChange }: Props) {
+export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixtureVizChange, popped = false, onPopout, onDock }: Props) {
   const [expanded, setExpanded] = useState(true)
   const [height, setHeight] = useState(DEFAULT_HEIGHT)
   const [locked, setLocked] = useState(true)
@@ -257,20 +260,22 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const canRemoveBottomRow = gridRows > 3 && !hasFixtureAt(fixtures, 'row', gridRows - 1, gridCols)
 
   return (
-    <div className={styles.panel} style={{ height: expanded ? height : MIN_HEIGHT }}>
-      {expanded && <div className={styles.dragHandle} onMouseDown={onResizeStart} />}
+    <div className={`${styles.panel}${popped ? ` ${styles.popped}` : ''}`} style={popped ? undefined : { height: expanded ? height : MIN_HEIGHT }}>
+      {expanded && !popped && <div className={styles.dragHandle} onMouseDown={onResizeStart} />}
       <div className={styles.toolbar}>
-        <div className={styles.toolbarLeft} onClick={() => setExpanded((v) => !v)}>
-          <svg
-            data-testid="viz-toggle"
-            className={`${styles.chevron}${expanded ? ` ${styles.chevronExpanded}` : ''}`}
-            width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-          >
-            <path d="M6 15l6-6 6 6"/>
-          </svg>
+        <div className={styles.toolbarLeft} onClick={popped ? undefined : () => setExpanded((v) => !v)}>
+          {!popped && (
+            <svg
+              data-testid="viz-toggle"
+              className={`${styles.chevron}${expanded ? ` ${styles.chevronExpanded}` : ''}`}
+              width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+            >
+              <path d="M6 15l6-6 6 6"/>
+            </svg>
+          )}
           <span className={styles.toolbarLabel}>Visualizer</span>
-          {!expanded && <div className={styles.compactStrip}>{compactDots}</div>}
+          {!expanded && !popped && <div className={styles.compactStrip}>{compactDots}</div>}
         </div>
         {expanded && (
           <div className={styles.toolbarRight}>
@@ -297,10 +302,31 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 <path d={locked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'}/>
               </svg>
             </button>
+            {popped ? (
+              <button
+                className={styles.lockBtn}
+                onClick={onDock}
+                title="Dock visualizer back"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                </svg>
+              </button>
+            ) : (
+              <button
+                className={styles.lockBtn}
+                onClick={onPopout}
+                title="Pop out visualizer"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
+                </svg>
+              </button>
+            )}
           </div>
         )}
       </div>
-      {expanded && (
+      {(expanded || popped) && (
         <div className={`${styles.stageOuter}${!locked ? ` ${styles.editing}` : ''}`}>
           {!locked && (
             <div className={styles.edgeTop}>

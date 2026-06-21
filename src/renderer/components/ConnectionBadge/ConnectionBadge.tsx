@@ -1,4 +1,4 @@
-import type { DmxStatus } from '../../shared/types'
+import type { DmxStatus } from '../../../shared/types'
 import styles from './ConnectionBadge.module.css'
 
 interface Props {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { v4 as uuid } from 'uuid'
-import { GROUP_COLORS } from '../../shared/types'
-import type { Group, Fixture } from '../../shared/types'
+import { GROUP_COLORS } from '../../../shared/types'
+import type { Group, Fixture } from '../../../shared/types'
 import styles from './GroupEditor.module.css'
 
 interface Props {

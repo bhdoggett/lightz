@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react'
-import type { Fixture, FixtureChannel } from '../../shared/types'
-import { channelValuesToDisplayHex, pickerHexToChannelValues, isColorRole, roleToFillColor } from '../utils/colorSync'
-import { computeRatios, applyRatios } from '../utils/gangFader'
-import { RawFader } from './RawFader'
-import { ColorPickerPopover } from './ColorPickerPopover'
-import { useApi } from '../api/context'
+import type { Fixture, FixtureChannel } from '../../../shared/types'
+import { channelValuesToDisplayHex, pickerHexToChannelValues, isColorRole, roleToFillColor } from '../../utils/colorSync'
+import { computeRatios, applyRatios } from '../../utils/gangFader'
+import { RawFader } from '../RawFader'
+import { ColorPickerPopover } from '../ColorPickerPopover'
+import { useApi } from '../../api/context'
 import styles from './MultiFixtureFader.module.css'
 
 interface Props {

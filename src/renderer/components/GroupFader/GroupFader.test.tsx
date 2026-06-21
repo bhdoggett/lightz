@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { GroupFader } from './GroupFader'
-import type { Group } from '../../shared/types'
+import type { Group } from '../../../shared/types'
 
 const group: Group = { id: 'g1', name: 'Front Wash', color: '#6366f1', fixtureIds: [] }
 

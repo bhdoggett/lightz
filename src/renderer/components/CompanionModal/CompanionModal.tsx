@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
-import type { Scene } from '../../shared/types'
-import { Modal } from './Modal'
-import { useApi } from '../api/context'
+import type { Scene } from '../../../shared/types'
+import { Modal } from '../Modal'
+import { useApi } from '../../api/context'
 import styles from './CompanionModal.module.css'
 
 interface Props {

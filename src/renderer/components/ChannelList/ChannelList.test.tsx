@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ChannelList } from './ChannelList'
-import type { Fixture } from '../../shared/types'
+import type { Fixture } from '../../../shared/types'
 
 const fixtures: Fixture[] = [
   { id: 'f1', name: 'Chandelier L', channel: 1, universe: 0, type: 'dimmer' },

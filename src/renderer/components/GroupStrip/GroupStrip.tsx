@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { GroupFader } from './GroupFader'
-import { GroupEditor } from './GroupEditor'
-import { Modal } from './Modal'
-import { useDragReorder } from '../hooks/useDragReorder'
-import type { Group, Fixture } from '../../shared/types'
+import { GroupFader } from '../GroupFader'
+import { GroupEditor } from '../GroupEditor'
+import { Modal } from '../Modal'
+import { useDragReorder } from '../../hooks/useDragReorder'
+import type { Group, Fixture } from '../../../shared/types'
 import styles from './GroupStrip.module.css'
 
 type GroupState = { fader: number; override: 'full' | 'mute' | null }

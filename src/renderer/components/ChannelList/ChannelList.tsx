@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import type { Fixture } from '../../shared/types'
+import type { Fixture } from '../../../shared/types'
 import styles from './ChannelList.module.css'
 
 interface Props {

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
-import { Modal } from './Modal'
-import type { Fixture } from '../../shared/types'
+import { Modal } from '../Modal'
+import type { Fixture } from '../../../shared/types'
 import styles from './AddFixturesModal.module.css'
 
 interface Props {

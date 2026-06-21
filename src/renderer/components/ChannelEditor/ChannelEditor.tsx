@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { v4 as uuid } from 'uuid'
-import type { Fixture, FixtureType } from '../../shared/types'
+import type { Fixture, FixtureType } from '../../../shared/types'
 import styles from './ChannelEditor.module.css'
 
 interface Props {

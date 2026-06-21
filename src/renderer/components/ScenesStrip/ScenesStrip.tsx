@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
-import type { Scene } from '../../shared/types'
-import { useDragReorder } from '../hooks/useDragReorder'
+import type { Scene } from '../../../shared/types'
+import { useDragReorder } from '../../hooks/useDragReorder'
 import styles from './ScenesStrip.module.css'
 
 interface SceneDialogProps {

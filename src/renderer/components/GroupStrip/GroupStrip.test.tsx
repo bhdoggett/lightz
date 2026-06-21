@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { GroupStrip } from './GroupStrip'
-import type { Group, Fixture } from '../../shared/types'
+import type { Group, Fixture } from '../../../shared/types'
 
 const groups: Group[] = [
   { id: 'g1', name: 'Front Wash', color: '#6366f1', fixtureIds: ['f1'] },

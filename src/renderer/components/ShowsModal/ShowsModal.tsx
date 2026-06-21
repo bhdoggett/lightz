@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Modal } from './Modal'
-import { useApi } from '../api/context'
-import type { Config, ShowInfo } from '../../shared/types'
+import { Modal } from '../Modal'
+import { useApi } from '../../api/context'
+import type { Config, ShowInfo } from '../../../shared/types'
 import styles from './ShowsModal.module.css'
 
 interface Props {

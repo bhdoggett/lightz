@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ScenesStrip } from './ScenesStrip'
-import type { Scene } from '../../shared/types'
+import type { Scene } from '../../../shared/types'
 
 const scenes: Scene[] = [
   { id: 'worship-mode', name: 'Worship Mode', fadeDuration: 1000, values: {} },

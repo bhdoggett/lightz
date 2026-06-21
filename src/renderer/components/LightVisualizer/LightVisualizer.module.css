@@ -8,6 +8,11 @@
   min-height: var(--space-8);
 }
 
+.panel.popped {
+  height: 100vh;
+  border-top: none;
+}
+
 .dragHandle {
   position: absolute;
   top: -3px;
@@ -199,7 +204,7 @@
 .stage {
   flex: 1;
   overflow: visible;
-  padding: var(--space-8);
+  padding: 3rem;
 }
 
 .stage.stageEditable {
@@ -248,7 +253,9 @@
 .lightBulb {
   border-radius: 50%;
   border: 1px solid var(--border-subtle);
-  transition: background-color 0.05s linear, box-shadow 0.05s linear;
+  transition:
+    background-color 0.05s linear,
+    box-shadow 0.05s linear;
   display: flex;
   align-items: center;
   justify-content: center;

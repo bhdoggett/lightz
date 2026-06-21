@@ -4,6 +4,7 @@ import { ConnectionBadge } from './components/ConnectionBadge'
 import { CompanionModal } from './components/CompanionModal'
 import { ShowsModal } from './components/ShowsModal'
 import { LightVisualizer } from './components/LightVisualizer'
+import { PopoutWindow } from './components/PopoutWindow'
 import { useApi } from './api/context'
 import { useDmxState } from './hooks/useDmxState'
 import type { Config, DmxStatus, Fixture, Scene, Group, GroupChannelOverride } from '../shared/types'
@@ -33,6 +34,7 @@ export function App({ dmxState: externalDmxState }: AppProps) {
   const justSavedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const saveTriggerRef = useRef<(() => void) | null>(null)
   const [overrideMap, setOverrideMap] = useState<Record<string, GroupChannelOverride>>({})
+  const [vizPopped, setVizPopped] = useState(false)
 
   useEffect(() => {
     return () => {
@@ -249,12 +251,26 @@ export function App({ dmxState: externalDmxState }: AppProps) {
           onOverrideMapChange={setOverrideMap}
         />
       </div>
-      <LightVisualizer
-        fixtures={config.fixtures}
-        getChannel={getChannel}
-        overrideMap={overrideMap}
-        onFixtureVizChange={handleFixtureVizChange}
-      />
+      {vizPopped ? (
+        <PopoutWindow title="Lightz — Visualizer" onClose={() => setVizPopped(false)}>
+          <LightVisualizer
+            fixtures={config.fixtures}
+            getChannel={getChannel}
+            overrideMap={overrideMap}
+            onFixtureVizChange={handleFixtureVizChange}
+            popped
+            onDock={() => setVizPopped(false)}
+          />
+        </PopoutWindow>
+      ) : (
+        <LightVisualizer
+          fixtures={config.fixtures}
+          getChannel={getChannel}
+          overrideMap={overrideMap}
+          onFixtureVizChange={handleFixtureVizChange}
+          onPopout={() => setVizPopped(true)}
+        />
+      )}
 
       {showsOpen && (
         <ShowsModal

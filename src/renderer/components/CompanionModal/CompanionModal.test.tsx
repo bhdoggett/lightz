@@ -1,8 +1,8 @@
 import { render, screen } from '@testing-library/react'
 import { CompanionModal } from './CompanionModal'
-import { ApiProvider } from '../api/context'
-import type { LightzApi } from '../api/types'
-import type { Scene } from '../../shared/types'
+import { ApiProvider } from '../../api/context'
+import type { LightzApi } from '../../api/types'
+import type { Scene } from '../../../shared/types'
 import type { ReactNode } from 'react'
 
 const scenes: Scene[] = [

@@ -1,6 +1,6 @@
-import { Slider } from './Slider'
+import { Slider } from '../Slider'
 import styles from './GroupFader.module.css'
-import type { Group } from '../../shared/types'
+import type { Group } from '../../../shared/types'
 
 interface Props {
   group: Group

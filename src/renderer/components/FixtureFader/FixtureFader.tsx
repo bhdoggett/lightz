@@ -1,4 +1,4 @@
-import { RawFader } from './RawFader'
+import { RawFader } from '../RawFader'
 
 interface Props {
   channel: number
