@@ -21,7 +21,7 @@ function WebApp() {
 
   return (
     <ApiProvider api={apiRef.current}>
-      <App dmxState={dmxState} />
+      <App dmxState={dmxState} isDemo />
     </ApiProvider>
   )
 }

@@ -15,9 +15,10 @@ type DmxState = ReturnType<typeof useDmxState>
 
 interface AppProps {
   dmxState?: DmxState
+  isDemo?: boolean
 }
 
-export function App({ dmxState: externalDmxState }: AppProps) {
+export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
   const api = useApi()
   const internalDmxState = useDmxState()
   const { getChannel, setChannel: setLocal, applyScene } = externalDmxState ?? internalDmxState
@@ -157,6 +158,14 @@ export function App({ dmxState: externalDmxState }: AppProps) {
 
   return (
     <div className={styles.app}>
+      {isDemo && (
+        <div className={styles.demoBanner}>
+          <span>This is a demo — no DMX hardware connected.</span>
+          <a href="https://github.com/bhdoggett/lightz/releases" target="_blank" rel="noopener noreferrer">
+            Download the desktop app for real DMX control →
+          </a>
+        </div>
+      )}
       <header className={styles.header}>
         <span className={styles.appName}>Light<span className={styles.appNameZ}>z</span></span>
         <div className={styles.headerRight}>
