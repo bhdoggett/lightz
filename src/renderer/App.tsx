@@ -85,15 +85,6 @@ export function App({ dmxState: externalDmxState }: AppProps) {
     return () => document.removeEventListener('mousedown', handleOutside)
   }, [aboutOpen])
 
-  if (!config) {
-    return <div className={styles.loading}>Loading...</div>
-  }
-
-  const handleFixturesChange = (fixtures: Fixture[]) => {
-    setConfig((c) => c ? { ...c, fixtures } : c)
-    setDirty(true)
-  }
-
   const handleFixturePositionChange = useCallback(async (fixtureId: string, vizX: number, vizY: number) => {
     setConfig((c) => {
       if (!c) return c
@@ -109,6 +100,15 @@ export function App({ dmxState: externalDmxState }: AppProps) {
       }
     }
   }, [config, api])
+
+  if (!config) {
+    return <div className={styles.loading}>Loading...</div>
+  }
+
+  const handleFixturesChange = (fixtures: Fixture[]) => {
+    setConfig((c) => c ? { ...c, fixtures } : c)
+    setDirty(true)
+  }
 
   const handleScenesChange = (scenes: Scene[]) => {
     setConfig((c) => c ? { ...c, scenes } : c)
