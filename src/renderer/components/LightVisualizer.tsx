@@ -324,9 +324,10 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 <button className={styles.edgeBtn} onClick={() => addCol('left')}>+</button>
               </div>
             )}
+            <div className={styles.stage}>
             <div
               ref={stageRef}
-              className={styles.stage}
+              className={styles.stageInner}
               data-testid="viz-lights"
             >
               {gridPoints}
@@ -385,6 +386,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                   </div>
                 ))
               })}
+            </div>
             </div>
             {!locked && (
               <div className={styles.edgeSide}>
