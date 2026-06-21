@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import type { Scene } from '../../shared/types'
 import { Modal } from './Modal'
+import { useApi } from '../api/context'
 import styles from './CompanionModal.module.css'
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export function CompanionModal({ scenes, port, devicePath, ports, dmxOutputPort, onPortChange, onDevicePathChange, onDmxOutputPortChange, onClose }: Props) {
+  const api = useApi()
   const [draftPort, setDraftPort] = useState(String(port))
   const [draftPath, setDraftPath] = useState(devicePath)
   const [detectedPorts, setDetectedPorts] = useState<string[]>(ports)
@@ -27,7 +29,7 @@ export function CompanionModal({ scenes, port, devicePath, ports, dmxOutputPort,
   const refreshPorts = useCallback(async () => {
     setRefreshError(null)
     try {
-      const found = await window.electronAPI.listPorts()
+      const found = await api.listPorts()
       const enttec = found.find((p) => /cu\.usbserial-EN/.test(p))
       const sorted = enttec ? [enttec, ...found.filter((p) => p !== enttec)] : found
       setDetectedPorts(sorted)

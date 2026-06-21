@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Modal } from './Modal'
+import { useApi } from '../api/context'
 import type { Config, ShowInfo } from '../../shared/types'
 import styles from './ShowsModal.module.css'
 
@@ -46,6 +47,7 @@ type PendingAction =
   | { type: 'drop'; config: Config; name: string }
 
 export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, currentShowName }: Props) {
+  const api = useApi()
   const [shows, setShows] = useState<ShowInfo[]>([])
   const [newName, setNewName] = useState('')
   const [saving, setSaving] = useState(false)
@@ -58,7 +60,7 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, cur
 
   const refresh = useCallback(async () => {
     try {
-      const list = await window.electronAPI.listShows()
+      const list = await api.listShows()
       setShows(list)
     } catch (e) {
       setError(String(e))
@@ -70,7 +72,7 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, cur
   const executeNew = async () => {
     setResetting(true)
     try {
-      const config = await window.electronAPI.resetShow()
+      const config = await api.resetShow()
       onNew(config)
       onClose()
     } catch (e) {
@@ -85,7 +87,7 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, cur
     setError(null)
     setLoadingName(name)
     try {
-      const config = await window.electronAPI.loadNamedShow(name)
+      const config = await api.loadNamedShow(name)
       onLoad(config, name)
       onClose()
     } catch (e) {
@@ -115,7 +117,7 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, cur
   const handleDelete = async (name: string) => {
     if (!confirm(`Delete "${name}"?`)) return
     try {
-      const updated = await window.electronAPI.deleteNamedShow(name)
+      const updated = await api.deleteNamedShow(name)
       setShows(updated)
     } catch (e) {
       setError(`Could not delete "${name}": ${String(e)}`)
@@ -128,7 +130,7 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, cur
     setError(null)
     setSaving(true)
     try {
-      const updated = await window.electronAPI.saveNamedShow(name)
+      const updated = await api.saveNamedShow(name)
       setShows(updated)
       onSaved?.(name)
       setNewName('')

@@ -5,8 +5,8 @@ import { LiveView } from './LiveView'
 const mockSetChannel = vi.fn()
 const mockGetChannel = vi.fn().mockReturnValue(0)
 
-vi.mock('../hooks/useIpc', () => ({
-  useIpc: () => ({
+vi.mock('../api/context', () => ({
+  useApi: () => ({
     setChannel: mockSetChannel,
   }),
 }))

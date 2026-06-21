@@ -4,6 +4,7 @@ import { channelValuesToDisplayHex, pickerHexToChannelValues, isColorRole, roleT
 import { computeRatios, applyRatios } from '../utils/gangFader'
 import { RawFader } from './RawFader'
 import { ColorPickerPopover } from './ColorPickerPopover'
+import { useApi } from '../api/context'
 import styles from './MultiFixtureFader.module.css'
 
 interface Props {
@@ -17,6 +18,7 @@ interface Props {
 }
 
 export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit, groupColor, groupOverride }: Props) {
+  const api = useApi()
   const channels = fixture.channels!
   const [expanded, setExpanded] = useState(false)
   const ratiosRef = useRef<Record<string, number>>({})
@@ -50,7 +52,7 @@ export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit,
     const updatedChannels = channels.map((ch) =>
       ch.id === channelId ? { ...ch, linked: newLinked } : ch
     )
-    await window.electronAPI.updateFixture({ ...fixture, channels: updatedChannels })
+    await api.updateFixture({ ...fixture, channels: updatedChannels })
   }
 
   const handleChannelChange = (ch: FixtureChannel, newVal: number) => {

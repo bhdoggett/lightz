@@ -4,6 +4,12 @@ import { describe, it, expect, vi } from 'vitest'
 import { MultiFixtureFader } from './MultiFixtureFader'
 import type { Fixture } from '../../shared/types'
 
+vi.mock('../api/context', () => ({
+  useApi: () => ({
+    updateFixture: vi.fn().mockResolvedValue({}),
+  }),
+}))
+
 const fixture: Fixture = {
   id: 'f1', name: 'Stage Left Q6', channel: 1, universe: 0, type: 'dimmer',
   channels: [

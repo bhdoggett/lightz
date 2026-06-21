@@ -3,11 +3,13 @@ import { MainView } from './views/MainView'
 import { ConnectionBadge } from './components/ConnectionBadge'
 import { CompanionModal } from './components/CompanionModal'
 import { ShowsModal } from './components/ShowsModal'
+import { useApi } from './api/context'
 import type { Config, DmxStatus, Fixture, Scene, Group } from '../shared/types'
 import styles from './App.module.css'
 import { version as APP_VERSION } from '../../package.json'
 
 export function App() {
+  const api = useApi()
   const [config, setConfig] = useState<Config | null>(null)
   const [dmxStatus, setDmxStatus] = useState<DmxStatus>('disconnected')
   const [companionOpen, setCompanionOpen] = useState(false)
@@ -28,33 +30,33 @@ export function App() {
   }, [])
 
   useEffect(() => {
-    window.electronAPI.getConfig().then(setConfig)
-    window.electronAPI.onDmxStatus(setDmxStatus)
-    window.electronAPI.onDeviceAutoConnected((path) => {
+    api.getConfig().then(setConfig)
+    api.onDmxStatus(setDmxStatus)
+    api.onDeviceAutoConnected((path) => {
       setConfig((c) => c ? { ...c, devicePath: path } : c)
       setDirty(true)
     })
 
-    window.electronAPI.onMenuNewShow(async () => {
-      const config = await window.electronAPI.resetShow()
+    api.onMenuNewShow(async () => {
+      const config = await api.resetShow()
       setConfig(config)
       setCurrentShowName(null)
       setDirty(false)
     })
 
-    window.electronAPI.onMenuSaveShow(() => {
+    api.onMenuSaveShow(() => {
       saveTriggerRef.current?.()
     })
 
-    window.electronAPI.onMenuOpenShows(() => setShowsOpen(true))
-    window.electronAPI.onMenuOpenSettings(() => setCompanionOpen(true))
+    api.onMenuOpenShows(() => setShowsOpen(true))
+    api.onMenuOpenSettings(() => setCompanionOpen(true))
 
-    window.electronAPI.onMenuExportShow(() => {
-      window.electronAPI.exportShow()
+    api.onMenuExportShow(() => {
+      api.exportShow()
     })
 
-    window.electronAPI.onMenuImportShow(async () => {
-      const imported = await window.electronAPI.importShow()
+    api.onMenuImportShow(async () => {
+      const imported = await api.importShow()
       if (imported) {
         setConfig(imported)
         setCurrentShowName(null)
@@ -92,19 +94,19 @@ export function App() {
   }
 
   const handlePortChange = async (port: number) => {
-    await window.electronAPI.setPort(port)
+    await api.setPort(port)
     setConfig((c) => c ? { ...c, companionPort: port } : c)
     setDirty(true)
   }
 
   const handleDevicePathChange = async (path: string) => {
-    await window.electronAPI.setDevicePath(path)
+    await api.setDevicePath(path)
     setConfig((c) => c ? { ...c, devicePath: path } : c)
     setDirty(true)
   }
 
   const handleDmxOutputPortChange = async (port: 0 | 1 | 2) => {
-    await window.electronAPI.setDmxOutputPort(port)
+    await api.setDmxOutputPort(port)
     setConfig((c) => c ? { ...c, dmxOutputPort: port } : c)
     setDirty(true)
   }
@@ -113,7 +115,7 @@ export function App() {
     if (!currentShowName) return
     setSaving(true)
     try {
-      await window.electronAPI.saveNamedShow(currentShowName)
+      await api.saveNamedShow(currentShowName)
       setDirty(false)
       setJustSaved(true)
       if (justSavedTimeout.current) clearTimeout(justSavedTimeout.current)
@@ -192,10 +194,10 @@ export function App() {
               return (
                 <div className={styles.aboutPopover} style={style}>
                   <p className={styles.aboutName}>Lightz <span className={styles.aboutVersion}>v{APP_VERSION}</span></p>
-                  <button className={styles.aboutLink} onClick={() => window.electronAPI.openExternal('https://github.com/bhdoggett/lightz/releases')}>
+                  <button className={styles.aboutLink} onClick={() => api.openExternal('https://github.com/bhdoggett/lightz/releases')}>
                     Releases &amp; changelog
                   </button>
-                  <button className={styles.aboutLink} onClick={() => window.electronAPI.openExternal('https://github.com/bhdoggett/lightz')}>
+                  <button className={styles.aboutLink} onClick={() => api.openExternal('https://github.com/bhdoggett/lightz')}>
                     GitHub repo
                   </button>
                 </div>
