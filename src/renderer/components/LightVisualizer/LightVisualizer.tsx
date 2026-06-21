@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import type { Fixture, GroupChannelOverride, VizPosition } from '../../shared/types'
-import { channelValuesToDisplayHex } from '../utils/colorSync'
-import { clampValue } from '../../shared/dmx-utils'
+import type { Fixture, GroupChannelOverride, VizPosition } from '../../../shared/types'
+import { channelValuesToDisplayHex } from '../../utils/colorSync'
+import { clampValue } from '../../../shared/dmx-utils'
 import styles from './LightVisualizer.module.css'
 
 interface Props {
@@ -324,14 +324,12 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 <button className={styles.edgeBtn} onClick={() => addCol('left')}>+</button>
               </div>
             )}
-            <div className={styles.stage}>
-            <div className={`${styles.stageBorder}${!locked ? ` ${styles.editable}` : ''}`}>
-            <div className={styles.stageInner}>
-            <div
-              ref={stageRef}
-              className={styles.stageContent}
-              data-testid="viz-lights"
-            >
+            <div className={`${styles.stage}${!locked ? ` ${styles.stageEditable}` : ''}`}>
+              <div
+                ref={stageRef}
+                className={styles.stageContent}
+                data-testid="viz-lights"
+              >
               {gridPoints}
               {fixtures.map((fixture, fi) => {
                 const color = getFixtureColor(fixture)
@@ -388,9 +386,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                   </div>
                 ))
               })}
-            </div>
-            </div>
-            </div>
+              </div>
             </div>
             {!locked && (
               <div className={styles.edgeSide}>

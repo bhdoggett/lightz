@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import { LightVisualizer } from './LightVisualizer'
-import type { Fixture } from '../../shared/types'
+import type { Fixture } from '../../../shared/types'
 
 const fixtures: Fixture[] = [
   { id: 'dim1', name: 'Front Wash', channel: 1, universe: 0, type: 'dimmer' },
