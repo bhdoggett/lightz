@@ -24,6 +24,11 @@ export interface FixtureTemplate {
   }>
 }
 
+export interface VizPosition {
+  col: number          // grid column (0-indexed)
+  row: number          // grid row (0-indexed)
+}
+
 export interface Fixture {
   id: string
   name: string
@@ -31,6 +36,7 @@ export interface Fixture {
   universe: 0 | 1     // Enttec Mk2 has two universes
   type: FixtureType
   channels?: FixtureChannel[]
+  vizPositions?: VizPosition[]
 }
 
 export interface Scene {

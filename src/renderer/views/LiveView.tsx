@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react'
 import { RawFader } from '../components/RawFader'
-import { useIpc } from '../hooks/useIpc'
+import { useApi } from '../api/context'
 import type { Fixture } from '../../shared/types'
 import styles from './LiveView.module.css'
 
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function LiveView({ fixtures, getChannel, setChannel, onRename }: Props) {
-  const ipc = useIpc()
+  const api = useApi()
   const [collapsed, setCollapsed] = useState<Record<0 | 1, boolean>>({ 0: false, 1: false })
 
   const fixtureByChannel = useMemo(() => {
@@ -25,8 +25,8 @@ export function LiveView({ fixtures, getChannel, setChannel, onRename }: Props) 
 
   const handleChange = useCallback((universe: 0 | 1, channel: number, value: number) => {
     setChannel(universe, channel, value)
-    ipc.setChannel({ universe, channel, value })
-  }, [ipc, setChannel])
+    api.setChannel({ universe, channel, value })
+  }, [api, setChannel])
 
   const channels = Array.from({ length: 512 }, (_, i) => i + 1)
 

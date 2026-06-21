@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { ChannelList } from '../components/ChannelList'
 import { ChannelEditor } from '../components/ChannelEditor'
-import { useIpc } from '../hooks/useIpc'
+import { useApi } from '../api/context'
 import type { Fixture } from '../../shared/types'
 import styles from './SetupView.module.css'
 
@@ -12,13 +12,13 @@ interface Props {
 }
 
 export function SetupView({ fixtures, onFixturesChange, onBack }: Props) {
-  const ipc = useIpc()
+  const api = useApi()
   const [selectedChannel, setSelectedChannel] = useState<number | null>(null)
 
   const fixtureOnChannel = fixtures.find((f) => f.channel === selectedChannel) ?? null
 
   const handleSave = useCallback(async (fixture: Fixture) => {
-    const saved = await ipc.updateFixture(fixture)
+    const saved = await api.updateFixture(fixture)
     const existing = fixtures.findIndex((f) => f.id === saved.id)
     if (existing >= 0) {
       const next = [...fixtures]
@@ -27,13 +27,13 @@ export function SetupView({ fixtures, onFixturesChange, onBack }: Props) {
     } else {
       onFixturesChange([...fixtures, saved])
     }
-  }, [fixtures, ipc, onFixturesChange])
+  }, [fixtures, api, onFixturesChange])
 
   const handleDelete = useCallback(async (id: string) => {
-    await ipc.deleteFixture(id)
+    await api.deleteFixture(id)
     onFixturesChange(fixtures.filter((f) => f.id !== id))
     setSelectedChannel(null)
-  }, [fixtures, ipc, onFixturesChange])
+  }, [fixtures, api, onFixturesChange])
 
   return (
     <div className={styles.view}>

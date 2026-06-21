@@ -1,0 +1,450 @@
+.panel {
+  position: relative;
+  flex-shrink: 0;
+  background: var(--bg-base);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  min-height: var(--space-8);
+}
+
+.panel.popped {
+  height: 100vh;
+  border-top: none;
+}
+
+.dragHandle {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: ns-resize;
+  z-index: 10;
+}
+
+.dragHandle:hover,
+.dragHandle:active {
+  background: var(--accent);
+  opacity: 0.4;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-3);
+  min-height: var(--space-8);
+  user-select: none;
+}
+
+.toolbarLeft {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.toolbarLabel {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chevron {
+  transition: transform 0.15s ease;
+  color: var(--text-muted);
+}
+
+.chevronExpanded {
+  transform: rotate(180deg);
+}
+
+.toolbarRight {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.sizeBtn {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 1.375rem;
+  height: 1.375rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0;
+}
+
+.sizeBtn:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.sizeBtn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.sizeBtn.sizeBtnActive {
+  color: var(--bg-base);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.editBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+}
+
+.editBtn:hover {
+  color: var(--text-secondary);
+  background: var(--bg-overlay);
+}
+
+.editBtn.editing {
+  color: var(--accent);
+}
+
+.compactStrip {
+  display: flex;
+  gap: 3px;
+  padding: 0 var(--space-1);
+  overflow-x: auto;
+}
+
+.compactDot {
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* Stage layout with edge controls */
+
+.stageOuter {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  min-height: 0;
+}
+
+.edgeTop {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: 0 0 var(--space-1) 0;
+  flex-shrink: 0;
+}
+
+
+.edgeBottom {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: var(--space-1) 0;
+  flex-shrink: 0;
+}
+
+.stageMiddle {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.edgeSide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-1);
+  flex-shrink: 0;
+}
+
+.edgeBtn {
+  background: var(--bg-raised);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0;
+}
+
+.edgeBtn:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+  background: var(--bg-overlay);
+}
+
+.edgeBtn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+/* Stage area */
+
+.stage {
+  flex: 1;
+  overflow: visible;
+  padding: 3rem;
+}
+
+.stage.stageEditable {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+}
+
+.stageContent {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.gridPoint {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--border-subtle);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Fixture lights */
+
+.light {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.light.draggable {
+  cursor: grab;
+  pointer-events: auto;
+}
+
+.light.draggable:active {
+  cursor: grabbing;
+}
+
+.lightBulb {
+  border-radius: 50%;
+  border: 1px solid var(--border-subtle);
+  transition:
+    background-color 0.05s linear,
+    box-shadow 0.05s linear;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.channelLabel {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.lightInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.lightInfo.lightInfoVisible,
+.light:hover .lightInfo {
+  opacity: 1;
+}
+
+.lightLabel {
+  font-size: 0.625rem;
+  color: var(--text-secondary);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 4.5rem;
+}
+
+.lightValue {
+  font-size: 0.5625rem;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
+.lightActions {
+  display: flex;
+  gap: 2px;
+  position: relative;
+  z-index: 5;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.light:hover .lightActions {
+  opacity: 1;
+}
+
+.lightActionBtn {
+  background: var(--bg-raised);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0;
+}
+
+.lightActionBtn:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+  background: var(--bg-overlay);
+}
+
+/* Unplaced fixtures sidebar */
+
+.sidebar {
+  width: 10rem;
+  flex-shrink: 0;
+  border-left: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-surface);
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sidebarTitle {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.sidebarAutoBtn {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: 0.625rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.sidebarAutoBtn:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+}
+
+.sidebarList {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-1) 0;
+}
+
+.sidebarItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  cursor: grab;
+  user-select: none;
+}
+
+.sidebarItem:hover {
+  background: var(--bg-raised);
+}
+
+.sidebarItem:active {
+  cursor: grabbing;
+}
+
+.sidebarChannel {
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  color: var(--text-muted);
+  min-width: 1.5rem;
+}
+
+.sidebarName {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Drag ghost for sidebar → stage */
+
+.dragGhost {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.85;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.snapIndicator {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px dashed var(--accent);
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.6;
+}

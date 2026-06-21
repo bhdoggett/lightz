@@ -1,0 +1,1 @@
+export { MultiFixtureFader } from './MultiFixtureFader'

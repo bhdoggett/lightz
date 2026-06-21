@@ -6,8 +6,7 @@ import { AddFixturesModal } from '../components/AddFixturesModal'
 import { MultiFixtureFader } from '../components/MultiFixtureFader'
 import { CreateFixtureModal } from '../components/CreateFixtureModal'
 import { LiveView } from './LiveView'
-import { useIpc } from '../hooks/useIpc'
-import { useDmxState } from '../hooks/useDmxState'
+import { useApi } from '../api/context'
 import type { Fixture, Scene, Group, GroupChannelOverride, FixtureTemplate } from '../../shared/types'
 import styles from './MainView.module.css'
 
@@ -23,11 +22,14 @@ interface Props {
   onGroupsChange: (groups: Group[]) => void
   currentShowName?: string | null
   onSave?: () => void
+  getChannel: (universe: 0 | 1, channel: number) => number
+  setChannel: (universe: 0 | 1, channel: number, value: number) => void
+  applyScene: (values: Record<string, number>, fixtures: Fixture[]) => void
+  onOverrideMapChange?: (map: Record<string, GroupChannelOverride>) => void
 }
 
-export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesChange, onGroupsChange, currentShowName = null, onSave }: Props) {
-  const ipc = useIpc()
-  const { getChannel, setChannel: setLocal, applyScene } = useDmxState()
+export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesChange, onGroupsChange, currentShowName = null, onSave, getChannel, setChannel: setLocal, applyScene, onOverrideMapChange }: Props) {
+  const api = useApi()
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('custom')
   const [groupStates, setGroupStates] = useState<Record<string, GroupState>>({})
@@ -40,16 +42,16 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   const [groupAddTrigger, setGroupAddTrigger] = useState(0)
 
   useEffect(() => {
-    window.electronAPI.onMenuViewFull(() => setTab('full'))
-    window.electronAPI.onMenuViewCustom(() => setTab('custom'))
-    window.electronAPI.onMenuAddChannels(() => { setTab('custom'); setAddingFixtures(true) })
-    window.electronAPI.onMenuAddFixture(() => { setTab('custom'); setCreatingFixture(true) })
-    window.electronAPI.onMenuAddScene(() => {
+    api.onMenuViewFull(() => setTab('full'))
+    api.onMenuViewCustom(() => setTab('custom'))
+    api.onMenuAddChannels(() => { setTab('custom'); setAddingFixtures(true) })
+    api.onMenuAddFixture(() => { setTab('custom'); setCreatingFixture(true) })
+    api.onMenuAddScene(() => {
       setTab('custom')
       setSectionsCollapsed((prev) => ({ ...prev, scenes: false }))
       setSceneSaveTrigger((n) => n + 1)
     })
-    window.electronAPI.onMenuAddGroup(() => {
+    api.onMenuAddGroup(() => {
       setTab('custom')
       setSectionsCollapsed((prev) => ({ ...prev, groups: false }))
       setGroupAddTrigger((n) => n + 1)
@@ -58,7 +60,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
 
   // Sync UI when Companion activates a scene externally
   useEffect(() => {
-    window.electronAPI.onSceneActivated((sceneId) => {
+    api.onSceneActivated((sceneId) => {
       const scene = scenes.find((s) => s.id === sceneId)
       if (!scene) return
       setActiveSceneId(sceneId)
@@ -67,7 +69,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   }, [scenes, fixtures, applyScene])
 
   useEffect(() => {
-    window.electronAPI.getConfig().then((cfg) => {
+    api.getConfig().then((cfg) => {
       setFixtureTemplates(cfg.fixtureTemplates ?? [])
     })
   }, [])
@@ -110,61 +112,62 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   }, [groups, groupStates, fixtures])
 
   useEffect(() => {
-    ipc.setGroupOverrides(overrideMap)
-  }, [overrideMap, ipc])
+    api.setGroupOverrides(overrideMap)
+    onOverrideMapChange?.(overrideMap)
+  }, [overrideMap, api, onOverrideMapChange])
 
   const handleStateChange = useCallback((groupId: string, state: GroupState) => {
     setGroupStates((prev) => ({ ...prev, [groupId]: state }))
   }, [])
 
   const handleSaveGroup = useCallback(async (group: Group) => {
-    const updated = await ipc.saveGroup(group)
+    const updated = await api.saveGroup(group)
     if (updated) onGroupsChange(updated)
-  }, [ipc, onGroupsChange])
+  }, [api, onGroupsChange])
 
   const handleDeleteGroup = useCallback(async (id: string) => {
-    await ipc.deleteGroup(id)
+    await api.deleteGroup(id)
     onGroupsChange(groups.filter((g) => g.id !== id))
     setGroupStates((prev) => { const n = { ...prev }; delete n[id]; return n })
-  }, [groups, ipc, onGroupsChange])
+  }, [groups, api, onGroupsChange])
 
   const handleAllOff = useCallback(() => {
     for (const u of [0, 1] as const) {
       for (let ch = 1; ch <= 512; ch++) {
         setLocal(u, ch, 0)
-        ipc.setChannel({ universe: u, channel: ch, value: 0 })
+        api.setChannel({ universe: u, channel: ch, value: 0 })
       }
     }
     setActiveSceneId(null)
-  }, [ipc, setLocal])
+  }, [api, setLocal])
 
   const allOffRef = useRef(handleAllOff)
   allOffRef.current = handleAllOff
   useEffect(() => {
-    window.electronAPI.onMenuAllOff(() => allOffRef.current())
+    api.onMenuAllOff(() => allOffRef.current())
   }, [])
 
   const handleGroupReorder = useCallback(async (reordered: Group[]) => {
-    await ipc.reorderGroups(reordered.map((g) => g.id))
+    await api.reorderGroups(reordered.map((g) => g.id))
     onGroupsChange(reordered)
-  }, [ipc, onGroupsChange])
+  }, [api, onGroupsChange])
 
   const handleSetChannel = useCallback((fixture: Fixture, value: number) => {
     setLocal(fixture.universe, fixture.channel, value)
-    ipc.setChannel({ universe: fixture.universe, channel: fixture.channel, value })
-  }, [ipc, setLocal])
+    api.setChannel({ universe: fixture.universe, channel: fixture.channel, value })
+  }, [api, setLocal])
 
   const handleMultiFixtureChange = useCallback((fixture: Fixture, newValues: Record<string, number>) => {
     for (const [id, value] of Object.entries(newValues)) {
       const ch = fixture.channels?.find((c) => c.id === id)
       if (!ch) continue
       setLocal(ch.universe, ch.channel, value)
-      ipc.setChannel({ universe: ch.universe, channel: ch.channel, value })
+      api.setChannel({ universe: ch.universe, channel: ch.channel, value })
     }
-  }, [ipc, setLocal])
+  }, [api, setLocal])
 
   const handleCreateFixture = useCallback(async (fixture: Fixture) => {
-    const saved = await ipc.updateFixture(fixture)
+    const saved = await api.updateFixture(fixture)
     const exists = fixtures.some((f) => f.id === saved.id)
     onFixturesChange(exists
       ? fixtures.map((f) => f.id === saved.id ? saved : f)
@@ -172,15 +175,15 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     )
     setCreatingFixture(false)
     setEditingFixture(null)
-  }, [fixtures, ipc, onFixturesChange])
+  }, [fixtures, api, onFixturesChange])
 
   const handleSaveTemplate = useCallback(async (template: FixtureTemplate) => {
-    const updated = await window.electronAPI.saveFixtureTemplate(template)
+    const updated = await api.saveFixtureTemplate(template)
     setFixtureTemplates(updated)
   }, [])
 
   const handleDeleteTemplate = useCallback(async (id: string) => {
-    const updated = await window.electronAPI.deleteFixtureTemplate(id)
+    const updated = await api.deleteFixtureTemplate(id)
     setFixtureTemplates(updated)
   }, [])
 
@@ -189,8 +192,8 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     if (!scene) return
     setActiveSceneId(id)
     applyScene(scene.values, fixtures)
-    await ipc.loadScene(id)
-  }, [scenes, fixtures, ipc, applyScene])
+    await api.loadScene(id)
+  }, [scenes, fixtures, api, applyScene])
 
   const handleSave = useCallback(async (name: string, fadeDuration: number) => {
     const values: Record<string, number> = {}
@@ -203,16 +206,16 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
         values[f.id] = getChannel(f.universe, f.channel)
       }
     }
-    const saved = await ipc.saveScene({ name, fadeDuration, values })
+    const saved = await api.saveScene({ name, fadeDuration, values })
     onScenesChange([...scenes, saved])
-  }, [fixtures, scenes, ipc, getChannel, onScenesChange])
+  }, [fixtures, scenes, api, getChannel, onScenesChange])
 
   const handleSceneUpdate = useCallback(async (id: string, name: string, fadeDuration: number) => {
-    const updated = await ipc.updateScene({ id, name, fadeDuration })
+    const updated = await api.updateScene({ id, name, fadeDuration })
     if (!updated) return
     onScenesChange(scenes.map((s) => s.id === id ? updated : s))
     if (activeSceneId === id) setActiveSceneId(updated.id)
-  }, [scenes, ipc, onScenesChange, activeSceneId])
+  }, [scenes, api, onScenesChange, activeSceneId])
 
   const handleSaveSceneValues = useCallback(async () => {
     if (!activeSceneId) return
@@ -228,52 +231,52 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
         values[f.id] = getChannel(f.universe, f.channel)
       }
     }
-    const updated = await ipc.updateScene({ id: scene.id, name: scene.name, fadeDuration: scene.fadeDuration, values })
+    const updated = await api.updateScene({ id: scene.id, name: scene.name, fadeDuration: scene.fadeDuration, values })
     if (updated) onScenesChange(scenes.map((s) => s.id === scene.id ? updated : s))
-  }, [activeSceneId, scenes, fixtures, getChannel, ipc, onScenesChange])
+  }, [activeSceneId, scenes, fixtures, getChannel, api, onScenesChange])
 
   const saveSceneRef = useRef(handleSaveSceneValues)
   saveSceneRef.current = handleSaveSceneValues
   useEffect(() => {
-    window.electronAPI.onMenuSaveScene(() => saveSceneRef.current())
+    api.onMenuSaveScene(() => saveSceneRef.current())
   }, [])
 
   const handleSceneDelete = useCallback(async (id: string) => {
-    await ipc.deleteScene(id)
+    await api.deleteScene(id)
     onScenesChange(scenes.filter((s) => s.id !== id))
     setActiveSceneId(null)
-  }, [scenes, ipc, onScenesChange])
+  }, [scenes, api, onScenesChange])
 
   const handleSceneReorder = useCallback(async (reordered: Scene[]) => {
-    await ipc.reorderScenes(reordered.map((s) => s.id))
+    await api.reorderScenes(reordered.map((s) => s.id))
     onScenesChange(reordered)
-  }, [ipc, onScenesChange])
+  }, [api, onScenesChange])
 
   const handleEditFixtures = useCallback(async (toAdd: Fixture[], toRemoveIds: string[], toUpdate: Fixture[]) => {
-    const added = await Promise.all(toAdd.map((f) => ipc.updateFixture(f)))
-    await Promise.all(toRemoveIds.map((id) => ipc.deleteFixture(id)))
-    const updated = await Promise.all(toUpdate.map((f) => ipc.updateFixture(f)))
+    const added = await Promise.all(toAdd.map((f) => api.updateFixture(f)))
+    await Promise.all(toRemoveIds.map((id) => api.deleteFixture(id)))
+    const updated = await Promise.all(toUpdate.map((f) => api.updateFixture(f)))
     let next = fixtures.filter((f) => !toRemoveIds.includes(f.id))
     next = next.map((f) => updated.find((u) => u.id === f.id) ?? f)
     onFixturesChange([...next, ...added])
     setAddingFixtures(false)
-  }, [fixtures, ipc, onFixturesChange])
+  }, [fixtures, api, onFixturesChange])
 
   const handleFixtureRename = useCallback(async (fixture: Fixture, name: string) => {
     if (!name) {
-      await ipc.deleteFixture(fixture.id)
+      await api.deleteFixture(fixture.id)
       onFixturesChange(fixtures.filter((f) => f.id !== fixture.id))
     } else {
-      const updated = await ipc.updateFixture({ ...fixture, name })
+      const updated = await api.updateFixture({ ...fixture, name })
       onFixturesChange(fixtures.map((f) => f.id === updated.id ? updated : f))
     }
-  }, [fixtures, ipc, onFixturesChange])
+  }, [fixtures, api, onFixturesChange])
 
   const handleChannelRename = useCallback(async (universe: 0 | 1, channel: number, name: string) => {
     const existing = fixtures.find((f) => f.universe === universe && f.channel === channel)
     if (!name) {
       if (existing) {
-        await ipc.deleteFixture(existing.id)
+        await api.deleteFixture(existing.id)
         onFixturesChange(fixtures.filter((f) => f.id !== existing.id))
       }
       return
@@ -281,13 +284,13 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     const fixtureToSave: Fixture = existing
       ? { ...existing, name }
       : { id: crypto.randomUUID(), name, channel, universe, type: 'dimmer' }
-    const saved = await ipc.updateFixture(fixtureToSave)
+    const saved = await api.updateFixture(fixtureToSave)
     if (existing) {
       onFixturesChange(fixtures.map((f) => f.id === saved.id ? saved : f))
     } else {
       onFixturesChange([...fixtures, saved])
     }
-  }, [fixtures, ipc, onFixturesChange])
+  }, [fixtures, api, onFixturesChange])
 
   const getFixtureGroupColor = useCallback((fixtureId: string): string | undefined => {
     return groups.find((g) => g.fixtureIds.includes(fixtureId))?.color
