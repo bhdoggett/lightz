@@ -88,6 +88,19 @@ Groups work like a soundboard DCA — a master control that scales a set of fixt
 - **Fader** — scales output proportionally (50% = half brightness).
 - Groups reset to 100% on every app launch — they are session controls, not saved state.
 
+### Light Visualizer
+
+A 2D stage view that simulates your lighting output — works with or without DMX hardware connected.
+
+- **Sticky bottom panel** — drag-resizable, collapsible, or pop out to a separate window.
+- **Stage layout** — fixtures render as colored circles at their current intensity and color. Drag them to arrange a room layout.
+- **Grid editing** — click the pencil icon to enter edit mode. Fixtures snap to grid points. Add/remove rows and columns with edge +/- buttons.
+- **Multiple lights per channel** — one DMX channel often controls several physical fixtures. Duplicate a light with + to add more visual instances on the same channel.
+- **Unplaced fixtures** — fixtures not yet positioned appear in a sidebar. Drag them onto the grid, or click **Auto** to place them all sequentially.
+- **Group overrides** — mute, full, and fader states from groups are reflected in the visualizer.
+- **Labels toggle** — click the tag icon to show/hide fixture names and intensity percentages. Hover any light to see its info.
+- **Pop-out window** — detach the visualizer to a separate window (great for a second monitor), dock it back with one click.
+
 ### Kill Switch
 
 **✕ All Off** is always visible in the tab bar. Clicking it zeros all 512 channels on both universes immediately and clears the active scene.
