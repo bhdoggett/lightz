@@ -8,3 +8,5 @@ out/
 docs/
 .superpowers/
 .claude/
+dist-web/
+/.superpowers/
