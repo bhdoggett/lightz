@@ -347,10 +347,14 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
               title="Smaller lights"
             >−</button>
             <button
-              className={`${styles.sizeBtn}${showLabels ? ` ${styles.sizeBtnActive}` : ''}`}
+              className={`${styles.editBtn}${showLabels ? ` ${styles.editing}` : ''}`}
               onClick={() => setShowLabels((v) => !v)}
               title={showLabels ? 'Hide labels' : 'Show labels'}
-            >%</button>
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 7V4h16v3M9 20h6M12 4v16"/>
+              </svg>
+            </button>
             <button
               className={`${styles.editBtn}${!locked ? ` ${styles.editing}` : ''}`}
               onClick={() => setLocked((v) => !v)}
