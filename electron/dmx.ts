@@ -1,5 +1,6 @@
 import { SerialPort } from 'serialport'
 import type { DmxStatus, GroupChannelOverride } from '../src/shared/types'
+import { interpolate, clampValue } from '../src/shared/dmx-utils'
 
 const START = 0x7e
 const END = 0xe7
@@ -72,7 +73,7 @@ export class DmxManager {
     if (!o) return this.universes[universe][channel] ?? 0
     if (o.kind === 'full') return 255
     if (o.kind === 'mute') return 0
-    return this.clampValue(Math.round((this.universes[universe][channel] ?? 0) * o.multiplier))
+    return clampValue(Math.round((this.universes[universe][channel] ?? 0) * o.multiplier))
   }
 
   private buildPacket(): Buffer {
@@ -99,7 +100,7 @@ export class DmxManager {
   }
 
   setChannel(universe: 0 | 1, channel: number, value: number): void {
-    const v = this.clampValue(value)
+    const v = clampValue(value)
     this.universes[universe][channel] = v
     this.buffers[universe][channel] = v
   }
@@ -148,7 +149,7 @@ export class DmxManager {
         for (const [ch, targetVal] of Object.entries(targets[u])) {
           const channel = Number(ch)
           const startVal = startValues[u][channel] ?? 0
-          const value = this.interpolate(startVal, targetVal, progress)
+          const value = interpolate(startVal, targetVal, progress)
           this.setChannel(u, channel, value)
         }
       }
@@ -160,21 +161,12 @@ export class DmxManager {
     }, 16)
   }
 
-  interpolate(start: number, end: number, progress: number): number {
-    const p = Math.min(progress, 1)
-    return Math.round(start + (end - start) * p)
-  }
-
-  clampValue(value: number): number {
-    return Math.max(0, Math.min(255, value))
-  }
-
   setGroupOverrides(map: Record<string, GroupChannelOverride>): void {
     this.groupOverrides = { ...map }
   }
 
   getEffectiveValue(universe: 0 | 1, channel: number): number {
-    return this.clampValue(this.applyOverride(universe, channel))
+    return clampValue(this.applyOverride(universe, channel))
   }
 
   private setStatus(status: DmxStatus): void {
