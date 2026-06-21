@@ -2,7 +2,9 @@
 
 A macOS desktop app for controlling DMX lighting via an **Enttec USB DMX Pro Mk2**. Built for live environments — fast scene recall, DCA-style fixture groups, multi-channel fixtures with color mixing, and Bitfocus Companion integration.
 
-> **macOS only.** Windows is not supported — the Enttec driver relies on macOS serial port access.
+**[Try the web demo →](https://lightz.benapps.xyz)** — no download needed, includes a light visualizer with a pre-loaded demo show.
+
+> **macOS only** for hardware control. The web version is a portfolio demo with a simulated light visualizer.
 
 ---
 
@@ -17,7 +19,7 @@ npm install
 npm run build:mac
 ```
 
-Open `dist-electron/Lightz-0.1.5-arm64.dmg` (Apple Silicon) or `Lightz-0.1.5.dmg` (Intel) from Finder. Drag **Lightz** to Applications.
+Open `dist-electron/Lightz-0.2.0-arm64.dmg` (Apple Silicon) or `Lightz-0.2.0.dmg` (Intel) from Finder. Drag **Lightz** to Applications.
 
 ### Option B — Download pre-built .dmg
 
@@ -27,8 +29,8 @@ Download the right file for your Mac:
 
 | Download                                                                                                      | For                         |
 | ------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| [Lightz-0.1.5-arm64.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.1.5/Lightz-0.1.5-arm64.dmg) | Apple Silicon (M1/M2/M3/M4) |
-| [Lightz-0.1.5.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.1.5/Lightz-0.1.5.dmg)             | Intel Mac                   |
+| [Lightz-0.2.0-arm64.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.0/Lightz-0.2.0-arm64.dmg) | Apple Silicon (M1/M2/M3/M4) |
+| [Lightz-0.2.0.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.0/Lightz-0.2.0.dmg)             | Intel Mac                   |
 
 Double-click the `.dmg`, drag Lightz to Applications, then open it. macOS may prompt you in **System Settings → Privacy & Security** on first launch — click **Open Anyway**.
 
@@ -192,9 +194,11 @@ Lightz runs a local HTTP server that Companion can call to fire scenes.
 
 ```bash
 npm install          # install dependencies (also runs electron-rebuild)
-npm run dev          # launch in development mode
+npm run dev          # launch Electron in development mode
+npm run dev:web      # launch web version in browser (no Electron)
 npm test             # run test suite
 npm run build:mac    # build distributable .dmg files
+npm run build:web    # build static web SPA to dist-web/
 ```
 
 Output DMGs: `dist-electron/Lightz-<version>[-arm64].dmg`
@@ -215,32 +219,39 @@ electron/
 src/
   shared/
     types.ts            Domain types — Fixture, Scene, Group, Config
+    dmx-utils.ts        Shared interpolation and clamping math
     electron-api.d.ts   Window.electronAPI type declarations
   renderer/
     App.tsx             Root — header, show management, modal routing
+    main.tsx            Electron entry — wraps App in ElectronApiProvider
+    main-web.tsx        Web entry — wraps App in WebApiProvider with demo config
     globals.css         CSS custom properties (design tokens)
-    components/
-      RawFader           Base fader (value, slider, toggle, label)
-      FixtureFader       Single-channel named fixture fader
-      MultiFixtureFader  Multi-channel fixture card with master, sub-faders, color picker
-      ColorPickerPopover HSV color picker popover (react-colorful)
-      GroupFader         DCA-style group master with ○/✕ overrides
-      GroupStrip         Horizontal group rack
-      GroupEditor        Group create/edit modal
-      ScenesStrip        Scene buttons row with save/edit popover
-      AddFixturesModal   Bulk channel assignment by range/grid
-      CreateFixtureModal Custom multi-channel fixture builder with template support
-      Slider             Vertical drag slider
-      ConnectionBadge    DMX connection status indicator
+    api/
+      types.ts          LightzApi interface — platform-agnostic API surface
+      context.tsx       ApiContext + useApi() hook
+      electron-provider Wraps window.electronAPI for Electron
+      web-provider      In-memory store with demo config for web
+      demo-config       Pre-loaded demo show data
+    components/         Folder-per-component (ComponentName/index.ts barrel)
+      LightVisualizer   2D stage visualizer with draggable lights, grid editor
+      PopoutWindow      Renders children in a separate browser window
+      RawFader          Base fader (value, slider, toggle, label)
+      MultiFixtureFader Multi-channel fixture card with color picker
+      ScenesStrip       Scene buttons row with save/edit popover
+      GroupFader        DCA-style group master with ○/✕ overrides
+      GroupStrip        Horizontal group rack
+      ...               (19 components total)
     views/
-      MainView           Tab bar, section layout, fixture/scene/group wiring
-      LiveView           Full raw-channel view (both universes, collapsible)
+      MainView          Tab bar, section layout, fixture/scene/group wiring
+      LiveView          Full raw-channel view (both universes, collapsible)
     hooks/
-      useIpc             Typed IPC calls to main process
-      useDmxState        In-memory DMX channel state
+      useDmxState       In-memory DMX channel state
     utils/
-      colorSync          RGB/RGBW color math (channelValuesToDisplayHex, pickerHexToChannelValues)
-      gangFader          Proportional ratio math for linked channel scaling
+      colorSync         RGB/RGBW color math
+      gangFader         Proportional ratio math for linked channel scaling
+
+vite.web.config.ts      Standalone Vite config for web build
+Dockerfile              Multi-stage build for Coolify deployment
 ```
 
 ### Tech Stack
