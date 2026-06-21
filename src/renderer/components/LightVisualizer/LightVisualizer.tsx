@@ -335,16 +335,16 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
           <div className={styles.toolbarRight}>
             <button
               className={styles.sizeBtn}
-              onClick={() => setBulbSize((s) => Math.max(MIN_BULB_SIZE, s - BULB_STEP))}
-              disabled={bulbSize <= MIN_BULB_SIZE}
-              title="Smaller lights"
-            >−</button>
-            <button
-              className={styles.sizeBtn}
               onClick={() => setBulbSize((s) => Math.min(MAX_BULB_SIZE, s + BULB_STEP))}
               disabled={bulbSize >= MAX_BULB_SIZE}
               title="Larger lights"
             >+</button>
+            <button
+              className={styles.sizeBtn}
+              onClick={() => setBulbSize((s) => Math.max(MIN_BULB_SIZE, s - BULB_STEP))}
+              disabled={bulbSize <= MIN_BULB_SIZE}
+              title="Smaller lights"
+            >−</button>
             <button
               className={`${styles.editBtn}${!locked ? ` ${styles.editing}` : ''}`}
               onClick={() => setLocked((v) => !v)}
