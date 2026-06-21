@@ -248,32 +248,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
                 onMouseDown={(e) => onLightDragStart(e, fixture.id, pi, pos)}
               >
-                <div
-                  className={styles.lightBulb}
-                  style={{
-                    width: bulbSize,
-                    height: bulbSize,
-                    backgroundColor: color,
-                    opacity: Math.max(0.05, intensity),
-                    boxShadow: intensity > 0.05
-                      ? `0 0 ${glowSize}px ${Math.round(glowSize * 0.6)}px ${color}`
-                      : 'none',
-                  }}
-                />
-                <span className={styles.lightLabel}>
-                  {fixture.name}{positions.length > 1 ? ` ${pi + 1}` : ''}
-                </span>
-                {!locked && (
-                  <span className={styles.lightValue}>
-                    {Math.round(intensity * 100)}%
-                  </span>
-                )}
-                {locked && (
-                  <span className={styles.lightValue}>
-                    {Math.round(intensity * 100)}%
-                  </span>
-                )}
-                {!locked && (
+                  {!locked && (
                   <div className={styles.lightActions}>
                     <button
                       className={styles.lightActionBtn}
@@ -289,6 +264,24 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                     )}
                   </div>
                 )}
+                <div
+                  className={styles.lightBulb}
+                  style={{
+                    width: bulbSize,
+                    height: bulbSize,
+                    backgroundColor: color,
+                    opacity: Math.max(0.05, intensity),
+                    boxShadow: intensity > 0.05
+                      ? `0 0 ${glowSize}px ${Math.round(glowSize * 0.6)}px ${color}`
+                      : 'none',
+                  }}
+                />
+                <span className={styles.lightLabel}>
+                  {fixture.name}{positions.length > 1 ? ` ${pi + 1}` : ''}
+                </span>
+                <span className={styles.lightValue}>
+                  {Math.round(intensity * 100)}%
+                </span>
               </div>
             ))
           })}

@@ -180,6 +180,8 @@
 .lightActions {
   display: flex;
   gap: 2px;
+  position: relative;
+  z-index: 5;
 }
 
 .lightActionBtn {
