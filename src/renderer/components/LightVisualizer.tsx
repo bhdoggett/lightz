@@ -14,7 +14,7 @@ interface Props {
 const MIN_HEIGHT = 32
 const DEFAULT_HEIGHT = 250
 const MAX_HEIGHT = 600
-const GRID_STEP = 5
+const GRID_STEP = 2
 const MIN_BULB_SIZE = 20
 const MAX_BULB_SIZE = 120
 const DEFAULT_BULB_SIZE = 48
@@ -269,13 +269,16 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                   style={{
                     width: bulbSize,
                     height: bulbSize,
+                    fontSize: Math.max(9, Math.round(bulbSize * 0.28)),
                     backgroundColor: color,
                     opacity: Math.max(0.05, intensity),
                     boxShadow: intensity > 0.05
                       ? `0 0 ${glowSize}px ${Math.round(glowSize * 0.6)}px ${color}`
                       : 'none',
                   }}
-                />
+                >
+                  {!locked && <span className={styles.channelLabel}>{fixture.channel}</span>}
+                </div>
                 <span className={styles.lightLabel}>
                   {fixture.name}{positions.length > 1 ? ` ${pi + 1}` : ''}
                 </span>

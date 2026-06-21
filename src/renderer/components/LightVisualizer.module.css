@@ -133,7 +133,7 @@
 .stage.editable {
   background-image:
     radial-gradient(circle, var(--border-subtle) 1px, transparent 1px);
-  background-size: 5% 5%;
+  background-size: 2% 2%;
 }
 
 .light {
@@ -159,6 +159,18 @@
   border-radius: 50%;
   border: 1px solid var(--border-subtle);
   transition: background-color 0.05s linear, box-shadow 0.05s linear;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.channelLabel {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+  z-index: 2;
 }
 
 .lightLabel {
