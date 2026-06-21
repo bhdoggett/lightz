@@ -15,6 +15,10 @@ const MIN_HEIGHT = 32
 const DEFAULT_HEIGHT = 250
 const MAX_HEIGHT = 600
 const GRID_STEP = 5
+const MIN_BULB_SIZE = 20
+const MAX_BULB_SIZE = 120
+const DEFAULT_BULB_SIZE = 48
+const BULB_STEP = 8
 
 function snapToGrid(value: number): number {
   return Math.round(value / GRID_STEP) * GRID_STEP
@@ -37,6 +41,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const [expanded, setExpanded] = useState(true)
   const [height, setHeight] = useState(DEFAULT_HEIGHT)
   const [locked, setLocked] = useState(true)
+  const [bulbSize, setBulbSize] = useState(DEFAULT_BULB_SIZE)
   const resizing = useRef(false)
   const startY = useRef(0)
   const startHeight = useRef(0)
@@ -162,25 +167,43 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
           {!expanded && <div className={styles.compactStrip}>{compactDots}</div>}
         </div>
         {expanded && (
-          <button
-            className={`${styles.lockBtn}${locked ? '' : ` ${styles.unlocked}`}`}
-            onClick={() => setLocked((v) => !v)}
-            title={locked ? 'Unlock to rearrange lights' : 'Lock layout'}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-              {locked ? (
-                <>
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </>
-              ) : (
-                <>
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                  <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
-                </>
-              )}
-            </svg>
-          </button>
+          <div className={styles.toolbarRight}>
+            <button
+              className={styles.sizeBtn}
+              onClick={() => setBulbSize((s) => Math.max(MIN_BULB_SIZE, s - BULB_STEP))}
+              disabled={bulbSize <= MIN_BULB_SIZE}
+              title="Smaller lights"
+            >
+              −
+            </button>
+            <button
+              className={styles.sizeBtn}
+              onClick={() => setBulbSize((s) => Math.min(MAX_BULB_SIZE, s + BULB_STEP))}
+              disabled={bulbSize >= MAX_BULB_SIZE}
+              title="Larger lights"
+            >
+              +
+            </button>
+            <button
+              className={`${styles.lockBtn}${locked ? '' : ` ${styles.unlocked}`}`}
+              onClick={() => setLocked((v) => !v)}
+              title={locked ? 'Unlock to rearrange lights' : 'Lock layout'}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                {locked ? (
+                  <>
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </>
+                ) : (
+                  <>
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                    <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+                  </>
+                )}
+              </svg>
+            </button>
+          </div>
         )}
       </div>
       {expanded && (
@@ -192,7 +215,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
           {fixtures.map((fixture, i) => {
             const color = getFixtureColor(fixture)
             const intensity = getFixtureIntensity(fixture) / 255
-            const glowSize = Math.round(intensity * 24)
+            const glowSize = Math.round(intensity * bulbSize * 0.5)
             const auto = autoLayout(i, fixtures.length)
             const x = fixture.vizX ?? auto.x
             const y = fixture.vizY ?? auto.y
@@ -206,6 +229,8 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 <div
                   className={styles.lightBulb}
                   style={{
+                    width: bulbSize,
+                    height: bulbSize,
                     backgroundColor: color,
                     opacity: Math.max(0.05, intensity),
                     boxShadow: intensity > 0.05
