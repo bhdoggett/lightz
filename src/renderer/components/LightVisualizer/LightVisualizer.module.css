@@ -101,10 +101,6 @@
   border-color: var(--accent);
 }
 
-.sizeSwatch {
-  flex-shrink: 0;
-}
-
 .editBtn {
   background: none;
   border: none;

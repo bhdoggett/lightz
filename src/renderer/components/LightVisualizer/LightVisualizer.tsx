@@ -339,7 +339,6 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
               disabled={bulbSize <= MIN_BULB_SIZE}
               title="Smaller lights"
             >−</button>
-            <div className={styles.sizeSwatch} style={{ width: 10, height: 10, borderRadius: '50%', border: '1px solid var(--text-muted)' }} />
             <button
               className={styles.sizeBtn}
               onClick={() => setBulbSize((s) => Math.min(MAX_BULB_SIZE, s + BULB_STEP))}
