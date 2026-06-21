@@ -176,3 +176,31 @@
   font-family: var(--font-mono);
   color: var(--text-muted);
 }
+
+.lightActions {
+  display: flex;
+  gap: 2px;
+}
+
+.lightActionBtn {
+  background: var(--bg-raised);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0;
+}
+
+.lightActionBtn:hover {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+  background: var(--bg-overlay);
+}

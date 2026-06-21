@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import type { Fixture, GroupChannelOverride } from '../../shared/types'
+import type { Fixture, GroupChannelOverride, VizPosition } from '../../shared/types'
 import { channelValuesToDisplayHex } from '../utils/colorSync'
 import { clampValue } from '../../shared/dmx-utils'
 import styles from './LightVisualizer.module.css'
@@ -8,7 +8,7 @@ interface Props {
   fixtures: Fixture[]
   getChannel: (universe: 0 | 1, channel: number) => number
   overrideMap?: Record<string, GroupChannelOverride>
-  onFixturePositionChange?: (fixtureId: string, vizX: number, vizY: number) => void
+  onFixtureVizChange?: (fixtureId: string, vizPositions: VizPosition[]) => void
 }
 
 const MIN_HEIGHT = 32
@@ -24,7 +24,7 @@ function snapToGrid(value: number): number {
   return Math.round(value / GRID_STEP) * GRID_STEP
 }
 
-function autoLayout(index: number, total: number): { x: number; y: number } {
+function autoLayout(index: number, total: number): VizPosition {
   const cols = Math.ceil(Math.sqrt(total))
   const row = Math.floor(index / cols)
   const col = index % cols
@@ -37,7 +37,12 @@ function autoLayout(index: number, total: number): { x: number; y: number } {
   }
 }
 
-export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixturePositionChange }: Props) {
+function getPositions(fixture: Fixture, fixtureIndex: number, totalFixtures: number): VizPosition[] {
+  if (fixture.vizPositions && fixture.vizPositions.length > 0) return fixture.vizPositions
+  return [autoLayout(fixtureIndex, totalFixtures)]
+}
+
+export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixtureVizChange }: Props) {
   const [expanded, setExpanded] = useState(true)
   const [height, setHeight] = useState(DEFAULT_HEIGHT)
   const [locked, setLocked] = useState(true)
@@ -46,7 +51,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const startY = useRef(0)
   const startHeight = useRef(0)
 
-  const dragFixtureId = useRef<string | null>(null)
+  const dragRef = useRef<{ fixtureId: string; posIndex: number } | null>(null)
   const dragStartMouse = useRef({ x: 0, y: 0 })
   const dragStartPos = useRef({ x: 0, y: 0 })
   const stageRef = useRef<HTMLDivElement>(null)
@@ -67,7 +72,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         if (next > MIN_HEIGHT + 20) setExpanded(true)
         return
       }
-      if (dragFixtureId.current && stageRef.current) {
+      if (dragRef.current && stageRef.current) {
         const rect = stageRef.current.getBoundingClientRect()
         const rawX = ((e.clientX - rect.left) / rect.width) * 100
         const rawY = ((e.clientY - rect.top) / rect.height) * 100
@@ -75,12 +80,17 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         const dy = rawY - dragStartMouse.current.y
         const newX = snapToGrid(Math.max(0, Math.min(100, dragStartPos.current.x + dx)))
         const newY = snapToGrid(Math.max(0, Math.min(100, dragStartPos.current.y + dy)))
-        onFixturePositionChange?.(dragFixtureId.current, newX, newY)
+        const { fixtureId, posIndex } = dragRef.current
+        const fixture = fixtures.find((f) => f.id === fixtureId)
+        if (!fixture) return
+        const positions = [...(fixture.vizPositions ?? [])]
+        positions[posIndex] = { x: newX, y: newY }
+        onFixtureVizChange?.(fixtureId, positions)
       }
     }
     const onUp = () => {
       resizing.current = false
-      dragFixtureId.current = null
+      dragRef.current = null
     }
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup', onUp)
@@ -88,25 +98,38 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
     }
-  }, [onFixturePositionChange])
+  }, [fixtures, onFixtureVizChange])
 
-  const onFixtureDragStart = useCallback((e: React.MouseEvent, fixture: Fixture) => {
+  const onLightDragStart = useCallback((e: React.MouseEvent, fixtureId: string, posIndex: number, pos: VizPosition) => {
     if (locked) return
     e.preventDefault()
     e.stopPropagation()
     if (!stageRef.current) return
     const rect = stageRef.current.getBoundingClientRect()
-    dragFixtureId.current = fixture.id
+    dragRef.current = { fixtureId, posIndex }
     dragStartMouse.current = {
       x: ((e.clientX - rect.left) / rect.width) * 100,
       y: ((e.clientY - rect.top) / rect.height) * 100,
     }
-    const auto = autoLayout(fixtures.indexOf(fixture), fixtures.length)
-    dragStartPos.current = {
-      x: fixture.vizX ?? auto.x,
-      y: fixture.vizY ?? auto.y,
+    dragStartPos.current = { x: pos.x, y: pos.y }
+  }, [locked])
+
+  const handleDuplicate = useCallback((fixture: Fixture, posIndex: number) => {
+    const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+    const source = positions[posIndex]
+    const newPos: VizPosition = {
+      x: snapToGrid(Math.min(100, source.x + 10)),
+      y: source.y,
     }
-  }, [locked, fixtures])
+    onFixtureVizChange?.(fixture.id, [...positions, newPos])
+  }, [fixtures, onFixtureVizChange])
+
+  const handleRemove = useCallback((fixture: Fixture, posIndex: number) => {
+    const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+    if (positions.length <= 1) return
+    const next = positions.filter((_, i) => i !== posIndex)
+    onFixtureVizChange?.(fixture.id, next)
+  }, [fixtures, onFixtureVizChange])
 
   function getEffectiveChannel(universe: 0 | 1, channel: number): number {
     const raw = getChannel(universe, channel)
@@ -141,14 +164,15 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const compactDots = !expanded ? fixtures.map((f) => {
     const color = getFixtureColor(f)
     const intensity = getFixtureIntensity(f) / 255
-    return (
+    const count = (f.vizPositions?.length) || 1
+    return Array.from({ length: count }, (_, i) => (
       <div
-        key={f.id}
+        key={`${f.id}-${i}`}
         className={styles.compactDot}
         style={{ background: color, opacity: Math.max(0.1, intensity) }}
       />
-    )
-  }) : null
+    ))
+  }).flat() : null
 
   return (
     <div className={styles.panel} style={{ height: expanded ? height : MIN_HEIGHT }}>
@@ -212,19 +236,17 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
           className={`${styles.stage}${!locked ? ` ${styles.editable}` : ''}`}
           data-testid="viz-lights"
         >
-          {fixtures.map((fixture, i) => {
+          {fixtures.map((fixture, fi) => {
             const color = getFixtureColor(fixture)
             const intensity = getFixtureIntensity(fixture) / 255
             const glowSize = Math.round(intensity * bulbSize * 0.5)
-            const auto = autoLayout(i, fixtures.length)
-            const x = fixture.vizX ?? auto.x
-            const y = fixture.vizY ?? auto.y
-            return (
+            const positions = getPositions(fixture, fi, fixtures.length)
+            return positions.map((pos, pi) => (
               <div
-                key={fixture.id}
+                key={`${fixture.id}-${pi}`}
                 className={`${styles.light}${!locked ? ` ${styles.draggable}` : ''}`}
-                style={{ left: `${x}%`, top: `${y}%` }}
-                onMouseDown={(e) => onFixtureDragStart(e, fixture)}
+                style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
+                onMouseDown={(e) => onLightDragStart(e, fixture.id, pi, pos)}
               >
                 <div
                   className={styles.lightBulb}
@@ -238,12 +260,37 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                       : 'none',
                   }}
                 />
-                <span className={styles.lightLabel}>{fixture.name}</span>
-                <span className={styles.lightValue}>
-                  {Math.round(intensity * 100)}%
+                <span className={styles.lightLabel}>
+                  {fixture.name}{positions.length > 1 ? ` ${pi + 1}` : ''}
                 </span>
+                {!locked && (
+                  <span className={styles.lightValue}>
+                    {Math.round(intensity * 100)}%
+                  </span>
+                )}
+                {locked && (
+                  <span className={styles.lightValue}>
+                    {Math.round(intensity * 100)}%
+                  </span>
+                )}
+                {!locked && (
+                  <div className={styles.lightActions}>
+                    <button
+                      className={styles.lightActionBtn}
+                      onClick={(e) => { e.stopPropagation(); handleDuplicate(fixture, pi) }}
+                      title="Duplicate light"
+                    >+</button>
+                    {positions.length > 1 && (
+                      <button
+                        className={styles.lightActionBtn}
+                        onClick={(e) => { e.stopPropagation(); handleRemove(fixture, pi) }}
+                        title="Remove light"
+                      >×</button>
+                    )}
+                  </div>
+                )}
               </div>
-            )
+            ))
           })}
         </div>
       )}

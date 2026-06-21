@@ -24,6 +24,11 @@ export interface FixtureTemplate {
   }>
 }
 
+export interface VizPosition {
+  x: number            // percentage 0–100
+  y: number
+}
+
 export interface Fixture {
   id: string
   name: string
@@ -31,8 +36,7 @@ export interface Fixture {
   universe: 0 | 1     // Enttec Mk2 has two universes
   type: FixtureType
   channels?: FixtureChannel[]
-  vizX?: number        // visualizer position (percentage 0–100)
-  vizY?: number
+  vizPositions?: VizPosition[]
 }
 
 export interface Scene {

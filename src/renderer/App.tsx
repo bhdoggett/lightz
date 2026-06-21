@@ -85,18 +85,18 @@ export function App({ dmxState: externalDmxState }: AppProps) {
     return () => document.removeEventListener('mousedown', handleOutside)
   }, [aboutOpen])
 
-  const handleFixturePositionChange = useCallback(async (fixtureId: string, vizX: number, vizY: number) => {
+  const handleFixtureVizChange = useCallback(async (fixtureId: string, vizPositions: import('../shared/types').VizPosition[]) => {
     setConfig((c) => {
       if (!c) return c
       const fixtures = c.fixtures.map((f) =>
-        f.id === fixtureId ? { ...f, vizX, vizY } : f
+        f.id === fixtureId ? { ...f, vizPositions } : f
       )
       return { ...c, fixtures }
     })
     if (config) {
       const fixture = config.fixtures.find((f) => f.id === fixtureId)
       if (fixture) {
-        await api.updateFixture({ ...fixture, vizX, vizY })
+        await api.updateFixture({ ...fixture, vizPositions })
       }
     }
   }, [config, api])
@@ -253,7 +253,7 @@ export function App({ dmxState: externalDmxState }: AppProps) {
         fixtures={config.fixtures}
         getChannel={getChannel}
         overrideMap={overrideMap}
-        onFixturePositionChange={handleFixturePositionChange}
+        onFixtureVizChange={handleFixtureVizChange}
       />
 
       {showsOpen && (
