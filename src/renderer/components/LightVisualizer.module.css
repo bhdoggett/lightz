@@ -205,7 +205,6 @@
   width: 100%;
   height: 100%;
   overflow: visible;
-  padding: 24px;
 }
 
 .stageBorder.editable {
@@ -214,6 +213,12 @@
 }
 
 .stageInner {
+  width: 100%;
+  height: 100%;
+  padding: 28px;
+}
+
+.stageContent {
   position: relative;
   width: 100%;
   height: 100%;
