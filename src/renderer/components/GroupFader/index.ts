@@ -1,0 +1,1 @@
+export { GroupFader } from './GroupFader'

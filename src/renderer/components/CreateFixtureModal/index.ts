@@ -1,0 +1,1 @@
+export { CreateFixtureModal } from './CreateFixtureModal'

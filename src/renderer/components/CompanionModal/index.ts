@@ -1,0 +1,1 @@
+export { CompanionModal } from './CompanionModal'

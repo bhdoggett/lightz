@@ -1,0 +1,1 @@
+export { FixtureFader } from './FixtureFader'
