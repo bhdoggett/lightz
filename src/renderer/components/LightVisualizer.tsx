@@ -79,7 +79,7 @@ export function LightVisualizer({ fixtures, getChannel }: Props) {
     <div className={styles.panel} style={{ height: expanded ? height : MIN_HEIGHT }}>
       {expanded && <div className={styles.dragHandle} onMouseDown={onDragStart} />}
       <div className={styles.toolbar} onClick={() => setExpanded((v) => !v)}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className={styles.toolbarLeft}>
           <span className={styles.toolbarLabel}>Visualizer</span>
           {!expanded && <div className={styles.compactStrip}>{compactDots}</div>}
         </div>
