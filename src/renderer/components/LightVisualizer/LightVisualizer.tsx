@@ -59,9 +59,9 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const [gridCols, setGridCols] = useState(DEFAULT_COLS)
   const [gridRows, setGridRows] = useState(DEFAULT_ROWS)
   const [showUnplaced, setShowUnplaced] = useState(false)
+  const [sidebarDrag, setSidebarDrag] = useState<{ fixtureId: string; mouseX: number; mouseY: number; snappedCol: number; snappedRow: number; overStage: boolean } | null>(null)
   const placedFixtures = fixtures.filter(isPlaced)
   const unplacedFixtures = fixtures.filter((f) => !isPlaced(f))
-  const draggingFromSidebar = useRef<string | null>(null)
   const resizing = useRef(false)
   const startY = useRef(0)
   const startHeight = useRef(0)
@@ -104,19 +104,31 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
           onFixtureVizChange?.(fixtureId, positions)
         }
       }
-    }
-    const onUp = (e: MouseEvent) => {
-      if (draggingFromSidebar.current && stageRef.current) {
-        const rect = stageRef.current.getBoundingClientRect()
-        if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
-          const pctX = ((e.clientX - rect.left) / rect.width) * 100
-          const pctY = ((e.clientY - rect.top) / rect.height) * 100
-          const col = Math.max(0, Math.min(gridCols - 1, Math.round((pctX / 100) * (gridCols - 1))))
-          const row = Math.max(0, Math.min(gridRows - 1, Math.round((pctY / 100) * (gridRows - 1))))
-          onFixtureVizChange?.(draggingFromSidebar.current, [{ col, row }])
+      setSidebarDrag((prev) => {
+        if (!prev) return null
+        let overStage = false
+        let snappedCol = prev.snappedCol
+        let snappedRow = prev.snappedRow
+        if (stageRef.current) {
+          const rect = stageRef.current.getBoundingClientRect()
+          overStage = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom
+          if (overStage) {
+            const pctX = ((e.clientX - rect.left) / rect.width) * 100
+            const pctY = ((e.clientY - rect.top) / rect.height) * 100
+            snappedCol = Math.max(0, Math.min(gridCols - 1, Math.round((pctX / 100) * (gridCols - 1))))
+            snappedRow = Math.max(0, Math.min(gridRows - 1, Math.round((pctY / 100) * (gridRows - 1))))
+          }
         }
-        draggingFromSidebar.current = null
-      }
+        return { ...prev, mouseX: e.clientX, mouseY: e.clientY, overStage, snappedCol, snappedRow }
+      })
+    }
+    const onUp = () => {
+      setSidebarDrag((prev) => {
+        if (prev && prev.overStage) {
+          onFixtureVizChange?.(prev.fixtureId, [{ col: prev.snappedCol, row: prev.snappedRow }])
+        }
+        return null
+      })
       resizing.current = false
       dragRef.current = null
     }
@@ -180,17 +192,6 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
     }
     if (rows > gridRows) setGridRows(rows)
   }, [placedFixtures, unplacedFixtures, gridCols, gridRows, onFixtureVizChange])
-
-  const handleSidebarDrop = useCallback((fixtureId: string, e: React.MouseEvent) => {
-    if (!stageRef.current) return
-    const rect = stageRef.current.getBoundingClientRect()
-    const pctX = ((e.clientX - rect.left) / rect.width) * 100
-    const pctY = ((e.clientY - rect.top) / rect.height) * 100
-    const col = Math.max(0, Math.min(gridCols - 1, Math.round((pctX / 100) * (gridCols - 1))))
-    const row = Math.max(0, Math.min(gridRows - 1, Math.round((pctY / 100) * (gridRows - 1))))
-    onFixtureVizChange?.(fixtureId, [{ col, row }])
-    draggingFromSidebar.current = null
-  }, [gridCols, gridRows, onFixtureVizChange])
 
   const addCol = useCallback((side: 'left' | 'right') => {
     if (side === 'left') {
@@ -474,7 +475,10 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                     <div
                       key={f.id}
                       className={styles.sidebarItem}
-                      onMouseDown={(e) => { e.preventDefault(); draggingFromSidebar.current = f.id }}
+                      onMouseDown={(e) => {
+                        e.preventDefault()
+                        setSidebarDrag({ fixtureId: f.id, mouseX: e.clientX, mouseY: e.clientY, snappedCol: 0, snappedRow: 0, overStage: false })
+                      }}
                     >
                       <span className={styles.sidebarChannel}>{f.channel}</span>
                       <span className={styles.sidebarName}>{f.name}</span>
@@ -492,6 +496,44 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
           )}
         </div>
       )}
+      {sidebarDrag && (() => {
+        const fixture = fixtures.find((f) => f.id === sidebarDrag.fixtureId)
+        if (!fixture) return null
+        const color = getFixtureColor(fixture)
+        const intensity = getFixtureIntensity(fixture) / 255
+        return (
+          <>
+            <div
+              className={styles.dragGhost}
+              style={{
+                left: sidebarDrag.mouseX,
+                top: sidebarDrag.mouseY,
+                width: bulbSize,
+                height: bulbSize,
+                fontSize: Math.max(9, Math.round(bulbSize * 0.28)),
+                backgroundColor: intensity > 0 ? color : '#000000',
+              }}
+            >
+              <span className={styles.channelLabel}>{fixture.channel}</span>
+            </div>
+            {sidebarDrag.overStage && (
+              <div
+                className={styles.snapIndicator}
+                style={{
+                  left: stageRef.current
+                    ? stageRef.current.getBoundingClientRect().left + (colToPercent(sidebarDrag.snappedCol, gridCols) / 100) * stageRef.current.getBoundingClientRect().width
+                    : 0,
+                  top: stageRef.current
+                    ? stageRef.current.getBoundingClientRect().top + (rowToPercent(sidebarDrag.snappedRow, gridRows) / 100) * stageRef.current.getBoundingClientRect().height
+                    : 0,
+                  width: bulbSize + 8,
+                  height: bulbSize + 8,
+                }}
+              />
+            )}
+          </>
+        )
+      })()}
     </div>
   )
 }

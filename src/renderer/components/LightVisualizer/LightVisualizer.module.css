@@ -407,3 +407,29 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* Drag ghost for sidebar → stage */
+
+.dragGhost {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.85;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.snapIndicator {
+  position: fixed;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 2px dashed var(--accent);
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.6;
+}
