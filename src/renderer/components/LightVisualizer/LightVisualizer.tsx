@@ -78,7 +78,7 @@ function findNextFree(col: number, row: number, gridCols: number, gridRows: numb
 export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixtureVizChange, popped = false, onPopout, onDock }: Props) {
   const [expanded, setExpanded] = useState(true)
   const [height, setHeight] = useState(DEFAULT_HEIGHT)
-  const [locked, setLocked] = useState(true)
+  const [isEditing, setIsEditing] = useState(false)
   const [bulbSize, setBulbSize] = useState(DEFAULT_BULB_SIZE)
   const [gridCols, setGridCols] = useState(DEFAULT_COLS)
   const [gridRows, setGridRows] = useState(DEFAULT_ROWS)
@@ -198,7 +198,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   }, [fixtures, onFixtureVizChange, gridCols, gridRows])
 
   const onLightDragStart = useCallback((e: React.MouseEvent, fixtureId: string, posIndex: number, pos: VizPosition) => {
-    if (locked) return
+    if (!isEditing) return
     e.preventDefault()
     e.stopPropagation()
     if (!stageRef.current) return
@@ -209,7 +209,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
       y: ((e.clientY - rect.top) / rect.height) * 100,
     }
     dragStartPos.current = { col: pos.col, row: pos.row }
-  }, [locked])
+  }, [isEditing])
 
   const handleDuplicate = useCallback((fixture: Fixture, posIndex: number) => {
     const positions = getPositions(fixture)
@@ -337,7 +337,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
     ))
   }).flat() : null
 
-  const gridPoints = !locked ? Array.from({ length: gridRows }, (_, r) =>
+  const gridPoints = isEditing ? Array.from({ length: gridRows }, (_, r) =>
     Array.from({ length: gridCols }, (_, c) => (
       <div
         key={`gp-${c}-${r}`}
@@ -374,7 +374,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
           {(expanded || popped) && unplacedFixtures.length > 0 && (
             <button
               className={`${styles.unplacedBtn}${showUnplaced ? ` ${styles.unplacedBtnActive}` : ''}`}
-              onClick={(e) => { e.stopPropagation(); setShowUnplaced((v) => !v); setLocked(false) }}
+              onClick={(e) => { e.stopPropagation(); setShowUnplaced((v) => !v); setIsEditing(true) }}
               title={`${unplacedFixtures.length} unplaced fixture${unplacedFixtures.length > 1 ? 's' : ''}`}
             >
               <span className={styles.unplacedCount}>{unplacedFixtures.length}</span>
@@ -408,9 +408,9 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
               </svg>
             </button>
             <button
-              className={`${styles.editBtn}${!locked ? ` ${styles.editing}` : ''}`}
-              onClick={() => { if (!locked) setShowUnplaced(false); setLocked((v) => !v) }}
-              title={locked ? 'Edit layout' : 'Done editing'}
+              className={`${styles.editBtn}${isEditing ? ` ${styles.editing}` : ''}`}
+              onClick={() => { if (isEditing) setShowUnplaced(false); setIsEditing((v) => !v) }}
+              title={isEditing ? 'Done editing' : 'Edit layout'}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
@@ -444,20 +444,20 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
       {(expanded || popped) && (
         <div className={styles.stageOuter}>
           <div className={styles.stageMiddle}>
-            {!locked && (
+            {isEditing && (
               <div className={styles.edgeSide}>
                 <button className={styles.edgeBtn} onClick={() => removeCol('left')} disabled={!canRemoveLeftCol}>−</button>
                 <button className={styles.edgeBtn} onClick={() => addCol('left')}>+</button>
               </div>
             )}
             <div className={styles.stageColumn}>
-              {!locked && (
+              {isEditing && (
                 <div className={styles.edgeTop}>
                   <button className={styles.edgeBtn} onClick={() => removeRow('top')} disabled={!canRemoveTopRow}>−</button>
                   <button className={styles.edgeBtn} onClick={() => addRow('top')}>+</button>
                 </div>
               )}
-              <div className={`${styles.stage}${!locked ? ` ${styles.stageEditable}` : ''}`}>
+              <div className={`${styles.stage}${isEditing ? ` ${styles.stageEditable}` : ''}`}>
                 <div
                   ref={stageRef}
                   className={styles.stageContent}
@@ -472,14 +472,14 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 return positions.map((pos, pi) => (
                   <div
                     key={`${fixture.id}-${pi}`}
-                    className={`${styles.light}${!locked ? ` ${styles.draggable}` : ''}`}
+                    className={`${styles.light}${isEditing ? ` ${styles.draggable}` : ''}`}
                     style={{
                       left: `${colToPercent(pos.col, gridCols)}%`,
                       top: `${rowToPercent(pos.row, gridRows)}%`,
                     }}
                     onMouseDown={(e) => onLightDragStart(e, fixture.id, pi, pos)}
                   >
-                    {!locked && (
+                    {isEditing && (
                       <div className={styles.lightActions}>
                         <button
                           className={styles.lightActionBtn}
@@ -505,7 +505,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                           : 'none',
                       }}
                     >
-                      {!locked && <span className={styles.channelLabel}>{fixture.channel}</span>}
+                      {isEditing && <span className={styles.channelLabel}>{fixture.channel}</span>}
                     </div>
                     <div className={`${styles.lightInfo}${showLabels ? ` ${styles.lightInfoVisible}` : ''}`}>
                       <span className={styles.lightLabel}>
@@ -520,14 +520,14 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
               })}
                 </div>
               </div>
-              {!locked && (
+              {isEditing && (
                 <div className={styles.edgeBottom}>
                   <button className={styles.edgeBtn} onClick={() => addRow('bottom')}>+</button>
                   <button className={styles.edgeBtn} onClick={() => removeRow('bottom')} disabled={!canRemoveBottomRow}>−</button>
                 </div>
               )}
             </div>
-            {!locked && (
+            {isEditing && (
               <div className={styles.edgeSide}>
                 <button className={styles.edgeBtn} onClick={() => addCol('right')}>+</button>
                 <button className={styles.edgeBtn} onClick={() => removeCol('right')} disabled={!canRemoveRightCol}>−</button>
