@@ -154,7 +154,6 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
 
   const handleRemove = useCallback((fixture: Fixture, posIndex: number) => {
     const positions = getPositions(fixture)
-    if (positions.length <= 1) return
     const next = positions.filter((_, i) => i !== posIndex)
     onFixtureVizChange?.(fixture.id, next)
   }, [fixtures, onFixtureVizChange])
@@ -424,13 +423,11 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                           onClick={(e) => { e.stopPropagation(); handleDuplicate(fixture, pi) }}
                           title="Duplicate light"
                         >+</button>
-                        {positions.length > 1 && (
-                          <button
-                            className={styles.lightActionBtn}
-                            onClick={(e) => { e.stopPropagation(); handleRemove(fixture, pi) }}
-                            title="Remove light"
-                          >×</button>
-                        )}
+                        <button
+                          className={styles.lightActionBtn}
+                          onClick={(e) => { e.stopPropagation(); handleRemove(fixture, pi) }}
+                          title="Remove light"
+                        >×</button>
                       </div>
                     )}
                     <div
