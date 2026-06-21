@@ -105,7 +105,7 @@
   flex-shrink: 0;
 }
 
-.lockBtn {
+.editBtn {
   background: none;
   border: none;
   color: var(--text-muted);
@@ -116,12 +116,12 @@
   align-items: center;
 }
 
-.lockBtn:hover {
+.editBtn:hover {
   color: var(--text-secondary);
   background: var(--bg-overlay);
 }
 
-.lockBtn.unlocked {
+.editBtn.editing {
   color: var(--accent);
 }
 

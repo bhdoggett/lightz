@@ -347,18 +347,18 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
               title="Larger lights"
             >+</button>
             <button
-              className={`${styles.lockBtn}${locked ? '' : ` ${styles.unlocked}`}`}
+              className={`${styles.editBtn}${!locked ? ` ${styles.editing}` : ''}`}
               onClick={() => setLocked((v) => !v)}
-              title={locked ? 'Unlock to rearrange lights' : 'Lock layout'}
+              title={locked ? 'Edit layout' : 'Done editing'}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                <path d={locked ? 'M7 11V7a5 5 0 0 1 10 0v4' : 'M7 11V7a5 5 0 0 1 9.9-1'}/>
+                <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                <path d="m15 5 4 4"/>
               </svg>
             </button>
             {popped ? (
               <button
-                className={styles.lockBtn}
+                className={styles.editBtn}
                 onClick={onDock}
                 title="Dock visualizer back"
               >
@@ -368,7 +368,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
               </button>
             ) : (
               <button
-                className={styles.lockBtn}
+                className={styles.editBtn}
                 onClick={onPopout}
                 title="Pop out visualizer"
               >
