@@ -143,8 +143,9 @@
   display: flex;
   justify-content: center;
   gap: 4px;
-  padding: 2px 0;
+  padding: 4px 0;
   flex-shrink: 0;
+  z-index: 10;
 }
 
 .stageMiddle {
@@ -158,8 +159,9 @@
   flex-direction: column;
   justify-content: center;
   gap: 4px;
-  padding: 0 3px;
+  padding: 0 6px;
   flex-shrink: 0;
+  z-index: 10;
 }
 
 .edgeBtn {
