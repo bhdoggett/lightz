@@ -327,7 +327,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
             <div className={styles.stage}>
             <div
               ref={stageRef}
-              className={styles.stageInner}
+              className={`${styles.stageInner}${!locked ? ` ${styles.editable}` : ''}`}
               data-testid="viz-lights"
             >
               {gridPoints}

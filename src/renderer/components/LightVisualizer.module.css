@@ -208,6 +208,11 @@
   height: 100%;
 }
 
+.stageInner.editable {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+}
+
 .gridPoint {
   position: absolute;
   width: 4px;
