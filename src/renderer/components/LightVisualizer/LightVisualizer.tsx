@@ -24,15 +24,12 @@ const BULB_STEP = 8
 const DEFAULT_COLS = 10
 const DEFAULT_ROWS = 6
 
-function autoLayout(index: number, gridCols: number): VizPosition {
-  const col = index % gridCols
-  const row = Math.floor(index / gridCols)
-  return { col, row }
+function isPlaced(fixture: Fixture): boolean {
+  return !!(fixture.vizPositions && fixture.vizPositions.length > 0)
 }
 
-function getPositions(fixture: Fixture, fixtureIndex: number, gridCols: number): VizPosition[] {
-  if (fixture.vizPositions && fixture.vizPositions.length > 0) return fixture.vizPositions
-  return [autoLayout(fixtureIndex, gridCols)]
+function getPositions(fixture: Fixture): VizPosition[] {
+  return fixture.vizPositions ?? []
 }
 
 function colToPercent(col: number, totalCols: number): number {
@@ -45,10 +42,9 @@ function rowToPercent(row: number, totalRows: number): number {
   return (row / (totalRows - 1)) * 100
 }
 
-function hasFixtureAt(fixtures: Fixture[], axis: 'col' | 'row', index: number, gridCols: number): boolean {
-  for (let fi = 0; fi < fixtures.length; fi++) {
-    const positions = getPositions(fixtures[fi], fi, gridCols)
-    for (const pos of positions) {
+function hasFixtureAt(fixtures: Fixture[], axis: 'col' | 'row', index: number): boolean {
+  for (const fixture of fixtures) {
+    for (const pos of getPositions(fixture)) {
       if (pos[axis] === index) return true
     }
   }
@@ -62,6 +58,10 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const [bulbSize, setBulbSize] = useState(DEFAULT_BULB_SIZE)
   const [gridCols, setGridCols] = useState(DEFAULT_COLS)
   const [gridRows, setGridRows] = useState(DEFAULT_ROWS)
+  const [showUnplaced, setShowUnplaced] = useState(false)
+  const placedFixtures = fixtures.filter(isPlaced)
+  const unplacedFixtures = fixtures.filter((f) => !isPlaced(f))
+  const draggingFromSidebar = useRef<string | null>(null)
   const resizing = useRef(false)
   const startY = useRef(0)
   const startHeight = useRef(0)
@@ -98,14 +98,25 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         const { fixtureId, posIndex } = dragRef.current
         const fixture = fixtures.find((f) => f.id === fixtureId)
         if (!fixture) return
-        const positions = [...getPositions(fixture, fixtures.indexOf(fixture), gridCols)]
+        const positions = [...getPositions(fixture)]
         if (positions[posIndex].col !== snappedCol || positions[posIndex].row !== snappedRow) {
           positions[posIndex] = { col: snappedCol, row: snappedRow }
           onFixtureVizChange?.(fixtureId, positions)
         }
       }
     }
-    const onUp = () => {
+    const onUp = (e: MouseEvent) => {
+      if (draggingFromSidebar.current && stageRef.current) {
+        const rect = stageRef.current.getBoundingClientRect()
+        if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+          const pctX = ((e.clientX - rect.left) / rect.width) * 100
+          const pctY = ((e.clientY - rect.top) / rect.height) * 100
+          const col = Math.max(0, Math.min(gridCols - 1, Math.round((pctX / 100) * (gridCols - 1))))
+          const row = Math.max(0, Math.min(gridRows - 1, Math.round((pctY / 100) * (gridRows - 1))))
+          onFixtureVizChange?.(draggingFromSidebar.current, [{ col, row }])
+        }
+        draggingFromSidebar.current = null
+      }
       resizing.current = false
       dragRef.current = null
     }
@@ -132,7 +143,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   }, [locked])
 
   const handleDuplicate = useCallback((fixture: Fixture, posIndex: number) => {
-    const positions = getPositions(fixture, fixtures.indexOf(fixture), gridCols)
+    const positions = getPositions(fixture)
     const source = positions[posIndex]
     const newPos: VizPosition = {
       col: Math.min(gridCols - 1, source.col + 1),
@@ -142,16 +153,50 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   }, [fixtures, onFixtureVizChange, gridCols])
 
   const handleRemove = useCallback((fixture: Fixture, posIndex: number) => {
-    const positions = getPositions(fixture, fixtures.indexOf(fixture), gridCols)
+    const positions = getPositions(fixture)
     if (positions.length <= 1) return
     const next = positions.filter((_, i) => i !== posIndex)
     onFixtureVizChange?.(fixture.id, next)
   }, [fixtures, onFixtureVizChange])
 
+  const handleAutoPlace = useCallback(() => {
+    let col = 0
+    let row = 0
+    let cols = gridCols
+    let rows = gridRows
+    const occupied = new Set<string>()
+    for (const f of placedFixtures) {
+      for (const p of getPositions(f)) occupied.add(`${p.col}-${p.row}`)
+    }
+    for (const fixture of unplacedFixtures) {
+      while (occupied.has(`${col}-${row}`)) {
+        col++
+        if (col >= cols) { col = 0; row++ }
+        if (row >= rows) { rows++; setGridRows(rows) }
+      }
+      occupied.add(`${col}-${row}`)
+      onFixtureVizChange?.(fixture.id, [{ col, row }])
+      col++
+      if (col >= cols) { col = 0; row++ }
+    }
+    if (rows > gridRows) setGridRows(rows)
+  }, [placedFixtures, unplacedFixtures, gridCols, gridRows, onFixtureVizChange])
+
+  const handleSidebarDrop = useCallback((fixtureId: string, e: React.MouseEvent) => {
+    if (!stageRef.current) return
+    const rect = stageRef.current.getBoundingClientRect()
+    const pctX = ((e.clientX - rect.left) / rect.width) * 100
+    const pctY = ((e.clientY - rect.top) / rect.height) * 100
+    const col = Math.max(0, Math.min(gridCols - 1, Math.round((pctX / 100) * (gridCols - 1))))
+    const row = Math.max(0, Math.min(gridRows - 1, Math.round((pctY / 100) * (gridRows - 1))))
+    onFixtureVizChange?.(fixtureId, [{ col, row }])
+    draggingFromSidebar.current = null
+  }, [gridCols, gridRows, onFixtureVizChange])
+
   const addCol = useCallback((side: 'left' | 'right') => {
     if (side === 'left') {
       for (const fixture of fixtures) {
-        const positions = getPositions(fixture, fixtures.indexOf(fixture), gridCols)
+        const positions = getPositions(fixture)
         const shifted = positions.map((p) => ({ col: p.col + 1, row: p.row }))
         onFixtureVizChange?.(fixture.id, shifted)
       }
@@ -161,11 +206,11 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
 
   const removeCol = useCallback((side: 'left' | 'right') => {
     const edgeCol = side === 'left' ? 0 : gridCols - 1
-    if (hasFixtureAt(fixtures, 'col', edgeCol, gridCols)) return
+    if (hasFixtureAt(fixtures, 'col', edgeCol)) return
     if (gridCols <= 3) return
     if (side === 'left') {
       for (const fixture of fixtures) {
-        const positions = getPositions(fixture, fixtures.indexOf(fixture), gridCols)
+        const positions = getPositions(fixture)
         const shifted = positions.map((p) => ({ col: p.col - 1, row: p.row }))
         onFixtureVizChange?.(fixture.id, shifted)
       }
@@ -176,7 +221,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const addRow = useCallback((side: 'top' | 'bottom') => {
     if (side === 'top') {
       for (const fixture of fixtures) {
-        const positions = getPositions(fixture, fixtures.indexOf(fixture), gridCols)
+        const positions = getPositions(fixture)
         const shifted = positions.map((p) => ({ col: p.col, row: p.row + 1 }))
         onFixtureVizChange?.(fixture.id, shifted)
       }
@@ -186,11 +231,11 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
 
   const removeRow = useCallback((side: 'top' | 'bottom') => {
     const edgeRow = side === 'top' ? 0 : gridRows - 1
-    if (hasFixtureAt(fixtures, 'row', edgeRow, gridCols)) return
+    if (hasFixtureAt(fixtures, 'row', edgeRow)) return
     if (gridRows <= 3) return
     if (side === 'top') {
       for (const fixture of fixtures) {
-        const positions = getPositions(fixture, fixtures.indexOf(fixture), gridCols)
+        const positions = getPositions(fixture)
         const shifted = positions.map((p) => ({ col: p.col, row: p.row - 1 }))
         onFixtureVizChange?.(fixture.id, shifted)
       }
@@ -254,10 +299,10 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
     ))
   ).flat() : null
 
-  const canRemoveLeftCol = gridCols > 3 && !hasFixtureAt(fixtures, 'col', 0, gridCols)
-  const canRemoveRightCol = gridCols > 3 && !hasFixtureAt(fixtures, 'col', gridCols - 1, gridCols)
-  const canRemoveTopRow = gridRows > 3 && !hasFixtureAt(fixtures, 'row', 0, gridCols)
-  const canRemoveBottomRow = gridRows > 3 && !hasFixtureAt(fixtures, 'row', gridRows - 1, gridCols)
+  const canRemoveLeftCol = gridCols > 3 && !hasFixtureAt(fixtures, 'col', 0)
+  const canRemoveRightCol = gridCols > 3 && !hasFixtureAt(fixtures, 'col', gridCols - 1)
+  const canRemoveTopRow = gridRows > 3 && !hasFixtureAt(fixtures, 'row', 0)
+  const canRemoveBottomRow = gridRows > 3 && !hasFixtureAt(fixtures, 'row', gridRows - 1)
 
   return (
     <div className={`${styles.panel}${popped ? ` ${styles.popped}` : ''}`} style={popped ? undefined : { height: expanded ? height : MIN_HEIGHT }}>
@@ -277,6 +322,15 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
           <span className={styles.toolbarLabel}>Visualizer</span>
           {!expanded && !popped && <div className={styles.compactStrip}>{compactDots}</div>}
         </div>
+        {(expanded || popped) && !locked && unplacedFixtures.length > 0 && (
+          <button
+            className={`${styles.sizeBtn}${showUnplaced ? ` ${styles.sizeBtnActive}` : ''}`}
+            onClick={() => setShowUnplaced((v) => !v)}
+            title={`${unplacedFixtures.length} unplaced fixture${unplacedFixtures.length > 1 ? 's' : ''}`}
+          >
+            {unplacedFixtures.length}
+          </button>
+        )}
         {expanded && (
           <div className={styles.toolbarRight}>
             <button
@@ -327,7 +381,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         )}
       </div>
       {(expanded || popped) && (
-        <div className={`${styles.stageOuter}${!locked ? ` ${styles.editing}` : ''}`}>
+        <div className={styles.stageOuter}>
           {!locked && (
             <div className={styles.edgeTop}>
               <button className={styles.edgeBtn} onClick={() => removeRow('top')} disabled={!canRemoveTopRow}>−</button>
@@ -348,11 +402,11 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 data-testid="viz-lights"
               >
               {gridPoints}
-              {fixtures.map((fixture, fi) => {
+              {placedFixtures.map((fixture) => {
                 const color = getFixtureColor(fixture)
                 const intensity = getFixtureIntensity(fixture) / 255
                 const glowSize = Math.round(intensity * bulbSize * 0.5)
-                const positions = getPositions(fixture, fi, gridCols)
+                const positions = getPositions(fixture)
                 return positions.map((pos, pi) => (
                   <div
                     key={`${fixture.id}-${pi}`}
@@ -408,6 +462,28 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
               <div className={styles.edgeSide}>
                 <button className={styles.edgeBtn} onClick={() => addCol('right')}>+</button>
                 <button className={styles.edgeBtn} onClick={() => removeCol('right')} disabled={!canRemoveRightCol}>−</button>
+              </div>
+            )}
+            {!locked && showUnplaced && unplacedFixtures.length > 0 && (
+              <div className={styles.sidebar}>
+                <div className={styles.sidebarHeader}>
+                  <span className={styles.sidebarTitle}>Unplaced</span>
+                  <button className={styles.sidebarAutoBtn} onClick={handleAutoPlace} title="Auto-place all">
+                    Auto
+                  </button>
+                </div>
+                <div className={styles.sidebarList}>
+                  {unplacedFixtures.map((f) => (
+                    <div
+                      key={f.id}
+                      className={styles.sidebarItem}
+                      onMouseDown={(e) => { e.preventDefault(); draggingFromSidebar.current = f.id }}
+                    >
+                      <span className={styles.sidebarChannel}>{f.channel}</span>
+                      <span className={styles.sidebarName}>{f.name}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
