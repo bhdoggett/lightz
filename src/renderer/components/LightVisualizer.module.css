@@ -134,8 +134,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
   min-height: 0;
+  padding: 0 var(--space-3);
 }
 
 .edgeTop,
@@ -143,9 +144,8 @@
   display: flex;
   justify-content: center;
   gap: 4px;
-  padding: 4px 0;
+  padding: 6px 0;
   flex-shrink: 0;
-  z-index: 10;
 }
 
 .stageMiddle {
@@ -159,9 +159,8 @@
   flex-direction: column;
   justify-content: center;
   gap: 4px;
-  padding: 0 6px;
+  padding: 0 8px;
   flex-shrink: 0;
-  z-index: 10;
 }
 
 .edgeBtn {
