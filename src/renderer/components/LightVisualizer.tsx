@@ -14,17 +14,21 @@ interface Props {
 const MIN_HEIGHT = 32
 const DEFAULT_HEIGHT = 250
 const MAX_HEIGHT = 600
-const GRID_STEP = 2
 const MIN_BULB_SIZE = 20
 const MAX_BULB_SIZE = 120
 const DEFAULT_BULB_SIZE = 48
 const BULB_STEP = 8
+const DEFAULT_COLS = 10
+const DEFAULT_ROWS = 6
+const MIN_GRID = 3
+const MAX_GRID = 30
 
-function snapToGrid(value: number): number {
-  return Math.round(value / GRID_STEP) * GRID_STEP
+function snapToGrid(value: number, divisions: number): number {
+  const step = 100 / divisions
+  return Math.round(value / step) * step
 }
 
-function autoLayout(index: number, total: number): VizPosition {
+function autoLayout(index: number, total: number, gridCols: number, gridRows: number): VizPosition {
   const cols = Math.ceil(Math.sqrt(total))
   const row = Math.floor(index / cols)
   const col = index % cols
@@ -32,14 +36,14 @@ function autoLayout(index: number, total: number): VizPosition {
   const rows = Math.ceil(total / cols)
   const yStep = 70 / Math.max(rows - 1, 1)
   return {
-    x: snapToGrid(10 + col * xStep),
-    y: snapToGrid(15 + row * yStep),
+    x: snapToGrid(10 + col * xStep, gridCols),
+    y: snapToGrid(15 + row * yStep, gridRows),
   }
 }
 
-function getPositions(fixture: Fixture, fixtureIndex: number, totalFixtures: number): VizPosition[] {
+function getPositions(fixture: Fixture, fixtureIndex: number, totalFixtures: number, gridCols: number, gridRows: number): VizPosition[] {
   if (fixture.vizPositions && fixture.vizPositions.length > 0) return fixture.vizPositions
-  return [autoLayout(fixtureIndex, totalFixtures)]
+  return [autoLayout(fixtureIndex, totalFixtures, gridCols, gridRows)]
 }
 
 export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixtureVizChange }: Props) {
@@ -47,6 +51,8 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const [height, setHeight] = useState(DEFAULT_HEIGHT)
   const [locked, setLocked] = useState(true)
   const [bulbSize, setBulbSize] = useState(DEFAULT_BULB_SIZE)
+  const [gridCols, setGridCols] = useState(DEFAULT_COLS)
+  const [gridRows, setGridRows] = useState(DEFAULT_ROWS)
   const resizing = useRef(false)
   const startY = useRef(0)
   const startHeight = useRef(0)
@@ -78,8 +84,8 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         const rawY = ((e.clientY - rect.top) / rect.height) * 100
         const dx = rawX - dragStartMouse.current.x
         const dy = rawY - dragStartMouse.current.y
-        const newX = snapToGrid(Math.max(0, Math.min(100, dragStartPos.current.x + dx)))
-        const newY = snapToGrid(Math.max(0, Math.min(100, dragStartPos.current.y + dy)))
+        const newX = snapToGrid(Math.max(0, Math.min(100, dragStartPos.current.x + dx)), gridCols)
+        const newY = snapToGrid(Math.max(0, Math.min(100, dragStartPos.current.y + dy)), gridRows)
         const { fixtureId, posIndex } = dragRef.current
         const fixture = fixtures.find((f) => f.id === fixtureId)
         if (!fixture) return
@@ -98,7 +104,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
     }
-  }, [fixtures, onFixtureVizChange])
+  }, [fixtures, onFixtureVizChange, gridCols, gridRows])
 
   const onLightDragStart = useCallback((e: React.MouseEvent, fixtureId: string, posIndex: number, pos: VizPosition) => {
     if (locked) return
@@ -115,21 +121,22 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   }, [locked])
 
   const handleDuplicate = useCallback((fixture: Fixture, posIndex: number) => {
-    const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+    const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length, gridCols, gridRows)
     const source = positions[posIndex]
+    const colStep = 100 / gridCols
     const newPos: VizPosition = {
-      x: snapToGrid(Math.min(100, source.x + 10)),
+      x: snapToGrid(Math.min(100, source.x + colStep), gridCols),
       y: source.y,
     }
     onFixtureVizChange?.(fixture.id, [...positions, newPos])
-  }, [fixtures, onFixtureVizChange])
+  }, [fixtures, onFixtureVizChange, gridCols, gridRows])
 
   const handleRemove = useCallback((fixture: Fixture, posIndex: number) => {
-    const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+    const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length, gridCols, gridRows)
     if (positions.length <= 1) return
     const next = positions.filter((_, i) => i !== posIndex)
     onFixtureVizChange?.(fixture.id, next)
-  }, [fixtures, onFixtureVizChange])
+  }, [fixtures, onFixtureVizChange, gridCols, gridRows])
 
   function getEffectiveChannel(universe: 0 | 1, channel: number): number {
     const raw = getChannel(universe, channel)
@@ -192,6 +199,19 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         </div>
         {expanded && (
           <div className={styles.toolbarRight}>
+            {!locked && (
+              <div className={styles.gridControls}>
+                <span className={styles.gridLabel}>Col</span>
+                <button className={styles.sizeBtn} onClick={() => setGridCols((c) => Math.max(MIN_GRID, c - 1))} disabled={gridCols <= MIN_GRID}>−</button>
+                <span className={styles.gridValue}>{gridCols}</span>
+                <button className={styles.sizeBtn} onClick={() => setGridCols((c) => Math.min(MAX_GRID, c + 1))} disabled={gridCols >= MAX_GRID}>+</button>
+                <span className={styles.gridLabel}>Row</span>
+                <button className={styles.sizeBtn} onClick={() => setGridRows((r) => Math.max(MIN_GRID, r - 1))} disabled={gridRows <= MIN_GRID}>−</button>
+                <span className={styles.gridValue}>{gridRows}</span>
+                <button className={styles.sizeBtn} onClick={() => setGridRows((r) => Math.min(MAX_GRID, r + 1))} disabled={gridRows >= MAX_GRID}>+</button>
+                <div className={styles.gridSep} />
+              </div>
+            )}
             <button
               className={styles.sizeBtn}
               onClick={() => setBulbSize((s) => Math.max(MIN_BULB_SIZE, s - BULB_STEP))}
@@ -235,12 +255,16 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
           ref={stageRef}
           className={`${styles.stage}${!locked ? ` ${styles.editable}` : ''}`}
           data-testid="viz-lights"
+          style={{
+            '--grid-col-size': `${100 / gridCols}%`,
+            '--grid-row-size': `${100 / gridRows}%`,
+          } as React.CSSProperties}
         >
           {fixtures.map((fixture, fi) => {
             const color = getFixtureColor(fixture)
             const intensity = getFixtureIntensity(fixture) / 255
             const glowSize = Math.round(intensity * bulbSize * 0.5)
-            const positions = getPositions(fixture, fi, fixtures.length)
+            const positions = getPositions(fixture, fi, fixtures.length, gridCols, gridRows)
             return positions.map((pos, pi) => (
               <div
                 key={`${fixture.id}-${pi}`}

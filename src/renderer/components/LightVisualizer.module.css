@@ -63,6 +63,33 @@
   gap: 4px;
 }
 
+.gridControls {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.gridLabel {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+.gridValue {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  min-width: 16px;
+  text-align: center;
+}
+
+.gridSep {
+  width: 1px;
+  height: 14px;
+  background: var(--border-subtle);
+  margin: 0 4px;
+}
+
 .sizeBtn {
   background: none;
   border: 1px solid var(--border-subtle);
@@ -133,7 +160,7 @@
 .stage.editable {
   background-image:
     radial-gradient(circle, var(--border-subtle) 1px, transparent 1px);
-  background-size: 2% 2%;
+  background-size: var(--grid-col-size, 10%) var(--grid-row-size, 16.67%);
 }
 
 .light {
