@@ -21,16 +21,15 @@ const BULB_STEP = 8
 const DEFAULT_COLS = 10
 const DEFAULT_ROWS = 6
 
-function autoLayout(index: number, total: number): VizPosition {
-  const cols = Math.ceil(Math.sqrt(total))
-  const col = index % cols
-  const row = Math.floor(index / cols)
-  return { col: col + 1, row: row + 1 }
+function autoLayout(index: number, gridCols: number): VizPosition {
+  const col = index % gridCols
+  const row = Math.floor(index / gridCols)
+  return { col, row }
 }
 
-function getPositions(fixture: Fixture, fixtureIndex: number, totalFixtures: number): VizPosition[] {
+function getPositions(fixture: Fixture, fixtureIndex: number, gridCols: number): VizPosition[] {
   if (fixture.vizPositions && fixture.vizPositions.length > 0) return fixture.vizPositions
-  return [autoLayout(fixtureIndex, totalFixtures)]
+  return [autoLayout(fixtureIndex, gridCols)]
 }
 
 function colToPercent(col: number, totalCols: number): number {
@@ -43,9 +42,9 @@ function rowToPercent(row: number, totalRows: number): number {
   return (row / (totalRows - 1)) * 100
 }
 
-function hasFixtureAt(fixtures: Fixture[], axis: 'col' | 'row', index: number, totalFixtures: number): boolean {
+function hasFixtureAt(fixtures: Fixture[], axis: 'col' | 'row', index: number, gridCols: number): boolean {
   for (let fi = 0; fi < fixtures.length; fi++) {
-    const positions = getPositions(fixtures[fi], fi, totalFixtures)
+    const positions = getPositions(fixtures[fi], fi, gridCols)
     for (const pos of positions) {
       if (pos[axis] === index) return true
     }
@@ -96,7 +95,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         const { fixtureId, posIndex } = dragRef.current
         const fixture = fixtures.find((f) => f.id === fixtureId)
         if (!fixture) return
-        const positions = [...getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)]
+        const positions = [...getPositions(fixture, fixtures.indexOf(fixture), gridCols)]
         if (positions[posIndex].col !== snappedCol || positions[posIndex].row !== snappedRow) {
           positions[posIndex] = { col: snappedCol, row: snappedRow }
           onFixtureVizChange?.(fixtureId, positions)
@@ -130,7 +129,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   }, [locked])
 
   const handleDuplicate = useCallback((fixture: Fixture, posIndex: number) => {
-    const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+    const positions = getPositions(fixture, fixtures.indexOf(fixture), gridCols)
     const source = positions[posIndex]
     const newPos: VizPosition = {
       col: Math.min(gridCols - 1, source.col + 1),
@@ -140,7 +139,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   }, [fixtures, onFixtureVizChange, gridCols])
 
   const handleRemove = useCallback((fixture: Fixture, posIndex: number) => {
-    const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+    const positions = getPositions(fixture, fixtures.indexOf(fixture), gridCols)
     if (positions.length <= 1) return
     const next = positions.filter((_, i) => i !== posIndex)
     onFixtureVizChange?.(fixture.id, next)
@@ -149,7 +148,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const addCol = useCallback((side: 'left' | 'right') => {
     if (side === 'left') {
       for (const fixture of fixtures) {
-        const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+        const positions = getPositions(fixture, fixtures.indexOf(fixture), gridCols)
         const shifted = positions.map((p) => ({ col: p.col + 1, row: p.row }))
         onFixtureVizChange?.(fixture.id, shifted)
       }
@@ -159,11 +158,11 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
 
   const removeCol = useCallback((side: 'left' | 'right') => {
     const edgeCol = side === 'left' ? 0 : gridCols - 1
-    if (hasFixtureAt(fixtures, 'col', edgeCol, fixtures.length)) return
+    if (hasFixtureAt(fixtures, 'col', edgeCol, gridCols)) return
     if (gridCols <= 3) return
     if (side === 'left') {
       for (const fixture of fixtures) {
-        const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+        const positions = getPositions(fixture, fixtures.indexOf(fixture), gridCols)
         const shifted = positions.map((p) => ({ col: p.col - 1, row: p.row }))
         onFixtureVizChange?.(fixture.id, shifted)
       }
@@ -174,7 +173,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const addRow = useCallback((side: 'top' | 'bottom') => {
     if (side === 'top') {
       for (const fixture of fixtures) {
-        const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+        const positions = getPositions(fixture, fixtures.indexOf(fixture), gridCols)
         const shifted = positions.map((p) => ({ col: p.col, row: p.row + 1 }))
         onFixtureVizChange?.(fixture.id, shifted)
       }
@@ -184,11 +183,11 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
 
   const removeRow = useCallback((side: 'top' | 'bottom') => {
     const edgeRow = side === 'top' ? 0 : gridRows - 1
-    if (hasFixtureAt(fixtures, 'row', edgeRow, fixtures.length)) return
+    if (hasFixtureAt(fixtures, 'row', edgeRow, gridCols)) return
     if (gridRows <= 3) return
     if (side === 'top') {
       for (const fixture of fixtures) {
-        const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+        const positions = getPositions(fixture, fixtures.indexOf(fixture), gridCols)
         const shifted = positions.map((p) => ({ col: p.col, row: p.row - 1 }))
         onFixtureVizChange?.(fixture.id, shifted)
       }
@@ -252,10 +251,10 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
     ))
   ).flat() : null
 
-  const canRemoveLeftCol = gridCols > 3 && !hasFixtureAt(fixtures, 'col', 0, fixtures.length)
-  const canRemoveRightCol = gridCols > 3 && !hasFixtureAt(fixtures, 'col', gridCols - 1, fixtures.length)
-  const canRemoveTopRow = gridRows > 3 && !hasFixtureAt(fixtures, 'row', 0, fixtures.length)
-  const canRemoveBottomRow = gridRows > 3 && !hasFixtureAt(fixtures, 'row', gridRows - 1, fixtures.length)
+  const canRemoveLeftCol = gridCols > 3 && !hasFixtureAt(fixtures, 'col', 0, gridCols)
+  const canRemoveRightCol = gridCols > 3 && !hasFixtureAt(fixtures, 'col', gridCols - 1, gridCols)
+  const canRemoveTopRow = gridRows > 3 && !hasFixtureAt(fixtures, 'row', 0, gridCols)
+  const canRemoveBottomRow = gridRows > 3 && !hasFixtureAt(fixtures, 'row', gridRows - 1, gridCols)
 
   return (
     <div className={styles.panel} style={{ height: expanded ? height : MIN_HEIGHT }}>
@@ -335,7 +334,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 const color = getFixtureColor(fixture)
                 const intensity = getFixtureIntensity(fixture) / 255
                 const glowSize = Math.round(intensity * bulbSize * 0.5)
-                const positions = getPositions(fixture, fi, fixtures.length)
+                const positions = getPositions(fixture, fi, gridCols)
                 return positions.map((pos, pi) => (
                   <div
                     key={`${fixture.id}-${pi}`}
