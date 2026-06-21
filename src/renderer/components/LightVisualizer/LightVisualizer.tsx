@@ -233,7 +233,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
       <div
         key={`${f.id}-${i}`}
         className={styles.compactDot}
-        style={{ background: color, opacity: Math.max(0.1, intensity) }}
+        style={{ background: intensity > 0 ? color : '#000000' }}
       />
     ))
   }).flat() : null
@@ -368,8 +368,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                         width: bulbSize,
                         height: bulbSize,
                         fontSize: Math.max(9, Math.round(bulbSize * 0.28)),
-                        backgroundColor: color,
-                        opacity: Math.max(0.05, intensity),
+                        backgroundColor: intensity > 0 ? color : '#000000',
                         boxShadow: intensity > 0.05
                           ? `0 0 ${glowSize}px ${Math.round(glowSize * 0.6)}px ${color}`
                           : 'none',
