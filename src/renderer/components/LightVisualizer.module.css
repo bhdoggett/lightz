@@ -196,7 +196,7 @@
   position: relative;
   flex: 1;
   overflow: visible;
-  padding: var(--space-8);
+  padding: 48px;
 }
 
 .gridPoint {
