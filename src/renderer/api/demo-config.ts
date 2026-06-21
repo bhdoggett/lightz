@@ -2,13 +2,13 @@ import type { Config } from '../../shared/types'
 
 export const demoConfig: Config = {
   fixtures: [
-    { id: 'front-wash-l', name: 'Front Wash L', channel: 1, universe: 0, type: 'dimmer', vizPositions: [{ x: 25, y: 75 }, { x: 35, y: 75 }] },
-    { id: 'front-wash-r', name: 'Front Wash R', channel: 2, universe: 0, type: 'dimmer', vizPositions: [{ x: 65, y: 75 }, { x: 75, y: 75 }] },
-    { id: 'back-wash', name: 'Back Wash', channel: 3, universe: 0, type: 'dimmer', vizPositions: [{ x: 35, y: 10 }, { x: 50, y: 10 }, { x: 65, y: 10 }] },
-    { id: 'side-fill-l', name: 'Side Fill L', channel: 4, universe: 0, type: 'dimmer', vizPositions: [{ x: 10, y: 35 }, { x: 10, y: 55 }] },
-    { id: 'side-fill-r', name: 'Side Fill R', channel: 5, universe: 0, type: 'dimmer', vizPositions: [{ x: 90, y: 35 }, { x: 90, y: 55 }] },
+    { id: 'front-wash-l', name: 'Front Wash L', channel: 1, universe: 0, type: 'dimmer', vizPositions: [{ col: 3, row: 4 }, { col: 4, row: 4 }] },
+    { id: 'front-wash-r', name: 'Front Wash R', channel: 2, universe: 0, type: 'dimmer', vizPositions: [{ col: 5, row: 4 }, { col: 6, row: 4 }] },
+    { id: 'back-wash', name: 'Back Wash', channel: 3, universe: 0, type: 'dimmer', vizPositions: [{ col: 3, row: 0 }, { col: 5, row: 0 }, { col: 7, row: 0 }] },
+    { id: 'side-fill-l', name: 'Side Fill L', channel: 4, universe: 0, type: 'dimmer', vizPositions: [{ col: 0, row: 2 }, { col: 0, row: 3 }] },
+    { id: 'side-fill-r', name: 'Side Fill R', channel: 5, universe: 0, type: 'dimmer', vizPositions: [{ col: 9, row: 2 }, { col: 9, row: 3 }] },
     {
-      id: 'rgb-par-l', name: 'RGB Par L', channel: 10, universe: 0, type: 'dimmer', vizPositions: [{ x: 25, y: 30 }],
+      id: 'rgb-par-l', name: 'RGB Par L', channel: 10, universe: 0, type: 'dimmer', vizPositions: [{ col: 2, row: 1 }],
       channels: [
         { id: 'rgb-par-l-r', role: 'red', label: 'Red', channel: 10, universe: 0, linked: true },
         { id: 'rgb-par-l-g', role: 'green', label: 'Green', channel: 11, universe: 0, linked: true },
@@ -17,7 +17,7 @@ export const demoConfig: Config = {
       ],
     },
     {
-      id: 'rgb-par-r', name: 'RGB Par R', channel: 14, universe: 0, type: 'dimmer', vizPositions: [{ x: 75, y: 30 }],
+      id: 'rgb-par-r', name: 'RGB Par R', channel: 14, universe: 0, type: 'dimmer', vizPositions: [{ col: 7, row: 1 }],
       channels: [
         { id: 'rgb-par-r-r', role: 'red', label: 'Red', channel: 14, universe: 0, linked: true },
         { id: 'rgb-par-r-g', role: 'green', label: 'Green', channel: 15, universe: 0, linked: true },
@@ -26,7 +26,7 @@ export const demoConfig: Config = {
       ],
     },
     {
-      id: 'rgbw-spot', name: 'RGBW Spot C', channel: 20, universe: 1, type: 'dimmer', vizPositions: [{ x: 50, y: 45 }],
+      id: 'rgbw-spot', name: 'RGBW Spot C', channel: 20, universe: 1, type: 'dimmer', vizPositions: [{ col: 5, row: 2 }],
       channels: [
         { id: 'rgbw-spot-r', role: 'red', label: 'Red', channel: 20, universe: 1, linked: true },
         { id: 'rgbw-spot-g', role: 'green', label: 'Green', channel: 21, universe: 1, linked: true },

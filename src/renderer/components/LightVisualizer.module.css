@@ -63,33 +63,6 @@
   gap: 4px;
 }
 
-.gridControls {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.gridLabel {
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-left: 4px;
-}
-
-.gridValue {
-  font-size: 10px;
-  font-family: var(--font-mono);
-  color: var(--text-secondary);
-  min-width: 16px;
-  text-align: center;
-}
-
-.gridSep {
-  width: 1px;
-  height: 14px;
-  background: var(--border-subtle);
-  margin: 0 4px;
-}
-
 .sizeBtn {
   background: none;
   border: 1px solid var(--border-subtle);
@@ -115,6 +88,10 @@
 .sizeBtn:disabled {
   opacity: 0.3;
   cursor: default;
+}
+
+.sizeSwatch {
+  flex-shrink: 0;
 }
 
 .lockBtn {
@@ -151,17 +128,87 @@
   flex-shrink: 0;
 }
 
+/* Stage layout with edge controls */
+
+.stageWrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.edgeTop,
+.edgeBottom {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 0;
+  flex-shrink: 0;
+}
+
+.stageMiddle {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.edgeSide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 3px;
+  flex-shrink: 0;
+}
+
+.edgeBtn {
+  background: var(--bg-raised);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 0;
+}
+
+.edgeBtn:hover:not(:disabled) {
+  color: var(--text-primary);
+  border-color: var(--text-secondary);
+  background: var(--bg-overlay);
+}
+
+.edgeBtn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+/* Stage area */
+
 .stage {
   position: relative;
   flex: 1;
   overflow: hidden;
 }
 
-.stage.editable {
-  background-image:
-    radial-gradient(circle, var(--border-subtle) 1px, transparent 1px);
-  background-size: var(--grid-col-size, 10%) var(--grid-row-size, 16.67%);
+.gridPoint {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--border-subtle);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
 }
+
+/* Fixture lights */
 
 .light {
   position: absolute;
@@ -171,6 +218,7 @@
   align-items: center;
   gap: var(--space-1);
   pointer-events: none;
+  z-index: 2;
 }
 
 .light.draggable {

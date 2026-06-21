@@ -25,8 +25,8 @@ export interface FixtureTemplate {
 }
 
 export interface VizPosition {
-  x: number            // percentage 0–100
-  y: number
+  col: number          // grid column (0-indexed)
+  row: number          // grid row (0-indexed)
 }
 
 export interface Fixture {

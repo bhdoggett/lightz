@@ -20,30 +20,37 @@ const DEFAULT_BULB_SIZE = 48
 const BULB_STEP = 8
 const DEFAULT_COLS = 10
 const DEFAULT_ROWS = 6
-const MIN_GRID = 3
-const MAX_GRID = 30
 
-function snapToGrid(value: number, divisions: number): number {
-  const step = 100 / divisions
-  return Math.round(value / step) * step
-}
-
-function autoLayout(index: number, total: number, gridCols: number, gridRows: number): VizPosition {
+function autoLayout(index: number, total: number): VizPosition {
   const cols = Math.ceil(Math.sqrt(total))
-  const row = Math.floor(index / cols)
   const col = index % cols
-  const xStep = 80 / Math.max(cols - 1, 1)
-  const rows = Math.ceil(total / cols)
-  const yStep = 70 / Math.max(rows - 1, 1)
-  return {
-    x: snapToGrid(10 + col * xStep, gridCols),
-    y: snapToGrid(15 + row * yStep, gridRows),
-  }
+  const row = Math.floor(index / cols)
+  return { col: col + 1, row: row + 1 }
 }
 
-function getPositions(fixture: Fixture, fixtureIndex: number, totalFixtures: number, gridCols: number, gridRows: number): VizPosition[] {
+function getPositions(fixture: Fixture, fixtureIndex: number, totalFixtures: number): VizPosition[] {
   if (fixture.vizPositions && fixture.vizPositions.length > 0) return fixture.vizPositions
-  return [autoLayout(fixtureIndex, totalFixtures, gridCols, gridRows)]
+  return [autoLayout(fixtureIndex, totalFixtures)]
+}
+
+function colToPercent(col: number, totalCols: number): number {
+  if (totalCols <= 1) return 50
+  return (col / (totalCols - 1)) * 100
+}
+
+function rowToPercent(row: number, totalRows: number): number {
+  if (totalRows <= 1) return 50
+  return (row / (totalRows - 1)) * 100
+}
+
+function hasFixtureAt(fixtures: Fixture[], axis: 'col' | 'row', index: number, totalFixtures: number): boolean {
+  for (let fi = 0; fi < fixtures.length; fi++) {
+    const positions = getPositions(fixtures[fi], fi, totalFixtures)
+    for (const pos of positions) {
+      if (pos[axis] === index) return true
+    }
+  }
+  return false
 }
 
 export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixtureVizChange }: Props) {
@@ -59,7 +66,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
 
   const dragRef = useRef<{ fixtureId: string; posIndex: number } | null>(null)
   const dragStartMouse = useRef({ x: 0, y: 0 })
-  const dragStartPos = useRef({ x: 0, y: 0 })
+  const dragStartPos = useRef({ col: 0, row: 0 })
   const stageRef = useRef<HTMLDivElement>(null)
 
   const onResizeStart = useCallback((e: React.MouseEvent) => {
@@ -80,18 +87,20 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
       }
       if (dragRef.current && stageRef.current) {
         const rect = stageRef.current.getBoundingClientRect()
-        const rawX = ((e.clientX - rect.left) / rect.width) * 100
-        const rawY = ((e.clientY - rect.top) / rect.height) * 100
-        const dx = rawX - dragStartMouse.current.x
-        const dy = rawY - dragStartMouse.current.y
-        const newX = snapToGrid(Math.max(0, Math.min(100, dragStartPos.current.x + dx)), gridCols)
-        const newY = snapToGrid(Math.max(0, Math.min(100, dragStartPos.current.y + dy)), gridRows)
+        const pctX = ((e.clientX - rect.left) / rect.width) * 100
+        const pctY = ((e.clientY - rect.top) / rect.height) * 100
+        const col = Math.round((pctX / 100) * (gridCols - 1))
+        const row = Math.round((pctY / 100) * (gridRows - 1))
+        const snappedCol = Math.max(0, Math.min(gridCols - 1, col))
+        const snappedRow = Math.max(0, Math.min(gridRows - 1, row))
         const { fixtureId, posIndex } = dragRef.current
         const fixture = fixtures.find((f) => f.id === fixtureId)
         if (!fixture) return
-        const positions = [...(fixture.vizPositions ?? [])]
-        positions[posIndex] = { x: newX, y: newY }
-        onFixtureVizChange?.(fixtureId, positions)
+        const positions = [...getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)]
+        if (positions[posIndex].col !== snappedCol || positions[posIndex].row !== snappedRow) {
+          positions[posIndex] = { col: snappedCol, row: snappedRow }
+          onFixtureVizChange?.(fixtureId, positions)
+        }
       }
     }
     const onUp = () => {
@@ -117,26 +126,75 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
       x: ((e.clientX - rect.left) / rect.width) * 100,
       y: ((e.clientY - rect.top) / rect.height) * 100,
     }
-    dragStartPos.current = { x: pos.x, y: pos.y }
+    dragStartPos.current = { col: pos.col, row: pos.row }
   }, [locked])
 
   const handleDuplicate = useCallback((fixture: Fixture, posIndex: number) => {
-    const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length, gridCols, gridRows)
+    const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
     const source = positions[posIndex]
-    const colStep = 100 / gridCols
     const newPos: VizPosition = {
-      x: snapToGrid(Math.min(100, source.x + colStep), gridCols),
-      y: source.y,
+      col: Math.min(gridCols - 1, source.col + 1),
+      row: source.row,
     }
     onFixtureVizChange?.(fixture.id, [...positions, newPos])
-  }, [fixtures, onFixtureVizChange, gridCols, gridRows])
+  }, [fixtures, onFixtureVizChange, gridCols])
 
   const handleRemove = useCallback((fixture: Fixture, posIndex: number) => {
-    const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length, gridCols, gridRows)
+    const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
     if (positions.length <= 1) return
     const next = positions.filter((_, i) => i !== posIndex)
     onFixtureVizChange?.(fixture.id, next)
-  }, [fixtures, onFixtureVizChange, gridCols, gridRows])
+  }, [fixtures, onFixtureVizChange])
+
+  const addCol = useCallback((side: 'left' | 'right') => {
+    if (side === 'left') {
+      for (const fixture of fixtures) {
+        const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+        const shifted = positions.map((p) => ({ col: p.col + 1, row: p.row }))
+        onFixtureVizChange?.(fixture.id, shifted)
+      }
+    }
+    setGridCols((c) => c + 1)
+  }, [fixtures, onFixtureVizChange])
+
+  const removeCol = useCallback((side: 'left' | 'right') => {
+    const edgeCol = side === 'left' ? 0 : gridCols - 1
+    if (hasFixtureAt(fixtures, 'col', edgeCol, fixtures.length)) return
+    if (gridCols <= 3) return
+    if (side === 'left') {
+      for (const fixture of fixtures) {
+        const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+        const shifted = positions.map((p) => ({ col: p.col - 1, row: p.row }))
+        onFixtureVizChange?.(fixture.id, shifted)
+      }
+    }
+    setGridCols((c) => c - 1)
+  }, [fixtures, onFixtureVizChange, gridCols])
+
+  const addRow = useCallback((side: 'top' | 'bottom') => {
+    if (side === 'top') {
+      for (const fixture of fixtures) {
+        const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+        const shifted = positions.map((p) => ({ col: p.col, row: p.row + 1 }))
+        onFixtureVizChange?.(fixture.id, shifted)
+      }
+    }
+    setGridRows((r) => r + 1)
+  }, [fixtures, onFixtureVizChange])
+
+  const removeRow = useCallback((side: 'top' | 'bottom') => {
+    const edgeRow = side === 'top' ? 0 : gridRows - 1
+    if (hasFixtureAt(fixtures, 'row', edgeRow, fixtures.length)) return
+    if (gridRows <= 3) return
+    if (side === 'top') {
+      for (const fixture of fixtures) {
+        const positions = getPositions(fixture, fixtures.indexOf(fixture), fixtures.length)
+        const shifted = positions.map((p) => ({ col: p.col, row: p.row - 1 }))
+        onFixtureVizChange?.(fixture.id, shifted)
+      }
+    }
+    setGridRows((r) => r - 1)
+  }, [fixtures, onFixtureVizChange, gridRows])
 
   function getEffectiveChannel(universe: 0 | 1, channel: number): number {
     const raw = getChannel(universe, channel)
@@ -181,6 +239,24 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
     ))
   }).flat() : null
 
+  const gridPoints = !locked ? Array.from({ length: gridRows }, (_, r) =>
+    Array.from({ length: gridCols }, (_, c) => (
+      <div
+        key={`gp-${c}-${r}`}
+        className={styles.gridPoint}
+        style={{
+          left: `${colToPercent(c, gridCols)}%`,
+          top: `${rowToPercent(r, gridRows)}%`,
+        }}
+      />
+    ))
+  ).flat() : null
+
+  const canRemoveLeftCol = gridCols > 3 && !hasFixtureAt(fixtures, 'col', 0, fixtures.length)
+  const canRemoveRightCol = gridCols > 3 && !hasFixtureAt(fixtures, 'col', gridCols - 1, fixtures.length)
+  const canRemoveTopRow = gridRows > 3 && !hasFixtureAt(fixtures, 'row', 0, fixtures.length)
+  const canRemoveBottomRow = gridRows > 3 && !hasFixtureAt(fixtures, 'row', gridRows - 1, fixtures.length)
+
   return (
     <div className={styles.panel} style={{ height: expanded ? height : MIN_HEIGHT }}>
       {expanded && <div className={styles.dragHandle} onMouseDown={onResizeStart} />}
@@ -199,35 +275,19 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         </div>
         {expanded && (
           <div className={styles.toolbarRight}>
-            {!locked && (
-              <div className={styles.gridControls}>
-                <span className={styles.gridLabel}>Col</span>
-                <button className={styles.sizeBtn} onClick={() => setGridCols((c) => Math.max(MIN_GRID, c - 1))} disabled={gridCols <= MIN_GRID}>−</button>
-                <span className={styles.gridValue}>{gridCols}</span>
-                <button className={styles.sizeBtn} onClick={() => setGridCols((c) => Math.min(MAX_GRID, c + 1))} disabled={gridCols >= MAX_GRID}>+</button>
-                <span className={styles.gridLabel}>Row</span>
-                <button className={styles.sizeBtn} onClick={() => setGridRows((r) => Math.max(MIN_GRID, r - 1))} disabled={gridRows <= MIN_GRID}>−</button>
-                <span className={styles.gridValue}>{gridRows}</span>
-                <button className={styles.sizeBtn} onClick={() => setGridRows((r) => Math.min(MAX_GRID, r + 1))} disabled={gridRows >= MAX_GRID}>+</button>
-                <div className={styles.gridSep} />
-              </div>
-            )}
             <button
               className={styles.sizeBtn}
               onClick={() => setBulbSize((s) => Math.max(MIN_BULB_SIZE, s - BULB_STEP))}
               disabled={bulbSize <= MIN_BULB_SIZE}
               title="Smaller lights"
-            >
-              −
-            </button>
+            >−</button>
+            <div className={styles.sizeSwatch} style={{ width: 10, height: 10, borderRadius: '50%', border: '1px solid var(--text-muted)' }} />
             <button
               className={styles.sizeBtn}
               onClick={() => setBulbSize((s) => Math.min(MAX_BULB_SIZE, s + BULB_STEP))}
               disabled={bulbSize >= MAX_BULB_SIZE}
               title="Larger lights"
-            >
-              +
-            </button>
+            >+</button>
             <button
               className={`${styles.lockBtn}${locked ? '' : ` ${styles.unlocked}`}`}
               onClick={() => setLocked((v) => !v)}
@@ -251,67 +311,95 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         )}
       </div>
       {expanded && (
-        <div
-          ref={stageRef}
-          className={`${styles.stage}${!locked ? ` ${styles.editable}` : ''}`}
-          data-testid="viz-lights"
-          style={{
-            '--grid-col-size': `${100 / gridCols}%`,
-            '--grid-row-size': `${100 / gridRows}%`,
-          } as React.CSSProperties}
-        >
-          {fixtures.map((fixture, fi) => {
-            const color = getFixtureColor(fixture)
-            const intensity = getFixtureIntensity(fixture) / 255
-            const glowSize = Math.round(intensity * bulbSize * 0.5)
-            const positions = getPositions(fixture, fi, fixtures.length, gridCols, gridRows)
-            return positions.map((pos, pi) => (
-              <div
-                key={`${fixture.id}-${pi}`}
-                className={`${styles.light}${!locked ? ` ${styles.draggable}` : ''}`}
-                style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
-                onMouseDown={(e) => onLightDragStart(e, fixture.id, pi, pos)}
-              >
-                  {!locked && (
-                  <div className={styles.lightActions}>
-                    <button
-                      className={styles.lightActionBtn}
-                      onClick={(e) => { e.stopPropagation(); handleDuplicate(fixture, pi) }}
-                      title="Duplicate light"
-                    >+</button>
-                    {positions.length > 1 && (
-                      <button
-                        className={styles.lightActionBtn}
-                        onClick={(e) => { e.stopPropagation(); handleRemove(fixture, pi) }}
-                        title="Remove light"
-                      >×</button>
-                    )}
-                  </div>
-                )}
-                <div
-                  className={styles.lightBulb}
-                  style={{
-                    width: bulbSize,
-                    height: bulbSize,
-                    fontSize: Math.max(9, Math.round(bulbSize * 0.28)),
-                    backgroundColor: color,
-                    opacity: Math.max(0.05, intensity),
-                    boxShadow: intensity > 0.05
-                      ? `0 0 ${glowSize}px ${Math.round(glowSize * 0.6)}px ${color}`
-                      : 'none',
-                  }}
-                >
-                  {!locked && <span className={styles.channelLabel}>{fixture.channel}</span>}
-                </div>
-                <span className={styles.lightLabel}>
-                  {fixture.name}{positions.length > 1 ? ` ${pi + 1}` : ''}
-                </span>
-                <span className={styles.lightValue}>
-                  {Math.round(intensity * 100)}%
-                </span>
+        <div className={styles.stageWrap}>
+          {!locked && (
+            <div className={styles.edgeTop}>
+              <button className={styles.edgeBtn} onClick={() => removeRow('top')} disabled={!canRemoveTopRow}>−</button>
+              <button className={styles.edgeBtn} onClick={() => addRow('top')}>+</button>
+            </div>
+          )}
+          <div className={styles.stageMiddle}>
+            {!locked && (
+              <div className={styles.edgeSide}>
+                <button className={styles.edgeBtn} onClick={() => removeCol('left')} disabled={!canRemoveLeftCol}>−</button>
+                <button className={styles.edgeBtn} onClick={() => addCol('left')}>+</button>
               </div>
-            ))
-          })}
+            )}
+            <div
+              ref={stageRef}
+              className={styles.stage}
+              data-testid="viz-lights"
+            >
+              {gridPoints}
+              {fixtures.map((fixture, fi) => {
+                const color = getFixtureColor(fixture)
+                const intensity = getFixtureIntensity(fixture) / 255
+                const glowSize = Math.round(intensity * bulbSize * 0.5)
+                const positions = getPositions(fixture, fi, fixtures.length)
+                return positions.map((pos, pi) => (
+                  <div
+                    key={`${fixture.id}-${pi}`}
+                    className={`${styles.light}${!locked ? ` ${styles.draggable}` : ''}`}
+                    style={{
+                      left: `${colToPercent(pos.col, gridCols)}%`,
+                      top: `${rowToPercent(pos.row, gridRows)}%`,
+                    }}
+                    onMouseDown={(e) => onLightDragStart(e, fixture.id, pi, pos)}
+                  >
+                    {!locked && (
+                      <div className={styles.lightActions}>
+                        <button
+                          className={styles.lightActionBtn}
+                          onClick={(e) => { e.stopPropagation(); handleDuplicate(fixture, pi) }}
+                          title="Duplicate light"
+                        >+</button>
+                        {positions.length > 1 && (
+                          <button
+                            className={styles.lightActionBtn}
+                            onClick={(e) => { e.stopPropagation(); handleRemove(fixture, pi) }}
+                            title="Remove light"
+                          >×</button>
+                        )}
+                      </div>
+                    )}
+                    <div
+                      className={styles.lightBulb}
+                      style={{
+                        width: bulbSize,
+                        height: bulbSize,
+                        fontSize: Math.max(9, Math.round(bulbSize * 0.28)),
+                        backgroundColor: color,
+                        opacity: Math.max(0.05, intensity),
+                        boxShadow: intensity > 0.05
+                          ? `0 0 ${glowSize}px ${Math.round(glowSize * 0.6)}px ${color}`
+                          : 'none',
+                      }}
+                    >
+                      {!locked && <span className={styles.channelLabel}>{fixture.channel}</span>}
+                    </div>
+                    <span className={styles.lightLabel}>
+                      {fixture.name}{positions.length > 1 ? ` ${pi + 1}` : ''}
+                    </span>
+                    <span className={styles.lightValue}>
+                      {Math.round(intensity * 100)}%
+                    </span>
+                  </div>
+                ))
+              })}
+            </div>
+            {!locked && (
+              <div className={styles.edgeSide}>
+                <button className={styles.edgeBtn} onClick={() => addCol('right')}>+</button>
+                <button className={styles.edgeBtn} onClick={() => removeCol('right')} disabled={!canRemoveRightCol}>−</button>
+              </div>
+            )}
+          </div>
+          {!locked && (
+            <div className={styles.edgeBottom}>
+              <button className={styles.edgeBtn} onClick={() => addRow('bottom')}>+</button>
+              <button className={styles.edgeBtn} onClick={() => removeRow('bottom')} disabled={!canRemoveBottomRow}>−</button>
+            </div>
+          )}
         </div>
       )}
     </div>
