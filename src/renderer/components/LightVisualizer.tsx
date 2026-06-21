@@ -32,14 +32,16 @@ function getPositions(fixture: Fixture, fixtureIndex: number, gridCols: number):
   return [autoLayout(fixtureIndex, gridCols)]
 }
 
+const INSET = 8
+
 function colToPercent(col: number, totalCols: number): number {
   if (totalCols <= 1) return 50
-  return (col / (totalCols - 1)) * 100
+  return INSET + (col / (totalCols - 1)) * (100 - 2 * INSET)
 }
 
 function rowToPercent(row: number, totalRows: number): number {
   if (totalRows <= 1) return 50
-  return (row / (totalRows - 1)) * 100
+  return INSET + (row / (totalRows - 1)) * (100 - 2 * INSET)
 }
 
 function hasFixtureAt(fixtures: Fixture[], axis: 'col' | 'row', index: number, gridCols: number): boolean {
@@ -88,8 +90,10 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         const rect = stageRef.current.getBoundingClientRect()
         const pctX = ((e.clientX - rect.left) / rect.width) * 100
         const pctY = ((e.clientY - rect.top) / rect.height) * 100
-        const col = Math.round((pctX / 100) * (gridCols - 1))
-        const row = Math.round((pctY / 100) * (gridRows - 1))
+        const normX = (pctX - INSET) / (100 - 2 * INSET)
+        const normY = (pctY - INSET) / (100 - 2 * INSET)
+        const col = Math.round(normX * (gridCols - 1))
+        const row = Math.round(normY * (gridRows - 1))
         const snappedCol = Math.max(0, Math.min(gridCols - 1, col))
         const snappedRow = Math.max(0, Math.min(gridRows - 1, row))
         const { fixtureId, posIndex } = dragRef.current
