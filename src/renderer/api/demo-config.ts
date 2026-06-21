@@ -2,13 +2,13 @@ import type { Config } from '../../shared/types'
 
 export const demoConfig: Config = {
   fixtures: [
-    { id: 'front-wash-l', name: 'Front Wash L', channel: 1, universe: 0, type: 'dimmer' },
-    { id: 'front-wash-r', name: 'Front Wash R', channel: 2, universe: 0, type: 'dimmer' },
-    { id: 'back-wash', name: 'Back Wash', channel: 3, universe: 0, type: 'dimmer' },
-    { id: 'side-fill-l', name: 'Side Fill L', channel: 4, universe: 0, type: 'dimmer' },
-    { id: 'side-fill-r', name: 'Side Fill R', channel: 5, universe: 0, type: 'dimmer' },
+    { id: 'front-wash-l', name: 'Front Wash L', channel: 1, universe: 0, type: 'dimmer', vizX: 30, vizY: 75 },
+    { id: 'front-wash-r', name: 'Front Wash R', channel: 2, universe: 0, type: 'dimmer', vizX: 70, vizY: 75 },
+    { id: 'back-wash', name: 'Back Wash', channel: 3, universe: 0, type: 'dimmer', vizX: 50, vizY: 10 },
+    { id: 'side-fill-l', name: 'Side Fill L', channel: 4, universe: 0, type: 'dimmer', vizX: 10, vizY: 45 },
+    { id: 'side-fill-r', name: 'Side Fill R', channel: 5, universe: 0, type: 'dimmer', vizX: 90, vizY: 45 },
     {
-      id: 'rgb-par-l', name: 'RGB Par L', channel: 10, universe: 0, type: 'dimmer',
+      id: 'rgb-par-l', name: 'RGB Par L', channel: 10, universe: 0, type: 'dimmer', vizX: 25, vizY: 30,
       channels: [
         { id: 'rgb-par-l-r', role: 'red', label: 'Red', channel: 10, universe: 0, linked: true },
         { id: 'rgb-par-l-g', role: 'green', label: 'Green', channel: 11, universe: 0, linked: true },
@@ -17,7 +17,7 @@ export const demoConfig: Config = {
       ],
     },
     {
-      id: 'rgb-par-r', name: 'RGB Par R', channel: 14, universe: 0, type: 'dimmer',
+      id: 'rgb-par-r', name: 'RGB Par R', channel: 14, universe: 0, type: 'dimmer', vizX: 75, vizY: 30,
       channels: [
         { id: 'rgb-par-r-r', role: 'red', label: 'Red', channel: 14, universe: 0, linked: true },
         { id: 'rgb-par-r-g', role: 'green', label: 'Green', channel: 15, universe: 0, linked: true },
@@ -26,7 +26,7 @@ export const demoConfig: Config = {
       ],
     },
     {
-      id: 'rgbw-spot', name: 'RGBW Spot C', channel: 20, universe: 1, type: 'dimmer',
+      id: 'rgbw-spot', name: 'RGBW Spot C', channel: 20, universe: 1, type: 'dimmer', vizX: 50, vizY: 45,
       channels: [
         { id: 'rgbw-spot-r', role: 'red', label: 'Red', channel: 20, universe: 1, linked: true },
         { id: 'rgbw-spot-g', role: 'green', label: 'Green', channel: 21, universe: 1, linked: true },

@@ -8,42 +8,100 @@ interface Props {
   fixtures: Fixture[]
   getChannel: (universe: 0 | 1, channel: number) => number
   overrideMap?: Record<string, GroupChannelOverride>
+  onFixturePositionChange?: (fixtureId: string, vizX: number, vizY: number) => void
 }
 
 const MIN_HEIGHT = 32
-const DEFAULT_HEIGHT = 200
-const MAX_HEIGHT = 500
+const DEFAULT_HEIGHT = 250
+const MAX_HEIGHT = 600
+const GRID_STEP = 5
 
-export function LightVisualizer({ fixtures, getChannel, overrideMap = {} }: Props) {
+function snapToGrid(value: number): number {
+  return Math.round(value / GRID_STEP) * GRID_STEP
+}
+
+function autoLayout(index: number, total: number): { x: number; y: number } {
+  const cols = Math.ceil(Math.sqrt(total))
+  const row = Math.floor(index / cols)
+  const col = index % cols
+  const xStep = 80 / Math.max(cols - 1, 1)
+  const rows = Math.ceil(total / cols)
+  const yStep = 70 / Math.max(rows - 1, 1)
+  return {
+    x: snapToGrid(10 + col * xStep),
+    y: snapToGrid(15 + row * yStep),
+  }
+}
+
+export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixturePositionChange }: Props) {
   const [expanded, setExpanded] = useState(true)
   const [height, setHeight] = useState(DEFAULT_HEIGHT)
-  const dragging = useRef(false)
+  const [locked, setLocked] = useState(true)
+  const resizing = useRef(false)
   const startY = useRef(0)
   const startHeight = useRef(0)
 
-  const onDragStart = useCallback((e: React.MouseEvent) => {
+  const dragFixtureId = useRef<string | null>(null)
+  const dragStartMouse = useRef({ x: 0, y: 0 })
+  const dragStartPos = useRef({ x: 0, y: 0 })
+  const stageRef = useRef<HTMLDivElement>(null)
+
+  const onResizeStart = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
-    dragging.current = true
+    resizing.current = true
     startY.current = e.clientY
     startHeight.current = height
   }, [height])
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
-      if (!dragging.current) return
-      const delta = startY.current - e.clientY
-      const next = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, startHeight.current + delta))
-      setHeight(next)
-      if (next > MIN_HEIGHT + 20) setExpanded(true)
+      if (resizing.current) {
+        const delta = startY.current - e.clientY
+        const next = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, startHeight.current + delta))
+        setHeight(next)
+        if (next > MIN_HEIGHT + 20) setExpanded(true)
+        return
+      }
+      if (dragFixtureId.current && stageRef.current) {
+        const rect = stageRef.current.getBoundingClientRect()
+        const rawX = ((e.clientX - rect.left) / rect.width) * 100
+        const rawY = ((e.clientY - rect.top) / rect.height) * 100
+        const dx = rawX - dragStartMouse.current.x
+        const dy = rawY - dragStartMouse.current.y
+        const newX = snapToGrid(Math.max(0, Math.min(100, dragStartPos.current.x + dx)))
+        const newY = snapToGrid(Math.max(0, Math.min(100, dragStartPos.current.y + dy)))
+        onFixturePositionChange?.(dragFixtureId.current, newX, newY)
+      }
     }
-    const onUp = () => { dragging.current = false }
+    const onUp = () => {
+      resizing.current = false
+      dragFixtureId.current = null
+    }
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup', onUp)
     return () => {
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
     }
-  }, [])
+  }, [onFixturePositionChange])
+
+  const onFixtureDragStart = useCallback((e: React.MouseEvent, fixture: Fixture) => {
+    if (locked) return
+    e.preventDefault()
+    e.stopPropagation()
+    if (!stageRef.current) return
+    const rect = stageRef.current.getBoundingClientRect()
+    dragFixtureId.current = fixture.id
+    dragStartMouse.current = {
+      x: ((e.clientX - rect.left) / rect.width) * 100,
+      y: ((e.clientY - rect.top) / rect.height) * 100,
+    }
+    const auto = autoLayout(fixtures.indexOf(fixture), fixtures.length)
+    dragStartPos.current = {
+      x: fixture.vizX ?? auto.x,
+      y: fixture.vizY ?? auto.y,
+    }
+  }, [locked, fixtures])
 
   function getEffectiveChannel(universe: 0 | 1, channel: number): number {
     const raw = getChannel(universe, channel)
@@ -89,29 +147,62 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {} }: Prop
 
   return (
     <div className={styles.panel} style={{ height: expanded ? height : MIN_HEIGHT }}>
-      {expanded && <div className={styles.dragHandle} onMouseDown={onDragStart} />}
-      <div className={styles.toolbar} onClick={() => setExpanded((v) => !v)}>
-        <div className={styles.toolbarLeft}>
+      {expanded && <div className={styles.dragHandle} onMouseDown={onResizeStart} />}
+      <div className={styles.toolbar}>
+        <div className={styles.toolbarLeft} onClick={() => setExpanded((v) => !v)}>
+          <svg
+            data-testid="viz-toggle"
+            className={`${styles.chevron}${expanded ? ` ${styles.chevronExpanded}` : ''}`}
+            width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+          >
+            <path d="M6 15l6-6 6 6"/>
+          </svg>
           <span className={styles.toolbarLabel}>Visualizer</span>
           {!expanded && <div className={styles.compactStrip}>{compactDots}</div>}
         </div>
-        <svg
-          data-testid="viz-toggle"
-          className={`${styles.chevron}${expanded ? ` ${styles.chevronExpanded}` : ''}`}
-          width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-        >
-          <path d="M6 15l6-6 6 6"/>
-        </svg>
+        {expanded && (
+          <button
+            className={`${styles.lockBtn}${locked ? '' : ` ${styles.unlocked}`}`}
+            onClick={() => setLocked((v) => !v)}
+            title={locked ? 'Unlock to rearrange lights' : 'Lock layout'}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              {locked ? (
+                <>
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </>
+              ) : (
+                <>
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 9.9-1"/>
+                </>
+              )}
+            </svg>
+          </button>
+        )}
       </div>
       {expanded && (
-        <div className={styles.lights} data-testid="viz-lights">
-          {fixtures.map((fixture) => {
+        <div
+          ref={stageRef}
+          className={`${styles.stage}${!locked ? ` ${styles.editable}` : ''}`}
+          data-testid="viz-lights"
+        >
+          {fixtures.map((fixture, i) => {
             const color = getFixtureColor(fixture)
             const intensity = getFixtureIntensity(fixture) / 255
             const glowSize = Math.round(intensity * 24)
+            const auto = autoLayout(i, fixtures.length)
+            const x = fixture.vizX ?? auto.x
+            const y = fixture.vizY ?? auto.y
             return (
-              <div key={fixture.id} className={styles.light}>
+              <div
+                key={fixture.id}
+                className={`${styles.light}${!locked ? ` ${styles.draggable}` : ''}`}
+                style={{ left: `${x}%`, top: `${y}%` }}
+                onMouseDown={(e) => onFixtureDragStart(e, fixture)}
+              >
                 <div
                   className={styles.lightBulb}
                   style={{

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { MainView } from './views/MainView'
 import { ConnectionBadge } from './components/ConnectionBadge'
 import { CompanionModal } from './components/CompanionModal'
@@ -93,6 +93,22 @@ export function App({ dmxState: externalDmxState }: AppProps) {
     setConfig((c) => c ? { ...c, fixtures } : c)
     setDirty(true)
   }
+
+  const handleFixturePositionChange = useCallback(async (fixtureId: string, vizX: number, vizY: number) => {
+    setConfig((c) => {
+      if (!c) return c
+      const fixtures = c.fixtures.map((f) =>
+        f.id === fixtureId ? { ...f, vizX, vizY } : f
+      )
+      return { ...c, fixtures }
+    })
+    if (config) {
+      const fixture = config.fixtures.find((f) => f.id === fixtureId)
+      if (fixture) {
+        await api.updateFixture({ ...fixture, vizX, vizY })
+      }
+    }
+  }, [config, api])
 
   const handleScenesChange = (scenes: Scene[]) => {
     setConfig((c) => c ? { ...c, scenes } : c)
@@ -237,6 +253,7 @@ export function App({ dmxState: externalDmxState }: AppProps) {
         fixtures={config.fixtures}
         getChannel={getChannel}
         overrideMap={overrideMap}
+        onFixturePositionChange={handleFixturePositionChange}
       />
 
       {showsOpen && (

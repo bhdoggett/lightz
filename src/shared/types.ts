@@ -31,6 +31,8 @@ export interface Fixture {
   universe: 0 | 1     // Enttec Mk2 has two universes
   type: FixtureType
   channels?: FixtureChannel[]
+  vizX?: number        // visualizer position (percentage 0–100)
+  vizY?: number
 }
 
 export interface Scene {
