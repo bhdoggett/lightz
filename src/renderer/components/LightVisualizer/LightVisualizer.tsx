@@ -469,7 +469,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 {placedFixtures.map((fixture) => {
                 const color = getFixtureColor(fixture)
                 const intensity = getFixtureIntensity(fixture) / 255
-                const glowSize = Math.round(intensity * bulbSize * 0.5)
+                const glowSize = Math.round(intensity * bulbSize * 0.25)
                 const positions = getPositions(fixture)
                 return positions.map((pos, pi) => (
                   <div
