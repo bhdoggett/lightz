@@ -343,14 +343,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 4.5rem;
-  text-shadow: 0 0 4px var(--bg-base), 0 0 8px var(--bg-base);
+  text-shadow: 0 0 3px var(--bg-base);
 }
 
 .lightValue {
   font-size: 0.5625rem;
   font-family: var(--font-mono);
   color: var(--text-muted);
-  text-shadow: 0 0 4px var(--bg-base), 0 0 8px var(--bg-base);
+  text-shadow: 0 0 3px var(--bg-base);
 }
 
 .lightActions {
