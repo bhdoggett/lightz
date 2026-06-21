@@ -51,6 +51,30 @@ function hasFixtureAt(fixtures: Fixture[], axis: 'col' | 'row', index: number): 
   return false
 }
 
+function buildOccupied(fixtures: Fixture[], excludeFixtureId?: string, excludePosIndex?: number): Set<string> {
+  const set = new Set<string>()
+  for (const f of fixtures) {
+    for (let i = 0; i < getPositions(f).length; i++) {
+      if (f.id === excludeFixtureId && i === excludePosIndex) continue
+      const p = getPositions(f)[i]
+      set.add(`${p.col},${p.row}`)
+    }
+  }
+  return set
+}
+
+function findNextFree(col: number, row: number, gridCols: number, gridRows: number, occupied: Set<string>): VizPosition | null {
+  let c = col
+  let r = row
+  for (let i = 0; i < gridCols * gridRows; i++) {
+    if (!occupied.has(`${c},${r}`)) return { col: c, row: r }
+    c++
+    if (c >= gridCols) { c = 0; r++ }
+    if (r >= gridRows) r = 0
+  }
+  return null
+}
+
 export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixtureVizChange, popped = false, onPopout, onDock }: Props) {
   const [expanded, setExpanded] = useState(true)
   const [height, setHeight] = useState(DEFAULT_HEIGHT)
@@ -99,10 +123,13 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         const { fixtureId, posIndex } = dragRef.current
         const fixture = fixtures.find((f) => f.id === fixtureId)
         if (!fixture) return
+        const occupied = buildOccupied(fixtures, fixtureId, posIndex)
         const positions = [...getPositions(fixture)]
         if (positions[posIndex].col !== snappedCol || positions[posIndex].row !== snappedRow) {
-          positions[posIndex] = { col: snappedCol, row: snappedRow }
-          onFixtureVizChange?.(fixtureId, positions)
+          if (!occupied.has(`${snappedCol},${snappedRow}`)) {
+            positions[posIndex] = { col: snappedCol, row: snappedRow }
+            onFixtureVizChange?.(fixtureId, positions)
+          }
         }
       }
       setSidebarDrag((prev) => {
@@ -124,14 +151,30 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
       })
     }
     const onUp = () => {
+      if (dragRef.current) {
+        const { fixtureId, posIndex } = dragRef.current
+        const fixture = fixtures.find((f) => f.id === fixtureId)
+        if (fixture) {
+          const occupied = buildOccupied(fixtures, fixtureId, posIndex)
+          const positions = [...getPositions(fixture)]
+          const cur = positions[posIndex]
+          if (occupied.has(`${cur.col},${cur.row}`)) {
+            positions[posIndex] = { ...dragStartPos.current }
+            onFixtureVizChange?.(fixtureId, positions)
+          }
+        }
+        dragRef.current = null
+      }
       setSidebarDrag((prev) => {
         if (prev && prev.overStage) {
-          onFixtureVizChange?.(prev.fixtureId, [{ col: prev.snappedCol, row: prev.snappedRow }])
+          const occupied = buildOccupied(fixtures)
+          if (!occupied.has(`${prev.snappedCol},${prev.snappedRow}`)) {
+            onFixtureVizChange?.(prev.fixtureId, [{ col: prev.snappedCol, row: prev.snappedRow }])
+          }
         }
         return null
       })
       resizing.current = false
-      dragRef.current = null
     }
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup', onUp)
@@ -158,12 +201,12 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const handleDuplicate = useCallback((fixture: Fixture, posIndex: number) => {
     const positions = getPositions(fixture)
     const source = positions[posIndex]
-    const newPos: VizPosition = {
-      col: Math.min(gridCols - 1, source.col + 1),
-      row: source.row,
-    }
-    onFixtureVizChange?.(fixture.id, [...positions, newPos])
-  }, [fixtures, onFixtureVizChange, gridCols])
+    const occupied = buildOccupied(fixtures)
+    const startCol = Math.min(gridCols - 1, source.col + 1)
+    const free = findNextFree(startCol, source.row, gridCols, gridRows, occupied)
+    if (!free) return
+    onFixtureVizChange?.(fixture.id, [...positions, free])
+  }, [fixtures, onFixtureVizChange, gridCols, gridRows])
 
   const handleRemove = useCallback((fixture: Fixture, posIndex: number) => {
     const positions = getPositions(fixture)
@@ -172,27 +215,21 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   }, [fixtures, onFixtureVizChange])
 
   const handleAutoPlace = useCallback(() => {
-    let col = 0
-    let row = 0
-    let cols = gridCols
+    const occupied = buildOccupied(fixtures)
     let rows = gridRows
-    const occupied = new Set<string>()
-    for (const f of placedFixtures) {
-      for (const p of getPositions(f)) occupied.add(`${p.col}-${p.row}`)
-    }
     for (const fixture of unplacedFixtures) {
-      while (occupied.has(`${col}-${row}`)) {
-        col++
-        if (col >= cols) { col = 0; row++ }
-        if (row >= rows) { rows++; setGridRows(rows) }
+      const free = findNextFree(0, 0, gridCols, rows, occupied)
+      if (free) {
+        occupied.add(`${free.col},${free.row}`)
+        onFixtureVizChange?.(fixture.id, [free])
+      } else {
+        occupied.add(`0,${rows}`)
+        onFixtureVizChange?.(fixture.id, [{ col: 0, row: rows }])
+        rows++
+        setGridRows(rows)
       }
-      occupied.add(`${col}-${row}`)
-      onFixtureVizChange?.(fixture.id, [{ col, row }])
-      col++
-      if (col >= cols) { col = 0; row++ }
     }
-    if (rows > gridRows) setGridRows(rows)
-  }, [placedFixtures, unplacedFixtures, gridCols, gridRows, onFixtureVizChange])
+  }, [fixtures, unplacedFixtures, gridCols, gridRows, onFixtureVizChange])
 
   const addCol = useCallback((side: 'left' | 'right') => {
     if (side === 'left') {
