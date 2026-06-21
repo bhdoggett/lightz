@@ -1,5 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+
+const OwnerWindowContext = createContext<Window>(window)
+
+export function useOwnerWindow(): Window {
+  return useContext(OwnerWindowContext)
+}
 
 interface Props {
   title: string
@@ -60,6 +66,11 @@ export function PopoutWindow({ title, width = 900, height = 500, onClose, childr
     }
   }, [])
 
-  if (!container) return null
-  return createPortal(children, container)
+  if (!container || !windowRef.current) return null
+  return createPortal(
+    <OwnerWindowContext.Provider value={windowRef.current}>
+      {children}
+    </OwnerWindowContext.Provider>,
+    container
+  )
 }

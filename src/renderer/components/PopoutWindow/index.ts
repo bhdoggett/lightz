@@ -1,1 +1,1 @@
-export { PopoutWindow } from './PopoutWindow'
+export { PopoutWindow, useOwnerWindow } from './PopoutWindow'

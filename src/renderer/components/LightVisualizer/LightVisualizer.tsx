@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 import type { Fixture, GroupChannelOverride, VizPosition } from '../../../shared/types'
 import { channelValuesToDisplayHex } from '../../utils/colorSync'
 import { clampValue } from '../../../shared/dmx-utils'
+import { useOwnerWindow } from '../PopoutWindow'
 import styles from './LightVisualizer.module.css'
 
 interface Props {
@@ -76,6 +77,7 @@ function findNextFree(col: number, row: number, gridCols: number, gridRows: numb
 }
 
 export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixtureVizChange, popped = false, onPopout, onDock }: Props) {
+  const ownerWindow = useOwnerWindow()
   const [expanded, setExpanded] = useState(true)
   const [height, setHeight] = useState(DEFAULT_HEIGHT)
   const [isEditing, setIsEditing] = useState(false)
@@ -189,13 +191,13 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
       })
       resizing.current = false
     }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
+    ownerWindow.addEventListener('mousemove', onMove)
+    ownerWindow.addEventListener('mouseup', onUp)
     return () => {
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
+      ownerWindow.removeEventListener('mousemove', onMove)
+      ownerWindow.removeEventListener('mouseup', onUp)
     }
-  }, [fixtures, onFixtureVizChange, gridCols, gridRows])
+  }, [fixtures, onFixtureVizChange, gridCols, gridRows, ownerWindow])
 
   const onLightDragStart = useCallback((e: React.MouseEvent, fixtureId: string, posIndex: number, pos: VizPosition) => {
     if (!isEditing) return
