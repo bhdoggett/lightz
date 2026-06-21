@@ -1,0 +1,108 @@
+.panel {
+  position: relative;
+  flex-shrink: 0;
+  background: var(--bg-base);
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  min-height: 32px;
+}
+
+.dragHandle {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  cursor: ns-resize;
+  z-index: 10;
+}
+
+.dragHandle:hover,
+.dragHandle:active {
+  background: var(--accent);
+  opacity: 0.4;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 12px;
+  min-height: 32px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.toolbarLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.chevron {
+  transition: transform 0.15s ease;
+  color: var(--text-muted);
+}
+
+.chevronExpanded {
+  transform: rotate(180deg);
+}
+
+.compactStrip {
+  display: flex;
+  gap: 3px;
+  padding: 0 4px;
+  overflow-x: auto;
+}
+
+.compactDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.lights {
+  display: flex;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex: 1;
+  align-items: flex-end;
+}
+
+.light {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 56px;
+}
+
+.lightBulb {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--border-subtle);
+  transition: background-color 0.05s linear, box-shadow 0.05s linear;
+}
+
+.lightLabel {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 64px;
+}
+
+.lightValue {
+  font-size: 9px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}

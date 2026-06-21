@@ -3,13 +3,23 @@ import { MainView } from './views/MainView'
 import { ConnectionBadge } from './components/ConnectionBadge'
 import { CompanionModal } from './components/CompanionModal'
 import { ShowsModal } from './components/ShowsModal'
+import { LightVisualizer } from './components/LightVisualizer'
 import { useApi } from './api/context'
+import { useDmxState } from './hooks/useDmxState'
 import type { Config, DmxStatus, Fixture, Scene, Group } from '../shared/types'
 import styles from './App.module.css'
 import { version as APP_VERSION } from '../../package.json'
 
-export function App() {
+type DmxState = ReturnType<typeof useDmxState>
+
+interface AppProps {
+  dmxState?: DmxState
+}
+
+export function App({ dmxState: externalDmxState }: AppProps) {
   const api = useApi()
+  const internalDmxState = useDmxState()
+  const { getChannel, setChannel: setLocal, applyScene } = externalDmxState ?? internalDmxState
   const [config, setConfig] = useState<Config | null>(null)
   const [dmxStatus, setDmxStatus] = useState<DmxStatus>('disconnected')
   const [companionOpen, setCompanionOpen] = useState(false)
@@ -216,8 +226,15 @@ export function App() {
           onFixturesChange={handleFixturesChange}
           onGroupsChange={handleGroupsChange}
           currentShowName={currentShowName}
+          getChannel={getChannel}
+          setChannel={setLocal}
+          applyScene={applyScene}
         />
       </div>
+      <LightVisualizer
+        fixtures={config.fixtures}
+        getChannel={getChannel}
+      />
 
       {showsOpen && (
         <ShowsModal

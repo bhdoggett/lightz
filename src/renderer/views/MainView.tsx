@@ -7,7 +7,6 @@ import { MultiFixtureFader } from '../components/MultiFixtureFader'
 import { CreateFixtureModal } from '../components/CreateFixtureModal'
 import { LiveView } from './LiveView'
 import { useApi } from '../api/context'
-import { useDmxState } from '../hooks/useDmxState'
 import type { Fixture, Scene, Group, GroupChannelOverride, FixtureTemplate } from '../../shared/types'
 import styles from './MainView.module.css'
 
@@ -23,11 +22,13 @@ interface Props {
   onGroupsChange: (groups: Group[]) => void
   currentShowName?: string | null
   onSave?: () => void
+  getChannel: (universe: 0 | 1, channel: number) => number
+  setChannel: (universe: 0 | 1, channel: number, value: number) => void
+  applyScene: (values: Record<string, number>, fixtures: Fixture[]) => void
 }
 
-export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesChange, onGroupsChange, currentShowName = null, onSave }: Props) {
+export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesChange, onGroupsChange, currentShowName = null, onSave, getChannel, setChannel: setLocal, applyScene }: Props) {
   const api = useApi()
-  const { getChannel, setChannel: setLocal, applyScene } = useDmxState()
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('custom')
   const [groupStates, setGroupStates] = useState<Record<string, GroupState>>({})
