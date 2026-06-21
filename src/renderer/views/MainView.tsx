@@ -25,9 +25,10 @@ interface Props {
   getChannel: (universe: 0 | 1, channel: number) => number
   setChannel: (universe: 0 | 1, channel: number, value: number) => void
   applyScene: (values: Record<string, number>, fixtures: Fixture[]) => void
+  onOverrideMapChange?: (map: Record<string, GroupChannelOverride>) => void
 }
 
-export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesChange, onGroupsChange, currentShowName = null, onSave, getChannel, setChannel: setLocal, applyScene }: Props) {
+export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesChange, onGroupsChange, currentShowName = null, onSave, getChannel, setChannel: setLocal, applyScene, onOverrideMapChange }: Props) {
   const api = useApi()
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('custom')
@@ -112,7 +113,8 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
 
   useEffect(() => {
     api.setGroupOverrides(overrideMap)
-  }, [overrideMap, api])
+    onOverrideMapChange?.(overrideMap)
+  }, [overrideMap, api, onOverrideMapChange])
 
   const handleStateChange = useCallback((groupId: string, state: GroupState) => {
     setGroupStates((prev) => ({ ...prev, [groupId]: state }))

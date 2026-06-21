@@ -6,7 +6,7 @@ import { ShowsModal } from './components/ShowsModal'
 import { LightVisualizer } from './components/LightVisualizer'
 import { useApi } from './api/context'
 import { useDmxState } from './hooks/useDmxState'
-import type { Config, DmxStatus, Fixture, Scene, Group } from '../shared/types'
+import type { Config, DmxStatus, Fixture, Scene, Group, GroupChannelOverride } from '../shared/types'
 import styles from './App.module.css'
 import { version as APP_VERSION } from '../../package.json'
 
@@ -32,6 +32,7 @@ export function App({ dmxState: externalDmxState }: AppProps) {
   const [justSaved, setJustSaved] = useState(false)
   const justSavedTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const saveTriggerRef = useRef<(() => void) | null>(null)
+  const [overrideMap, setOverrideMap] = useState<Record<string, GroupChannelOverride>>({})
 
   useEffect(() => {
     return () => {
@@ -229,11 +230,13 @@ export function App({ dmxState: externalDmxState }: AppProps) {
           getChannel={getChannel}
           setChannel={setLocal}
           applyScene={applyScene}
+          onOverrideMapChange={setOverrideMap}
         />
       </div>
       <LightVisualizer
         fixtures={config.fixtures}
         getChannel={getChannel}
+        overrideMap={overrideMap}
       />
 
       {showsOpen && (

@@ -1,18 +1,20 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import type { Fixture } from '../../shared/types'
+import type { Fixture, GroupChannelOverride } from '../../shared/types'
 import { channelValuesToDisplayHex } from '../utils/colorSync'
+import { clampValue } from '../../shared/dmx-utils'
 import styles from './LightVisualizer.module.css'
 
 interface Props {
   fixtures: Fixture[]
   getChannel: (universe: 0 | 1, channel: number) => number
+  overrideMap?: Record<string, GroupChannelOverride>
 }
 
 const MIN_HEIGHT = 32
 const DEFAULT_HEIGHT = 200
 const MAX_HEIGHT = 500
 
-export function LightVisualizer({ fixtures, getChannel }: Props) {
+export function LightVisualizer({ fixtures, getChannel, overrideMap = {} }: Props) {
   const [expanded, setExpanded] = useState(true)
   const [height, setHeight] = useState(DEFAULT_HEIGHT)
   const dragging = useRef(false)
@@ -43,24 +45,34 @@ export function LightVisualizer({ fixtures, getChannel }: Props) {
     }
   }, [])
 
+  function getEffectiveChannel(universe: 0 | 1, channel: number): number {
+    const raw = getChannel(universe, channel)
+    const key = `${universe}-${channel}`
+    const o = overrideMap[key]
+    if (!o) return raw
+    if (o.kind === 'full') return 255
+    if (o.kind === 'mute') return 0
+    return clampValue(Math.round(raw * o.multiplier))
+  }
+
   function getFixtureColor(fixture: Fixture): string {
     if (fixture.channels && fixture.channels.length > 0) {
       const values: Record<string, number> = {}
       for (const ch of fixture.channels) {
-        values[ch.id] = getChannel(ch.universe, ch.channel)
+        values[ch.id] = getEffectiveChannel(ch.universe, ch.channel)
       }
       return channelValuesToDisplayHex(fixture.channels, values)
     }
-    const val = getChannel(fixture.universe, fixture.channel)
+    const val = getEffectiveChannel(fixture.universe, fixture.channel)
     const hex = Math.round(val).toString(16).padStart(2, '0')
     return `#${hex}${hex}${hex}`
   }
 
   function getFixtureIntensity(fixture: Fixture): number {
     if (fixture.channels && fixture.channels.length > 0) {
-      return Math.max(...fixture.channels.map((ch) => getChannel(ch.universe, ch.channel)), 0)
+      return Math.max(...fixture.channels.map((ch) => getEffectiveChannel(ch.universe, ch.channel)), 0)
     }
-    return getChannel(fixture.universe, fixture.channel)
+    return getEffectiveChannel(fixture.universe, fixture.channel)
   }
 
   const compactDots = !expanded ? fixtures.map((f) => {
