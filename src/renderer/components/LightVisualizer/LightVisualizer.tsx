@@ -409,7 +409,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
             </button>
             <button
               className={`${styles.editBtn}${!locked ? ` ${styles.editing}` : ''}`}
-              onClick={() => setLocked((v) => !v)}
+              onClick={() => { if (!locked) setShowUnplaced(false); setLocked((v) => !v) }}
               title={locked ? 'Edit layout' : 'Done editing'}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
