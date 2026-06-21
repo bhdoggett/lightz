@@ -59,6 +59,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const [gridCols, setGridCols] = useState(DEFAULT_COLS)
   const [gridRows, setGridRows] = useState(DEFAULT_ROWS)
   const [showUnplaced, setShowUnplaced] = useState(false)
+  const [showLabels, setShowLabels] = useState(false)
   const [sidebarDrag, setSidebarDrag] = useState<{ fixtureId: string; mouseX: number; mouseY: number; snappedCol: number; snappedRow: number; overStage: boolean } | null>(null)
   const placedFixtures = fixtures.filter(isPlaced)
   const unplacedFixtures = fixtures.filter((f) => !isPlaced(f))
@@ -346,6 +347,11 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
               title="Smaller lights"
             >−</button>
             <button
+              className={`${styles.sizeBtn}${showLabels ? ` ${styles.sizeBtnActive}` : ''}`}
+              onClick={() => setShowLabels((v) => !v)}
+              title={showLabels ? 'Hide labels' : 'Show labels'}
+            >%</button>
+            <button
               className={`${styles.editBtn}${!locked ? ` ${styles.editing}` : ''}`}
               onClick={() => setLocked((v) => !v)}
               title={locked ? 'Edit layout' : 'Done editing'}
@@ -444,12 +450,14 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                     >
                       {!locked && <span className={styles.channelLabel}>{fixture.channel}</span>}
                     </div>
-                    <span className={styles.lightLabel}>
-                      {fixture.name}{positions.length > 1 ? ` ${pi + 1}` : ''}
-                    </span>
-                    <span className={styles.lightValue}>
-                      {Math.round(intensity * 100)}%
-                    </span>
+                    <div className={`${styles.lightInfo}${showLabels ? ` ${styles.lightInfoVisible}` : ''}`}>
+                      <span className={styles.lightLabel}>
+                        {fixture.name}{positions.length > 1 ? ` ${pi + 1}` : ''}
+                      </span>
+                      <span className={styles.lightValue}>
+                        {Math.round(intensity * 100)}%
+                      </span>
+                    </div>
                   </div>
                 ))
               })}
