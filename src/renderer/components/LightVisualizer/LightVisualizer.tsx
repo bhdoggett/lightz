@@ -84,6 +84,19 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const [gridRows, setGridRows] = useState(DEFAULT_ROWS)
   const [showUnplaced, setShowUnplaced] = useState(false)
   const [showLabels, setShowLabels] = useState(false)
+
+  useEffect(() => {
+    let maxCol = gridCols - 1
+    let maxRow = gridRows - 1
+    for (const f of fixtures) {
+      for (const p of getPositions(f)) {
+        if (p.col > maxCol) maxCol = p.col
+        if (p.row > maxRow) maxRow = p.row
+      }
+    }
+    if (maxCol >= gridCols) setGridCols(maxCol + 1)
+    if (maxRow >= gridRows) setGridRows(maxRow + 1)
+  }, [fixtures])
   const [sidebarDrag, setSidebarDrag] = useState<{ fixtureId: string; mouseX: number; mouseY: number; snappedCol: number; snappedRow: number; overStage: boolean } | null>(null)
   const placedFixtures = fixtures.filter(isPlaced)
   const unplacedFixtures = fixtures.filter((f) => !isPlaced(f))
@@ -216,19 +229,19 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
 
   const handleAutoPlace = useCallback(() => {
     const occupied = buildOccupied(fixtures)
+    let cols = gridCols
     let rows = gridRows
     for (const fixture of unplacedFixtures) {
-      const free = findNextFree(0, 0, gridCols, rows, occupied)
-      if (free) {
-        occupied.add(`${free.col},${free.row}`)
-        onFixtureVizChange?.(fixture.id, [free])
-      } else {
-        occupied.add(`0,${rows}`)
-        onFixtureVizChange?.(fixture.id, [{ col: 0, row: rows }])
+      let free = findNextFree(0, 0, cols, rows, occupied)
+      if (!free) {
         rows++
-        setGridRows(rows)
+        free = { col: 0, row: rows - 1 }
       }
+      occupied.add(`${free.col},${free.row}`)
+      onFixtureVizChange?.(fixture.id, [free])
     }
+    if (cols !== gridCols) setGridCols(cols)
+    if (rows !== gridRows) setGridRows(rows)
   }, [fixtures, unplacedFixtures, gridCols, gridRows, onFixtureVizChange])
 
   const addCol = useCallback((side: 'left' | 'right') => {
@@ -358,17 +371,18 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
             </svg>
           )}
           <span className={styles.toolbarLabel}>Visualizer</span>
+          {(expanded || popped) && unplacedFixtures.length > 0 && (
+            <button
+              className={`${styles.unplacedBtn}${showUnplaced ? ` ${styles.unplacedBtnActive}` : ''}`}
+              onClick={(e) => { e.stopPropagation(); setShowUnplaced((v) => !v); setLocked(false) }}
+              title={`${unplacedFixtures.length} unplaced fixture${unplacedFixtures.length > 1 ? 's' : ''}`}
+            >
+              <span className={styles.unplacedCount}>{unplacedFixtures.length}</span>
+              <span className={styles.unplacedLabel}>unplaced</span>
+            </button>
+          )}
           {!expanded && !popped && <div className={styles.compactStrip}>{compactDots}</div>}
         </div>
-        {(expanded || popped) && !locked && unplacedFixtures.length > 0 && (
-          <button
-            className={`${styles.sizeBtn}${showUnplaced ? ` ${styles.sizeBtnActive}` : ''}`}
-            onClick={() => setShowUnplaced((v) => !v)}
-            title={`${unplacedFixtures.length} unplaced fixture${unplacedFixtures.length > 1 ? 's' : ''}`}
-          >
-            {unplacedFixtures.length}
-          </button>
-        )}
         {expanded && (
           <div className={styles.toolbarRight}>
             <button
@@ -429,12 +443,6 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
       </div>
       {(expanded || popped) && (
         <div className={styles.stageOuter}>
-          {!locked && (
-            <div className={styles.edgeTop}>
-              <button className={styles.edgeBtn} onClick={() => removeRow('top')} disabled={!canRemoveTopRow}>−</button>
-              <button className={styles.edgeBtn} onClick={() => addRow('top')}>+</button>
-            </div>
-          )}
           <div className={styles.stageMiddle}>
             {!locked && (
               <div className={styles.edgeSide}>
@@ -442,14 +450,21 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 <button className={styles.edgeBtn} onClick={() => addCol('left')}>+</button>
               </div>
             )}
-            <div className={`${styles.stage}${!locked ? ` ${styles.stageEditable}` : ''}`}>
-              <div
-                ref={stageRef}
-                className={styles.stageContent}
-                data-testid="viz-lights"
-              >
-              {gridPoints}
-              {placedFixtures.map((fixture) => {
+            <div className={styles.stageColumn}>
+              {!locked && (
+                <div className={styles.edgeTop}>
+                  <button className={styles.edgeBtn} onClick={() => removeRow('top')} disabled={!canRemoveTopRow}>−</button>
+                  <button className={styles.edgeBtn} onClick={() => addRow('top')}>+</button>
+                </div>
+              )}
+              <div className={`${styles.stage}${!locked ? ` ${styles.stageEditable}` : ''}`}>
+                <div
+                  ref={stageRef}
+                  className={styles.stageContent}
+                  data-testid="viz-lights"
+                >
+                {gridPoints}
+                {placedFixtures.map((fixture) => {
                 const color = getFixtureColor(fixture)
                 const intensity = getFixtureIntensity(fixture) / 255
                 const glowSize = Math.round(intensity * bulbSize * 0.5)
@@ -503,7 +518,14 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                   </div>
                 ))
               })}
+                </div>
               </div>
+              {!locked && (
+                <div className={styles.edgeBottom}>
+                  <button className={styles.edgeBtn} onClick={() => addRow('bottom')}>+</button>
+                  <button className={styles.edgeBtn} onClick={() => removeRow('bottom')} disabled={!canRemoveBottomRow}>−</button>
+                </div>
+              )}
             </div>
             {!locked && (
               <div className={styles.edgeSide}>
@@ -511,7 +533,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 <button className={styles.edgeBtn} onClick={() => removeCol('right')} disabled={!canRemoveRightCol}>−</button>
               </div>
             )}
-            {!locked && showUnplaced && unplacedFixtures.length > 0 && (
+            {showUnplaced && unplacedFixtures.length > 0 && (
               <div className={styles.sidebar}>
                 <div className={styles.sidebarHeader}>
                   <span className={styles.sidebarTitle}>Unplaced</span>
@@ -537,12 +559,6 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
               </div>
             )}
           </div>
-          {!locked && (
-            <div className={styles.edgeBottom}>
-              <button className={styles.edgeBtn} onClick={() => addRow('bottom')}>+</button>
-              <button className={styles.edgeBtn} onClick={() => removeRow('bottom')} disabled={!canRemoveBottomRow}>−</button>
-            </div>
-          )}
         </div>
       )}
       {sidebarDrag && (() => {

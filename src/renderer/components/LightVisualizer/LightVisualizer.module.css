@@ -95,6 +95,39 @@
   cursor: default;
 }
 
+.unplacedBtn {
+  background: none;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: 0.625rem;
+}
+
+.unplacedBtn:hover {
+  color: var(--text-secondary);
+  border-color: var(--text-secondary);
+}
+
+.unplacedBtnActive {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.unplacedCount {
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.unplacedLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
 .sizeBtn.sizeBtnActive {
   color: var(--bg-base);
   background: var(--accent);
@@ -165,6 +198,13 @@
 .stageMiddle {
   flex: 1;
   display: flex;
+  min-height: 0;
+}
+
+.stageColumn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   min-height: 0;
 }
 
