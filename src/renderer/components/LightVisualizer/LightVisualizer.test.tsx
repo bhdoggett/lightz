@@ -4,9 +4,10 @@ import { LightVisualizer } from './LightVisualizer'
 import type { Fixture } from '../../../shared/types'
 
 const fixtures: Fixture[] = [
-  { id: 'dim1', name: 'Front Wash', channel: 1, universe: 0, type: 'dimmer' },
+  { id: 'dim1', name: 'Front Wash', channel: 1, universe: 0, type: 'dimmer', vizPositions: [{ col: 0, row: 0 }] },
   {
     id: 'rgb1', name: 'RGB Par', channel: 10, universe: 0, type: 'dimmer',
+    vizPositions: [{ col: 1, row: 0 }],
     channels: [
       { id: 'rgb1-r', role: 'red', label: 'Red', channel: 10, universe: 0, linked: true },
       { id: 'rgb1-g', role: 'green', label: 'Green', channel: 11, universe: 0, linked: true },
