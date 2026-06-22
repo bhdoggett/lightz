@@ -21,6 +21,7 @@ export function FixtureFader({ channel, universe, name, value, onChange, onRenam
       label={name}
       onChange={onChange}
       onRename={onRename}
+      fillColor={groupColor}
       groupColor={groupColor}
       groupOverride={groupOverride}
       groupMultiplier={groupMultiplier}
