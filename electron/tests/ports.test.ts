@@ -6,7 +6,7 @@ vi.mock('fs', () => ({
 }))
 
 import { readdirSync } from 'fs'
-import { listSerialPorts } from './ports'
+import { listSerialPorts } from '../ports'
 
 describe('listSerialPorts', () => {
   beforeEach(() => {

@@ -128,12 +128,6 @@
   letter-spacing: 0.03em;
 }
 
-.sizeBtn.sizeBtnActive {
-  color: var(--bg-base);
-  background: var(--accent);
-  border-color: var(--accent);
-}
-
 .editBtn {
   background: none;
   border: none;

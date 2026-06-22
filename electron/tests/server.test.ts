@@ -1,8 +1,8 @@
 // @vitest-environment node
 import { describe, it, expect, vi, beforeAll, afterAll } from 'vitest'
 import request from 'supertest'
-import { createCompanionServer } from './server'
-import type { Scene } from '../src/shared/types'
+import { createCompanionServer } from '../server'
+import type { Scene } from '../../src/shared/types'
 import type { Server } from 'http'
 
 const scenes: Scene[] = [

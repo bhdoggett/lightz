@@ -12,7 +12,7 @@ vi.mock('serialport', () => {
   return { SerialPort }
 })
 
-import { DmxManager } from './dmx'
+import { DmxManager } from '../dmx'
 
 describe('DmxManager', () => {
   let manager: DmxManager

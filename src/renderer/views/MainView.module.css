@@ -54,53 +54,6 @@
   color: #fff;
 }
 
-.saveBtn {
-  margin-left: auto;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-default);
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.saveBtn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.saveBtnDim {
-  opacity: 0.4;
-}
-
-.universeToggle {
-  display: flex;
-  gap: 4px;
-  padding: 4px 8px;
-}
-
-.uBtn {
-  padding: 3px 10px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-default);
-  background: transparent;
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.uBtn.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
-}
-
 .section {
   display: flex;
   flex-direction: column;
@@ -113,11 +66,6 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-}
-
-.sectionHeader {
-  display: flex;
-  align-items: center;
 }
 
 .sectionLabel {
@@ -138,13 +86,6 @@
 
 .sectionLabel:hover {
   color: var(--text-secondary);
-}
-
-.sectionActions {
-  display: flex;
-  gap: var(--space-3);
-  padding-right: var(--space-4);
-  margin-left: auto;
 }
 
 .universeGroup {

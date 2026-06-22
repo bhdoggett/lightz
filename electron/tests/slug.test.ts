@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest'
-import { makeSceneId } from './slug'
+import { makeSceneId } from '../slug'
 
 describe('makeSceneId', () => {
   it('converts name to url-safe slug', () => {

@@ -2,8 +2,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import Store from 'electron-store'
 
-import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, updateScene, reorderScenes, saveGroup, deleteGroup, saveFixtureTemplate, deleteFixtureTemplate } from './store'
-import type { Fixture, Scene, Group, FixtureTemplate } from '../src/shared/types'
+import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, updateScene, reorderScenes, saveGroup, deleteGroup, saveFixtureTemplate, deleteFixtureTemplate } from '../store'
+import type { Fixture, Scene, Group, FixtureTemplate } from '../../src/shared/types'
 
 vi.mock('electron-store', () => {
   return {
