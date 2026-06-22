@@ -2,9 +2,7 @@
 
 A macOS desktop app for controlling DMX lighting via an **Enttec USB DMX Pro Mk2**. Built for live environments — fast scene recall, DCA-style fixture groups, multi-channel fixtures with color mixing, and Bitfocus Companion integration.
 
-**[Try the web demo →](https://lightz.benapps.xyz)** — no download needed, includes a light visualizer with a pre-loaded demo show.
-
-> **macOS only** for hardware control. The web version is a portfolio demo with a simulated light visualizer.
+> **macOS only.** Windows is not supported — the Enttec driver relies on macOS serial port access.
 
 ---
 
