@@ -1,7 +1,31 @@
 import type { LightzApi } from './types'
-import type { Config, Scene, Fixture, Group, FixtureTemplate, GroupChannelOverride } from '../../shared/types'
+import type { Config, Scene, Fixture, Group, FixtureTemplate, GroupChannelOverride, ShowInfo } from '../../shared/types'
 import { interpolate, clampValue } from '../../shared/dmx-utils'
 import { demoConfig } from './demo-config'
+
+const SHOWS_KEY = 'lightz-shows'
+const DEMO_SHOW_NAME = 'Demo'
+
+function getStoredShows(): Record<string, { config: Config; modifiedAt: number }> {
+  try {
+    return JSON.parse(localStorage.getItem(SHOWS_KEY) || '{}')
+  } catch {
+    return {}
+  }
+}
+
+function saveStoredShows(shows: Record<string, { config: Config; modifiedAt: number }>): void {
+  localStorage.setItem(SHOWS_KEY, JSON.stringify(shows))
+}
+
+function listStoredShows(): ShowInfo[] {
+  const shows = getStoredShows()
+  const list: ShowInfo[] = [{ name: DEMO_SHOW_NAME, modifiedAt: 0 }]
+  for (const [name, data] of Object.entries(shows)) {
+    list.push({ name, modifiedAt: data.modifiedAt })
+  }
+  return list.sort((a, b) => b.modifiedAt - a.modifiedAt)
+}
 
 interface WebApiCallbacks {
   setChannel: (universe: 0 | 1, channel: number, value: number) => void
@@ -158,11 +182,46 @@ export function createWebApi(callbacks: WebApiCallbacks): LightzApi {
       return structuredClone(config)
     },
 
-    listShows: async () => [],
-    saveNamedShow: async () => [],
-    loadNamedShow: async () => structuredClone(config),
-    deleteNamedShow: async () => [],
-    exportShow: async () => {},
+    listShows: async () => listStoredShows(),
+
+    saveNamedShow: async (name) => {
+      if (name === DEMO_SHOW_NAME) return listStoredShows()
+      const shows = getStoredShows()
+      shows[name] = { config: structuredClone(config), modifiedAt: Date.now() }
+      saveStoredShows(shows)
+      return listStoredShows()
+    },
+
+    loadNamedShow: async (name) => {
+      if (name === DEMO_SHOW_NAME) {
+        config = structuredClone(demoConfig)
+        return structuredClone(config)
+      }
+      const shows = getStoredShows()
+      const show = shows[name]
+      if (!show) return structuredClone(config)
+      config = structuredClone(show.config)
+      return structuredClone(config)
+    },
+
+    deleteNamedShow: async (name) => {
+      if (name === DEMO_SHOW_NAME) return listStoredShows()
+      const shows = getStoredShows()
+      delete shows[name]
+      saveStoredShows(shows)
+      return listStoredShows()
+    },
+
+    exportShow: async () => {
+      const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'lightz-show.json'
+      a.click()
+      URL.revokeObjectURL(url)
+    },
+
     importShow: async () => null,
 
     listPorts: async () => [],
