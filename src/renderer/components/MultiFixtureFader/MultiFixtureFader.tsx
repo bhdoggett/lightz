@@ -15,9 +15,10 @@ interface Props {
   onEdit?: () => void
   groupColor?: string
   groupOverride?: 'full' | 'mute' | null
+  groupMultiplier?: number
 }
 
-export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit, groupColor, groupOverride }: Props) {
+export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit, groupColor, groupOverride, groupMultiplier }: Props) {
   const api = useApi()
   const channels = fixture.channels!
   const [expanded, setExpanded] = useState(false)
@@ -114,6 +115,7 @@ export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit,
           fillColor={groupColor}
           groupColor={groupColor}
           groupOverride={groupOverride}
+          groupMultiplier={groupMultiplier}
         />
       </div>
       <div className={styles.controlRow}>
@@ -146,6 +148,7 @@ export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit,
                       fillColor={roleToFillColor(ch.role)}
                       groupColor={groupColor}
                       groupOverride={groupOverride}
+                      groupMultiplier={groupMultiplier}
                     />
                     <button
                       className={`${styles.linkBtn}${isLinked ? ` ${styles.linked}` : ''}`}

@@ -302,6 +302,15 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     return groupStates[group.id]?.override ?? null
   }, [groups, groupStates])
 
+  const getFixtureGroupMultiplier = useCallback((fixtureId: string): number | undefined => {
+    const group = groups.find((g) => g.fixtureIds.includes(fixtureId))
+    if (!group) return undefined
+    const state = groupStates[group.id]
+    if (!state) return undefined
+    if (state.override === 'full' || state.override === 'mute') return undefined
+    return state.fader / 100
+  }, [groups, groupStates])
+
   const [sectionsCollapsed, setSectionsCollapsed] = useState<Record<string, boolean>>({ scenes: false, groups: false, fixturesU0: false, fixturesU1: false })
   const toggleSection = (key: string) => setSectionsCollapsed((prev) => ({ ...prev, [key]: !prev[key] }))
 
@@ -408,6 +417,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
                           onEdit={() => setEditingFixture(fixture)}
                           groupColor={getFixtureGroupColor(fixture.id)}
                           groupOverride={getFixtureOverride(fixture.id)}
+                          groupMultiplier={getFixtureGroupMultiplier(fixture.id)}
                         />
                       ) : (
                         <FixtureFader
@@ -420,6 +430,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
                           onRename={(name) => handleFixtureRename(fixture, name)}
                           groupColor={getFixtureGroupColor(fixture.id)}
                           groupOverride={getFixtureOverride(fixture.id)}
+                          groupMultiplier={getFixtureGroupMultiplier(fixture.id)}
                         />
                       )
                     )}

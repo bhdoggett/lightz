@@ -12,9 +12,10 @@ interface Props {
   fillColor?: string
   groupColor?: string
   groupOverride?: 'full' | 'mute' | null
+  groupMultiplier?: number
 }
 
-export function RawFader({ channel, universe, value, label, onChange, onRename, fillColor, groupColor, groupOverride }: Props) {
+export function RawFader({ channel, universe, value, label, onChange, onRename, fillColor, groupColor, groupOverride, groupMultiplier }: Props) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -61,7 +62,7 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
           />
         )}
       </div>
-      <Slider value={value} onChange={onChange} fillColor={fillColor} disabled={groupOverride !== null && groupOverride !== undefined} />
+      <Slider value={value} onChange={onChange} fillColor={fillColor} disabled={groupOverride !== null && groupOverride !== undefined} groupMultiplier={groupMultiplier} />
       <button
         className={`${styles.toggleBtn}${value > 0 ? ` ${styles.on}` : ''}`}
         aria-label="toggle"

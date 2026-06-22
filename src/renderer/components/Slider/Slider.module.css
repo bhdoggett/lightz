@@ -18,6 +18,16 @@
   );
 }
 
+.slider[style*="--effective-pct"]::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to bottom,
+    var(--bg-overlay) calc(100% - var(--fill-pct, 0%)),
+    color-mix(in srgb, var(--fill-color, var(--fader-fill-default, #555577)) 30%, var(--bg-overlay)) calc(100% - var(--fill-pct, 0%)),
+    color-mix(in srgb, var(--fill-color, var(--fader-fill-default, #555577)) 30%, var(--bg-overlay)) calc(100% - var(--effective-pct, 0%)),
+    var(--fill-color, var(--fader-fill-default, #555577)) calc(100% - var(--effective-pct, 0%))
+  );
+}
+
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 20px;
