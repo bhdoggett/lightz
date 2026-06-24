@@ -250,6 +250,7 @@
 .stage.stageEditable {
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
+  user-select: none;
 }
 
 .stageContent {
@@ -284,6 +285,19 @@
 .light.draggable {
   cursor: grab;
   pointer-events: auto;
+}
+
+.light.lightSelected .lightBulb {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.marquee {
+  position: absolute;
+  border: 1px dashed var(--accent);
+  background: rgba(99, 102, 241, 0.08);
+  pointer-events: none;
+  z-index: 30;
 }
 
 .light.draggable:hover {

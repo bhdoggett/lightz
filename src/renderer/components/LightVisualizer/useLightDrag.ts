@@ -13,6 +13,17 @@ export interface SidebarDragState {
   valid: boolean
 }
 
+export interface StageDragState {
+  fixtureIds: string[]
+  posIndices: number[]
+  mouseX: number
+  mouseY: number
+  offsets: VizPosition[]
+  snappedCol: number
+  snappedRow: number
+  valid: boolean
+}
+
 interface UseLightDragArgs {
   fixtures: Fixture[]
   gridCols: number
@@ -21,6 +32,7 @@ interface UseLightDragArgs {
   ownerWindow: Window
   stageRef: React.RefObject<HTMLDivElement | null>
   onFixtureVizChange?: (fixtureId: string, vizPositions: VizPosition[]) => void
+  selectedStage?: Set<string>
 }
 
 const DRAG_THRESHOLD = 5
@@ -45,35 +57,78 @@ function arePositionsValid(positions: VizPosition[], occupied: Set<string>): boo
   return positions.every((p) => !occupied.has(`${p.col},${p.row}`))
 }
 
-export function useLightDrag({ fixtures, gridCols, gridRows, isEditing, ownerWindow, stageRef, onFixtureVizChange }: UseLightDragArgs) {
+function computeStageDragTargets(
+  anchorCol: number, anchorRow: number,
+  offsets: VizPosition[],
+  gridCols: number, gridRows: number,
+): VizPosition[] {
+  const targets: VizPosition[] = []
+  for (const off of offsets) {
+    const col = anchorCol + off.col
+    const row = anchorRow + off.row
+    if (col < 0 || col >= gridCols || row < 0 || row >= gridRows) return []
+    targets.push({ col, row })
+  }
+  return targets
+}
+
+export function useLightDrag({ fixtures, gridCols, gridRows, isEditing, ownerWindow, stageRef, onFixtureVizChange, selectedStage = new Set() }: UseLightDragArgs) {
   const [sidebarDrag, setSidebarDrag] = useState<SidebarDragState | null>(null)
-  const dragRef = useRef<{ fixtureId: string; posIndex: number } | null>(null)
-  const dragStartPos = useRef({ col: 0, row: 0 })
+  const [stageDrag, setStageDrag] = useState<StageDragState | null>(null)
+  const pendingStageDrag = useRef<{
+    fixtureIds: string[]
+    posIndices: number[]
+    offsets: VizPosition[]
+    startX: number
+    startY: number
+    anchorCol: number
+    anchorRow: number
+  } | null>(null)
   const pendingSidebarDrag = useRef<{ fixtureIds: string[]; startX: number; startY: number } | null>(null)
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
-      if (dragRef.current && stageRef.current) {
+      // Pending stage drag: wait for threshold
+      if (pendingStageDrag.current) {
+        const dx = e.clientX - pendingStageDrag.current.startX
+        const dy = e.clientY - pendingStageDrag.current.startY
+        if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
+          const { fixtureIds, posIndices, offsets, anchorCol, anchorRow } = pendingStageDrag.current
+          pendingStageDrag.current = null
+          setStageDrag({
+            fixtureIds, posIndices, offsets,
+            mouseX: e.clientX, mouseY: e.clientY,
+            snappedCol: anchorCol, snappedRow: anchorRow,
+            valid: true,
+          })
+        }
+        return
+      }
+
+      // Active stage drag: update snap position
+      if (stageDrag && stageRef.current) {
         const rect = stageRef.current.getBoundingClientRect()
         const pctX = ((e.clientX - rect.left) / rect.width) * 100
         const pctY = ((e.clientY - rect.top) / rect.height) * 100
-        const col = Math.round((pctX / 100) * (gridCols - 1))
-        const row = Math.round((pctY / 100) * (gridRows - 1))
-        const snappedCol = Math.max(0, Math.min(gridCols - 1, col))
-        const snappedRow = Math.max(0, Math.min(gridRows - 1, row))
-        const { fixtureId, posIndex } = dragRef.current
-        const fixture = fixtures.find((f) => f.id === fixtureId)
-        if (!fixture) return
-        const occupied = buildOccupied(fixtures, fixtureId, posIndex)
-        const positions = [...getPositions(fixture)]
-        if (positions[posIndex].col !== snappedCol || positions[posIndex].row !== snappedRow) {
-          if (!occupied.has(`${snappedCol},${snappedRow}`)) {
-            positions[posIndex] = { col: snappedCol, row: snappedRow }
-            onFixtureVizChange?.(fixtureId, positions)
+        const snappedCol = Math.max(0, Math.min(gridCols - 1, Math.round((pctX / 100) * (gridCols - 1))))
+        const snappedRow = Math.max(0, Math.min(gridRows - 1, Math.round((pctY / 100) * (gridRows - 1))))
+        setStageDrag((prev) => {
+          if (!prev) return null
+          const targets = computeStageDragTargets(snappedCol, snappedRow, prev.offsets, gridCols, gridRows)
+          const occupied = buildOccupied(fixtures)
+          for (let i = 0; i < prev.fixtureIds.length; i++) {
+            const f = fixtures.find((fx) => fx.id === prev.fixtureIds[i])
+            if (!f) continue
+            const pos = getPositions(f)[prev.posIndices[i]]
+            if (pos) occupied.delete(`${pos.col},${pos.row}`)
           }
-        }
+          const valid = arePositionsValid(targets, occupied)
+          return { ...prev, mouseX: e.clientX, mouseY: e.clientY, snappedCol, snappedRow, valid }
+        })
+        return
       }
 
+      // Pending sidebar drag: wait for threshold
       if (pendingSidebarDrag.current) {
         const dx = e.clientX - pendingSidebarDrag.current.startX
         const dy = e.clientY - pendingSidebarDrag.current.startY
@@ -126,22 +181,44 @@ export function useLightDrag({ fixtures, gridCols, gridRows, isEditing, ownerWin
     }
 
     const onUp = () => {
+      // Stage drag drop
+      if (pendingStageDrag.current) {
+        pendingStageDrag.current = null
+      }
+      if (stageDrag) {
+        setStageDrag((prev) => {
+          if (!prev || !prev.valid) return null
+          const targets = computeStageDragTargets(prev.snappedCol, prev.snappedRow, prev.offsets, gridCols, gridRows)
+          const occupied = buildOccupied(fixtures)
+          for (let i = 0; i < prev.fixtureIds.length; i++) {
+            const f = fixtures.find((fx) => fx.id === prev.fixtureIds[i])
+            if (!f) continue
+            const pos = getPositions(f)[prev.posIndices[i]]
+            if (pos) occupied.delete(`${pos.col},${pos.row}`)
+          }
+          if (arePositionsValid(targets, occupied)) {
+            const updates = new Map<string, VizPosition[]>()
+            for (let i = 0; i < prev.fixtureIds.length; i++) {
+              const fId = prev.fixtureIds[i]
+              const pi = prev.posIndices[i]
+              const f = fixtures.find((fx) => fx.id === fId)
+              if (!f) continue
+              if (!updates.has(fId)) updates.set(fId, [...getPositions(f)])
+              const positions = updates.get(fId)!
+              positions[pi] = targets[i]
+            }
+            for (const [id, positions] of updates) {
+              onFixtureVizChange?.(id, positions)
+            }
+          }
+          return null
+        })
+        return
+      }
+
       pendingSidebarDrag.current = null
 
-      if (dragRef.current) {
-        const { fixtureId, posIndex } = dragRef.current
-        const fixture = fixtures.find((f) => f.id === fixtureId)
-        if (fixture) {
-          const occupied = buildOccupied(fixtures, fixtureId, posIndex)
-          const positions = [...getPositions(fixture)]
-          const cur = positions[posIndex]
-          if (occupied.has(`${cur.col},${cur.row}`)) {
-            positions[posIndex] = { ...dragStartPos.current }
-            onFixtureVizChange?.(fixtureId, positions)
-          }
-        }
-        dragRef.current = null
-      }
+      // Sidebar drag drop
       setSidebarDrag((prev) => {
         if (!prev) return null
         if (prev.overStage && prev.valid) {
@@ -167,21 +244,52 @@ export function useLightDrag({ fixtures, gridCols, gridRows, isEditing, ownerWin
       ownerWindow.removeEventListener('keydown', onKey)
       ownerWindow.removeEventListener('keyup', onKey)
     }
-  }, [fixtures, onFixtureVizChange, gridCols, gridRows, ownerWindow])
+  }, [fixtures, onFixtureVizChange, gridCols, gridRows, ownerWindow, stageDrag])
 
   const onLightDragStart = useCallback((e: React.MouseEvent, fixtureId: string, posIndex: number, pos: VizPosition) => {
     if (!isEditing) return
     e.preventDefault()
     e.stopPropagation()
     if (!stageRef.current) return
-    dragRef.current = { fixtureId, posIndex }
-    dragStartPos.current = { col: pos.col, row: pos.row }
-  }, [isEditing, stageRef])
+
+    const posKey = `${fixtureId}:${posIndex}`
+    const isGroup = selectedStage.has(posKey) && selectedStage.size > 1
+
+    type PosEntry = { fixtureId: string; posIndex: number; pos: VizPosition }
+    const entries: PosEntry[] = []
+
+    if (isGroup) {
+      for (const key of selectedStage) {
+        const [fId, piStr] = key.split(':')
+        const pi = parseInt(piStr, 10)
+        const f = fixtures.find((fx) => fx.id === fId)
+        if (!f) continue
+        const positions = getPositions(f)
+        if (pi < positions.length) entries.push({ fixtureId: fId, posIndex: pi, pos: positions[pi] })
+      }
+    } else {
+      entries.push({ fixtureId, posIndex, pos })
+    }
+
+    const offsets = entries.map((ent) => ({ col: ent.pos.col - pos.col, row: ent.pos.row - pos.row }))
+    const fixtureIds = entries.map((ent) => ent.fixtureId)
+    const posIndices = entries.map((ent) => ent.posIndex)
+
+    pendingStageDrag.current = {
+      fixtureIds,
+      posIndices,
+      offsets,
+      startX: e.clientX,
+      startY: e.clientY,
+      anchorCol: pos.col,
+      anchorRow: pos.row,
+    }
+  }, [isEditing, stageRef, selectedStage, fixtures])
 
   const startSidebarDrag = useCallback((fixtureIds: string[], e: React.MouseEvent) => {
     e.preventDefault()
     pendingSidebarDrag.current = { fixtureIds, startX: e.clientX, startY: e.clientY }
   }, [])
 
-  return { sidebarDrag, onLightDragStart, startSidebarDrag }
+  return { sidebarDrag, stageDrag, onLightDragStart, startSidebarDrag }
 }

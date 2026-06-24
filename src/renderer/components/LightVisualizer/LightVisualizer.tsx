@@ -5,6 +5,7 @@ import { clampValue } from '../../../shared/dmx-utils'
 import { useOwnerWindow } from '../PopoutWindow'
 import { useStageResize } from './useStageResize'
 import { useLightDrag } from './useLightDrag'
+import { useMarqueeSelect } from './useMarqueeSelect'
 import { useGridEditor } from './useGridEditor'
 import { getPositions, colToPercent, rowToPercent } from './vizUtils'
 import styles from './LightVisualizer.module.css'
@@ -35,6 +36,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const stageRef = useRef<HTMLDivElement>(null)
   const [selectedUnplaced, setSelectedUnplaced] = useState<Set<string>>(new Set())
   const lastClickedRef = useRef<string | null>(null)
+  const pendingClickNarrow = useRef<string | null>(null)
 
   const {
     gridCols, gridRows,
@@ -44,8 +46,13 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
     canRemoveLeftCol, canRemoveRightCol, canRemoveTopRow, canRemoveBottomRow,
   } = useGridEditor({ fixtures, onFixtureVizChange })
 
-  const { sidebarDrag, onLightDragStart, startSidebarDrag } = useLightDrag({
+  const { marquee, selectedStage, setSelectedStage, startMarquee, clearStageSelection } = useMarqueeSelect({
+    fixtures: placedFixtures, gridCols, gridRows, isEditing, ownerWindow, stageRef,
+  })
+
+  const { sidebarDrag, stageDrag, onLightDragStart, startSidebarDrag } = useLightDrag({
     fixtures, gridCols, gridRows, isEditing, ownerWindow, stageRef, onFixtureVizChange,
+    selectedStage,
   })
 
   useEffect(() => {
@@ -82,14 +89,24 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
       return
     }
     if (selectedUnplaced.has(fixtureId)) {
+      pendingClickNarrow.current = fixtureId
       const ids = unplacedFixtures.filter((f) => selectedUnplaced.has(f.id)).map((f) => f.id)
       startSidebarDrag(ids, e)
     } else {
+      pendingClickNarrow.current = null
       setSelectedUnplaced(new Set([fixtureId]))
       lastClickedRef.current = fixtureId
       startSidebarDrag([fixtureId], e)
     }
   }, [unplacedFixtures, selectedUnplaced, startSidebarDrag])
+
+  const handleSidebarMouseUp = useCallback(() => {
+    if (pendingClickNarrow.current && !sidebarDrag) {
+      setSelectedUnplaced(new Set([pendingClickNarrow.current]))
+      lastClickedRef.current = pendingClickNarrow.current
+    }
+    pendingClickNarrow.current = null
+  }, [sidebarDrag])
 
   function getEffectiveChannel(universe: 0 | 1, channel: number): number {
     const raw = getChannel(universe, channel)
@@ -223,20 +240,61 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                   <button className={styles.edgeBtn} onClick={() => addRow('top')}>+</button>
                 </div>
               )}
-              <div className={`${styles.stage}${isEditing ? ` ${styles.stageEditable}` : ''}`}>
-                <div ref={stageRef} className={styles.stageContent} data-testid="viz-lights">
+              <div
+                className={`${styles.stage}${isEditing ? ` ${styles.stageEditable}` : ''}`}
+                onMouseDown={(e) => {
+                  const target = e.target as HTMLElement
+                  if (!target.closest(`.${styles.light}`) && !target.closest(`.${styles.edgeBtn}`)) {
+                    startMarquee(e)
+                  }
+                }}
+              >
+                <div
+                  ref={stageRef}
+                  className={styles.stageContent}
+                  data-testid="viz-lights"
+                >
                   {gridPoints}
+                  {marquee && (
+                    <div
+                      className={styles.marquee}
+                      style={{
+                        left: Math.min(marquee.x1, marquee.x2) - (stageRef.current?.getBoundingClientRect().left ?? 0),
+                        top: Math.min(marquee.y1, marquee.y2) - (stageRef.current?.getBoundingClientRect().top ?? 0),
+                        width: Math.abs(marquee.x2 - marquee.x1),
+                        height: Math.abs(marquee.y2 - marquee.y1),
+                      }}
+                    />
+                  )}
                   {placedFixtures.map((fixture) => {
                     const color = getFixtureColor(fixture)
                     const intensity = getFixtureIntensity(fixture) / 255
                     const glowSize = Math.round(intensity * bulbSize * 0.25)
                     const positions = getPositions(fixture)
-                    return positions.map((pos, pi) => (
+                    return positions.map((pos, pi) => {
+                      const posKey = `${fixture.id}:${pi}`
+                      const isSelected = selectedStage.has(posKey)
+                      return (
                       <div
                         key={`${fixture.id}-${pi}`}
-                        className={`${styles.light}${isEditing ? ` ${styles.draggable}` : ''}`}
+                        className={`${styles.light}${isEditing ? ` ${styles.draggable}` : ''}${isSelected ? ` ${styles.lightSelected}` : ''}`}
                         style={{ left: `${colToPercent(pos.col, gridCols)}%`, top: `${rowToPercent(pos.row, gridRows)}%` }}
-                        onMouseDown={(e) => onLightDragStart(e, fixture.id, pi, pos)}
+                        onMouseDown={(e) => {
+                          if (!isEditing) return
+                          if (e.metaKey || e.ctrlKey) {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            setSelectedStage((prev) => {
+                              const next = new Set(prev)
+                              if (next.has(posKey)) next.delete(posKey)
+                              else next.add(posKey)
+                              return next
+                            })
+                            return
+                          }
+                          if (!isSelected) clearStageSelection()
+                          onLightDragStart(e, fixture.id, pi, pos)
+                        }}
                       >
                         {isEditing && (
                           <div className={styles.lightActions}>
@@ -260,7 +318,8 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                           <span className={styles.lightValue}>{Math.round(intensity * 100)}%</span>
                         </div>
                       </div>
-                    ))
+                      )
+                    })
                   })}
                 </div>
               </div>
@@ -292,6 +351,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                         if (e.button !== 0) return
                         handleSidebarMouseDown(f.id, e)
                       }}
+                      onMouseUp={handleSidebarMouseUp}
                     >
                       <span className={styles.sidebarChannel}>{f.universe + 1}-{f.channel}</span>
                       <span className={styles.sidebarName}>{f.name}</span>
@@ -325,6 +385,40 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                   <div
                     key={i}
                     className={`${styles.snapIndicator}${!sidebarDrag.valid ? ` ${styles.snapInvalid}` : ''}`}
+                    style={{
+                      left: rect.left + (colToPercent(col, gridCols) / 100) * rect.width,
+                      top: rect.top + (rowToPercent(row, gridRows) / 100) * rect.height,
+                      width: bulbSize + 8, height: bulbSize + 8,
+                    }}
+                  />
+                )
+              })
+            })()}
+          </>
+        )
+      })()}
+      {stageDrag && (() => {
+        const dragFixtures = stageDrag.fixtureIds.map((id) => fixtures.find((f) => f.id === id)).filter(Boolean) as Fixture[]
+        if (dragFixtures.length === 0) return null
+        const primary = dragFixtures[0]
+        const color = getFixtureColor(primary)
+        const intensity = getFixtureIntensity(primary) / 255
+        const ghostSize = Math.max(9, Math.round(bulbSize * 0.28))
+        return (
+          <>
+            <div className={styles.dragGhost} style={{ left: stageDrag.mouseX, top: stageDrag.mouseY, width: bulbSize, height: bulbSize, fontSize: ghostSize, backgroundColor: intensity > 0 ? color : '#000000' }}>
+              <span className={styles.channelLabel}>{dragFixtures.length > 1 ? `×${dragFixtures.length}` : `${primary.universe + 1}-${primary.channel}`}</span>
+            </div>
+            {stageRef.current && (() => {
+              const rect = stageRef.current.getBoundingClientRect()
+              return stageDrag.offsets.map((off, i) => {
+                const col = stageDrag.snappedCol + off.col
+                const row = stageDrag.snappedRow + off.row
+                if (col < 0 || col >= gridCols || row < 0 || row >= gridRows) return null
+                return (
+                  <div
+                    key={i}
+                    className={`${styles.snapIndicator}${!stageDrag.valid ? ` ${styles.snapInvalid}` : ''}`}
                     style={{
                       left: rect.left + (colToPercent(col, gridCols) / 100) * rect.width,
                       top: rect.top + (rowToPercent(row, gridRows) / 100) * rect.height,
