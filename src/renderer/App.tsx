@@ -7,6 +7,7 @@ import { LightVisualizer } from './components/LightVisualizer'
 import { PopoutWindow } from './components/PopoutWindow'
 import { useApi } from './api/context'
 import { useDmxState } from './hooks/useDmxState'
+import { useUpdateCheck } from './hooks/useUpdateCheck'
 import type { Config, DmxStatus, Fixture, Scene, Group, GroupChannelOverride } from '../shared/types'
 import styles from './App.module.css'
 import { version as APP_VERSION } from '../../package.json'
@@ -36,6 +37,7 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
   const saveTriggerRef = useRef<(() => void) | null>(null)
   const [overrideMap, setOverrideMap] = useState<Record<string, GroupChannelOverride>>({})
   const [vizPopped, setVizPopped] = useState(false)
+  const { update, dismiss: dismissUpdate } = useUpdateCheck(APP_VERSION)
 
   useEffect(() => {
     return () => {
@@ -245,6 +247,14 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
         </div>
       </header>
 
+      {update && (
+        <div className={styles.updateBanner}>
+          <button className={styles.updateLink} onClick={() => api.openExternal(update.url)}>
+            v{update.latestVersion} available — view release
+          </button>
+          <button className={styles.updateDismiss} onClick={dismissUpdate} title="Dismiss">×</button>
+        </div>
+      )}
       <div className={styles.content}>
         <MainView
           fixtures={config.fixtures}
