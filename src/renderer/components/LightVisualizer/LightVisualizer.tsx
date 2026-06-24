@@ -208,7 +208,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                             boxShadow: intensity > 0.05 ? `0 0 ${glowSize}px ${Math.round(glowSize * 0.6)}px ${color}` : 'none',
                           }}
                         >
-                          {isEditing && <span className={styles.channelLabel}>{fixture.channel}</span>}
+                          {isEditing && <span className={styles.channelLabel}>{fixture.universe + 1}-{fixture.channel}</span>}
                         </div>
                         <div className={`${styles.lightInfo}${showLabels ? ` ${styles.lightInfoVisible}` : ''}`}>
                           <span className={styles.lightLabel}>{fixture.name}{positions.length > 1 ? ` ${pi + 1}` : ''}</span>
@@ -241,7 +241,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 <div className={styles.sidebarList}>
                   {unplacedFixtures.map((f) => (
                     <div key={f.id} className={styles.sidebarItem} onMouseDown={(e) => startSidebarDrag(f.id, e)}>
-                      <span className={styles.sidebarChannel}>{f.channel}</span>
+                      <span className={styles.sidebarChannel}>{f.universe + 1}-{f.channel}</span>
                       <span className={styles.sidebarName}>{f.name}</span>
                     </div>
                   ))}
@@ -259,7 +259,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         return (
           <>
             <div className={styles.dragGhost} style={{ left: sidebarDrag.mouseX, top: sidebarDrag.mouseY, width: bulbSize, height: bulbSize, fontSize: Math.max(9, Math.round(bulbSize * 0.28)), backgroundColor: intensity > 0 ? color : '#000000' }}>
-              <span className={styles.channelLabel}>{fixture.channel}</span>
+              <span className={styles.channelLabel}>{fixture.universe + 1}-{fixture.channel}</span>
             </div>
             {sidebarDrag.overStage && stageRef.current && (
               <div className={styles.snapIndicator} style={{

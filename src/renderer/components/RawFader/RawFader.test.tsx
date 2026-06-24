@@ -94,4 +94,69 @@ describe('RawFader', () => {
     fireEvent.keyDown(input, { key: 'Enter' })
     expect(onRename).toHaveBeenCalledWith('')
   })
+
+  describe('value editing', () => {
+    it('shows value input when value display is clicked', async () => {
+      render(<RawFader channel={1} value={128} onChange={vi.fn()} />)
+      await userEvent.click(screen.getByTestId('value-display'))
+      expect(screen.getByTestId('value-input')).toBeInTheDocument()
+    })
+
+    it('calls onChange with typed value on Enter', async () => {
+      const onChange = vi.fn()
+      render(<RawFader channel={1} value={100} onChange={onChange} />)
+      await userEvent.click(screen.getByTestId('value-display'))
+      const input = screen.getByTestId('value-input')
+      fireEvent.change(input, { target: { value: '200' } })
+      fireEvent.keyDown(input, { key: 'Enter' })
+      expect(onChange).toHaveBeenCalledWith(200)
+    })
+
+    it('calls onChange with typed value on blur', async () => {
+      const onChange = vi.fn()
+      render(<RawFader channel={1} value={100} onChange={onChange} />)
+      await userEvent.click(screen.getByTestId('value-display'))
+      const input = screen.getByTestId('value-input')
+      fireEvent.change(input, { target: { value: '50' } })
+      fireEvent.blur(input)
+      expect(onChange).toHaveBeenCalledWith(50)
+    })
+
+    it('clamps value to 255 max', async () => {
+      const onChange = vi.fn()
+      render(<RawFader channel={1} value={100} onChange={onChange} />)
+      await userEvent.click(screen.getByTestId('value-display'))
+      const input = screen.getByTestId('value-input')
+      fireEvent.change(input, { target: { value: '999' } })
+      fireEvent.keyDown(input, { key: 'Enter' })
+      expect(onChange).toHaveBeenCalledWith(255)
+    })
+
+    it('sets value to 0 when input is fully cleared (backspace all)', async () => {
+      const onChange = vi.fn()
+      render(<RawFader channel={1} value={128} onChange={onChange} />)
+      await userEvent.click(screen.getByTestId('value-display'))
+      const input = screen.getByTestId('value-input')
+      fireEvent.change(input, { target: { value: '' } })
+      fireEvent.keyDown(input, { key: 'Enter' })
+      expect(onChange).toHaveBeenCalledWith(0)
+    })
+
+    it('cancels editing on Escape without changing value', async () => {
+      const onChange = vi.fn()
+      render(<RawFader channel={1} value={128} onChange={onChange} />)
+      await userEvent.click(screen.getByTestId('value-display'))
+      const input = screen.getByTestId('value-input')
+      fireEvent.change(input, { target: { value: '50' } })
+      fireEvent.keyDown(input, { key: 'Escape' })
+      expect(onChange).not.toHaveBeenCalled()
+      expect(screen.getByTestId('value-display')).toBeInTheDocument()
+    })
+
+    it('does not open value editor when group override is active', async () => {
+      render(<RawFader channel={1} value={128} onChange={vi.fn()} groupOverride="full" groupColor="#ff0" />)
+      await userEvent.click(screen.getByTestId('value-display'))
+      expect(screen.queryByTestId('value-input')).not.toBeInTheDocument()
+    })
+  })
 })

@@ -29,6 +29,30 @@
   color: var(--text-primary);
 }
 
+.value.editable {
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  padding: 0 2px;
+}
+
+.value.editable:hover {
+  color: var(--accent);
+}
+
+.valueInput {
+  width: 32px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  background: var(--bg-raised);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  text-align: center;
+  padding: 0 2px;
+  outline: none;
+}
+
 .valueRow {
   display: flex;
   align-items: center;

@@ -20,9 +20,17 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
   const [draft, setDraft] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const [editingValue, setEditingValue] = useState(false)
+  const [valueDraft, setValueDraft] = useState('')
+  const valueInputRef = useRef<HTMLInputElement>(null)
+
   useEffect(() => {
     if (editing) inputRef.current?.select()
   }, [editing])
+
+  useEffect(() => {
+    if (editingValue) valueInputRef.current?.select()
+  }, [editingValue])
 
   const startEdit = () => {
     if (!onRename) return
@@ -40,6 +48,29 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
     if (e.key === 'Escape') setEditing(false)
   }
 
+  const startValueEdit = () => {
+    if (groupOverride) return
+    const displayed = groupOverride === 'full' ? 255 : groupOverride === 'mute' ? 0 : value
+    setValueDraft(String(displayed))
+    setEditingValue(true)
+  }
+
+  const commitValueEdit = () => {
+    setEditingValue(false)
+    if (valueDraft.trim() === '') {
+      onChange(0)
+      return
+    }
+    const parsed = parseInt(valueDraft, 10)
+    if (isNaN(parsed)) return
+    onChange(Math.max(0, Math.min(255, parsed)))
+  }
+
+  const handleValueKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') commitValueEdit()
+    if (e.key === 'Escape') setEditingValue(false)
+  }
+
   return (
     <div
       className={[
@@ -50,9 +81,25 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
       style={groupColor ? { '--group-color': groupColor } as React.CSSProperties : undefined}
     >
       <div className={styles.valueRow}>
-        <span className={`${styles.value}${value > 0 || groupOverride === 'full' ? ` ${styles.active}` : ''}`}>
-          {groupOverride === 'full' ? 255 : groupOverride === 'mute' ? 0 : value}
-        </span>
+        {editingValue ? (
+          <input
+            ref={valueInputRef}
+            className={styles.valueInput}
+            value={valueDraft}
+            onChange={(e) => setValueDraft(e.target.value.replace(/[^0-9]/g, ''))}
+            onBlur={commitValueEdit}
+            onKeyDown={handleValueKeyDown}
+            data-testid="value-input"
+          />
+        ) : (
+          <span
+            className={`${styles.value} ${styles.editable}${value > 0 || groupOverride === 'full' ? ` ${styles.active}` : ''}`}
+            onClick={startValueEdit}
+            data-testid="value-display"
+          >
+            {groupOverride === 'full' ? 255 : groupOverride === 'mute' ? 0 : value}
+          </span>
+        )}
         {groupColor && (
           <span
             className={styles.groupDot}
