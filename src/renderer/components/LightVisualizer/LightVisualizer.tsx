@@ -156,6 +156,13 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
     return `#${hex}${hex}${hex}`
   }
 
+  function isLightColor(hex: string): boolean {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return (0.299 * r + 0.587 * g + 0.114 * b) > 150
+  }
+
   function getFixtureIntensity(fixture: Fixture): number {
     if (fixture.channels && fixture.channels.length > 0) {
       return Math.max(...fixture.channels.map((ch) => getEffectiveChannel(ch.universe, ch.channel)), 0)
@@ -325,10 +332,30 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                       }}
                     />
                   )}
+                  {/* Glow layer — renders below all bulbs */}
                   {placedFixtures.map((fixture) => {
                     const color = getFixtureColor(fixture)
                     const intensity = getFixtureIntensity(fixture) / 255
                     const glowSize = Math.round(intensity * bulbSize * 0.25)
+                    if (intensity <= 0.05) return null
+                    const positions = getPositions(fixture)
+                    return positions.map((pos, pi) => (
+                      <div
+                        key={`glow-${fixture.id}-${pi}`}
+                        className={styles.lightGlow}
+                        style={{
+                          left: `${colToPercent(pos.col, gridCols)}%`,
+                          top: `${rowToPercent(pos.row, gridRows)}%`,
+                          width: bulbSize, height: bulbSize,
+                          boxShadow: `0 0 ${glowSize}px ${Math.round(glowSize * 0.6)}px ${color}`,
+                        }}
+                      />
+                    ))
+                  })}
+                  {/* Bulb layer — renders above all glows */}
+                  {placedFixtures.map((fixture) => {
+                    const color = getFixtureColor(fixture)
+                    const intensity = getFixtureIntensity(fixture) / 255
                     const positions = getPositions(fixture)
                     return positions.map((pos, pi) => {
                       const posKey = `${fixture.id}:${pi}`
@@ -367,10 +394,9 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                             width: bulbSize, height: bulbSize,
                             fontSize: Math.max(9, Math.round(bulbSize * 0.28)),
                             backgroundColor: intensity > 0 ? color : '#000000',
-                            boxShadow: intensity > 0.05 ? `0 0 ${glowSize}px ${Math.round(glowSize * 0.6)}px ${color}` : 'none',
                           }}
                         >
-                          {isEditing && <span className={styles.channelLabel}>{fixture.universe + 1}-{fixture.channel}</span>}
+                          {isEditing && <span className={styles.channelLabel} style={intensity > 0 && isLightColor(color) ? { color: 'rgba(0, 0, 0, 0.8)' } : undefined}>{fixture.universe + 1}-{fixture.channel}</span>}
                         </div>
                         <div className={`${styles.lightInfo}${showLabels ? ` ${styles.lightInfoVisible}` : ''}`}>
                           <span className={styles.lightLabel}>{fixture.name}{positions.length > 1 ? ` ${pi + 1}` : ''}</span>
