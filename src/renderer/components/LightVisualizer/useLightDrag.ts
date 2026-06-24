@@ -75,6 +75,7 @@ function computeStageDragTargets(
 export function useLightDrag({ fixtures, gridCols, gridRows, isEditing, ownerWindow, stageRef, onFixtureVizChange, selectedStage = new Set() }: UseLightDragArgs) {
   const [sidebarDrag, setSidebarDrag] = useState<SidebarDragState | null>(null)
   const [stageDrag, setStageDrag] = useState<StageDragState | null>(null)
+  const stageDragActive = useRef(false)
   const pendingStageDrag = useRef<{
     fixtureIds: string[]
     posIndices: number[]
@@ -88,13 +89,13 @@ export function useLightDrag({ fixtures, gridCols, gridRows, isEditing, ownerWin
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
-      // Pending stage drag: wait for threshold
       if (pendingStageDrag.current) {
         const dx = e.clientX - pendingStageDrag.current.startX
         const dy = e.clientY - pendingStageDrag.current.startY
         if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
           const { fixtureIds, posIndices, offsets, anchorCol, anchorRow } = pendingStageDrag.current
           pendingStageDrag.current = null
+          stageDragActive.current = true
           setStageDrag({
             fixtureIds, posIndices, offsets,
             mouseX: e.clientX, mouseY: e.clientY,
@@ -105,8 +106,7 @@ export function useLightDrag({ fixtures, gridCols, gridRows, isEditing, ownerWin
         return
       }
 
-      // Active stage drag: update snap position
-      if (stageDrag && stageRef.current) {
+      if (stageDragActive.current && stageRef.current) {
         const rect = stageRef.current.getBoundingClientRect()
         const pctX = ((e.clientX - rect.left) / rect.width) * 100
         const pctY = ((e.clientY - rect.top) / rect.height) * 100
@@ -128,7 +128,6 @@ export function useLightDrag({ fixtures, gridCols, gridRows, isEditing, ownerWin
         return
       }
 
-      // Pending sidebar drag: wait for threshold
       if (pendingSidebarDrag.current) {
         const dx = e.clientX - pendingSidebarDrag.current.startX
         const dy = e.clientY - pendingSidebarDrag.current.startY
@@ -181,11 +180,11 @@ export function useLightDrag({ fixtures, gridCols, gridRows, isEditing, ownerWin
     }
 
     const onUp = () => {
-      // Stage drag drop
       if (pendingStageDrag.current) {
         pendingStageDrag.current = null
       }
-      if (stageDrag) {
+      if (stageDragActive.current) {
+        stageDragActive.current = false
         setStageDrag((prev) => {
           if (!prev || !prev.valid) return null
           const targets = computeStageDragTargets(prev.snappedCol, prev.snappedRow, prev.offsets, gridCols, gridRows)
@@ -218,7 +217,6 @@ export function useLightDrag({ fixtures, gridCols, gridRows, isEditing, ownerWin
 
       pendingSidebarDrag.current = null
 
-      // Sidebar drag drop
       setSidebarDrag((prev) => {
         if (!prev) return null
         if (prev.overStage && prev.valid) {
@@ -244,7 +242,7 @@ export function useLightDrag({ fixtures, gridCols, gridRows, isEditing, ownerWin
       ownerWindow.removeEventListener('keydown', onKey)
       ownerWindow.removeEventListener('keyup', onKey)
     }
-  }, [fixtures, onFixtureVizChange, gridCols, gridRows, ownerWindow, stageDrag])
+  }, [fixtures, onFixtureVizChange, gridCols, gridRows, ownerWindow])
 
   const onLightDragStart = useCallback((e: React.MouseEvent, fixtureId: string, posIndex: number, pos: VizPosition) => {
     if (!isEditing) return

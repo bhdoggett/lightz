@@ -33,6 +33,8 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const [bulbSize, setBulbSize] = useState(DEFAULT_BULB_SIZE)
   const [showUnplaced, setShowUnplaced] = useState(false)
   const [showLabels, setShowLabels] = useState(false)
+  const [fitMode, setFitMode] = useState(true)
+  const [zoom, setZoom] = useState(100)
   const stageRef = useRef<HTMLDivElement>(null)
   const [selectedUnplaced, setSelectedUnplaced] = useState<Set<string>>(new Set())
   const lastClickedRef = useRef<string | null>(null)
@@ -54,6 +56,29 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
     fixtures, gridCols, gridRows, isEditing, ownerWindow, stageRef, onFixtureVizChange,
     selectedStage,
   })
+
+  useEffect(() => {
+    if (!isEditing || selectedStage.size === 0) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Delete' && e.key !== 'Backspace') return
+      e.preventDefault()
+      const toRemove = new Map<string, Set<number>>()
+      for (const key of selectedStage) {
+        const [fId, piStr] = key.split(':')
+        if (!toRemove.has(fId)) toRemove.set(fId, new Set())
+        toRemove.get(fId)!.add(parseInt(piStr, 10))
+      }
+      for (const [fId, indices] of toRemove) {
+        const fixture = fixtures.find((f) => f.id === fId)
+        if (!fixture) continue
+        const remaining = getPositions(fixture).filter((_, i) => !indices.has(i))
+        onFixtureVizChange?.(fId, remaining)
+      }
+      setSelectedStage(new Set())
+    }
+    ownerWindow.addEventListener('keydown', onKey)
+    return () => ownerWindow.removeEventListener('keydown', onKey)
+  }, [isEditing, selectedStage, fixtures, onFixtureVizChange, ownerWindow, setSelectedStage])
 
   useEffect(() => {
     const unplacedIds = new Set(unplacedFixtures.map((f) => f.id))
@@ -190,6 +215,32 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
               <span className={styles.unplacedLabel}>unplaced</span>
             </button>
           )}
+          {(expanded || popped) && (
+            <>
+              <button
+                className={`${styles.editBtn}${fitMode ? ` ${styles.editing}` : ''}`}
+                onClick={(e) => { e.stopPropagation(); setFitMode((v) => !v) }}
+                title={fitMode ? 'Switch to scroll mode' : 'Fit to window'}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2"/>
+                  <path d="M8 8L5 5M16 8l3-3M8 16l-3 3M16 16l3 3"/>
+                </svg>
+              </button>
+              {!fitMode && (
+                <input
+                  className={styles.zoomRange}
+                  type="range"
+                  min={50}
+                  max={300}
+                  value={zoom}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={(e) => setZoom(Number(e.target.value))}
+                  title={`Zoom: ${zoom}%`}
+                />
+              )}
+            </>
+          )}
           {!expanded && !popped && <div className={styles.compactStrip}>{compactDots}</div>}
         </div>
         {expanded && (
@@ -225,7 +276,8 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         )}
       </div>
       {(expanded || popped) && (
-        <div className={styles.stageOuter}>
+        <div className={styles.stageAndSidebar}>
+        <div className={`${styles.stageOuter}${!fitMode ? ` ${styles.scrollMode}` : ''}`}>
           <div className={styles.stageMiddle}>
             {isEditing && (
               <div className={styles.edgeSide}>
@@ -253,6 +305,13 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                   ref={stageRef}
                   className={styles.stageContent}
                   data-testid="viz-lights"
+                  style={!fitMode ? (() => {
+                    const cellSize = Math.round(80 * zoom / 100)
+                    return {
+                      width: cellSize * (gridCols - 1),
+                      height: cellSize * (gridRows - 1),
+                    }
+                  })() : undefined}
                 >
                   {gridPoints}
                   {marquee && (
@@ -336,31 +395,32 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 <button className={styles.edgeBtn} onClick={() => removeCol('right')} disabled={!canRemoveRightCol}>−</button>
               </div>
             )}
-            {showUnplaced && unplacedFixtures.length > 0 && (
-              <div className={styles.sidebar}>
-                <div className={styles.sidebarHeader}>
-                  <span className={styles.sidebarTitle}>Unplaced</span>
-                  <button className={styles.sidebarAutoBtn} onClick={handleAutoPlace} title="Auto-place all">Auto</button>
-                </div>
-                <div className={styles.sidebarList}>
-                  {unplacedFixtures.map((f) => (
-                    <div
-                      key={f.id}
-                      className={`${styles.sidebarItem}${selectedUnplaced.has(f.id) ? ` ${styles.sidebarItemSelected}` : ''}`}
-                      onMouseDown={(e) => {
-                        if (e.button !== 0) return
-                        handleSidebarMouseDown(f.id, e)
-                      }}
-                      onMouseUp={handleSidebarMouseUp}
-                    >
-                      <span className={styles.sidebarChannel}>{f.universe + 1}-{f.channel}</span>
-                      <span className={styles.sidebarName}>{f.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
+        </div>
+        {showUnplaced && unplacedFixtures.length > 0 && (
+          <div className={styles.sidebar}>
+            <div className={styles.sidebarHeader}>
+              <span className={styles.sidebarTitle}>Unplaced</span>
+              <button className={styles.sidebarAutoBtn} onClick={handleAutoPlace} title="Auto-place all">Auto</button>
+            </div>
+            <div className={styles.sidebarList}>
+              {unplacedFixtures.map((f) => (
+                <div
+                  key={f.id}
+                  className={`${styles.sidebarItem}${selectedUnplaced.has(f.id) ? ` ${styles.sidebarItemSelected}` : ''}`}
+                  onMouseDown={(e) => {
+                    if (e.button !== 0) return
+                    handleSidebarMouseDown(f.id, e)
+                  }}
+                  onMouseUp={handleSidebarMouseUp}
+                >
+                  <span className={styles.sidebarChannel}>{f.universe + 1}-{f.channel}</span>
+                  <span className={styles.sidebarName}>{f.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         </div>
       )}
       {sidebarDrag && (() => {

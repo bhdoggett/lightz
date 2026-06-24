@@ -162,6 +162,38 @@
   flex-shrink: 0;
 }
 
+.zoomRange {
+  width: 60px;
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+}
+
+.zoomRange::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border-default, #2a2a3a);
+}
+
+.zoomRange::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 8px;
+  height: 20px;
+  background: #ffffff;
+  border-radius: 3px;
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.5);
+  margin-top: -8px;
+}
+
+.stageAndSidebar {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
 /* Stage layout with edge controls */
 
 .stageOuter {
@@ -170,6 +202,34 @@
   flex-direction: column;
   overflow: visible;
   min-height: 0;
+}
+
+.stageOuter.scrollMode {
+  overflow: auto;
+  margin: 0 var(--space-2) var(--space-2);
+  max-height: 100%;
+}
+
+.scrollMode .stage {
+  border: 1px solid var(--border-default, #444);
+  border-radius: var(--radius-sm);
+}
+
+.scrollMode .stageMiddle {
+  flex: none;
+}
+
+.scrollMode .stageColumn {
+  flex: none;
+}
+
+.scrollMode .stage {
+  flex: none;
+}
+
+.scrollMode .stageContent {
+  width: auto;
+  height: auto;
 }
 
 .edgeTop {
