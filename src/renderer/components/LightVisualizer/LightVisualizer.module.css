@@ -447,6 +447,16 @@
   background: var(--bg-raised);
 }
 
+.sidebarItemSelected {
+  background: var(--accent-muted, rgba(99, 102, 241, 0.15));
+  border-left: 2px solid var(--accent);
+  padding-left: calc(var(--space-3) - 2px);
+}
+
+.sidebarItemSelected:hover {
+  background: var(--accent-muted, rgba(99, 102, 241, 0.22));
+}
+
 .sidebarItem:active {
   cursor: grabbing;
 }
@@ -490,4 +500,9 @@
   pointer-events: none;
   z-index: 999;
   opacity: 0.6;
+}
+
+.snapInvalid {
+  border-color: var(--status-error);
+  opacity: 0.5;
 }

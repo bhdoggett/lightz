@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import type { Fixture, GroupChannelOverride } from '../../../shared/types'
 import { channelValuesToDisplayHex } from '../../utils/colorSync'
 import { clampValue } from '../../../shared/dmx-utils'
@@ -33,6 +33,8 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const [showUnplaced, setShowUnplaced] = useState(false)
   const [showLabels, setShowLabels] = useState(false)
   const stageRef = useRef<HTMLDivElement>(null)
+  const [selectedUnplaced, setSelectedUnplaced] = useState<Set<string>>(new Set())
+  const lastClickedRef = useRef<string | null>(null)
 
   const {
     gridCols, gridRows,
@@ -45,6 +47,49 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const { sidebarDrag, onLightDragStart, startSidebarDrag } = useLightDrag({
     fixtures, gridCols, gridRows, isEditing, ownerWindow, stageRef, onFixtureVizChange,
   })
+
+  useEffect(() => {
+    const unplacedIds = new Set(unplacedFixtures.map((f) => f.id))
+    setSelectedUnplaced((prev) => {
+      const cleaned = new Set([...prev].filter((id) => unplacedIds.has(id)))
+      return cleaned.size === prev.size ? prev : cleaned
+    })
+  }, [unplacedFixtures])
+
+  const handleSidebarMouseDown = useCallback((fixtureId: string, e: React.MouseEvent) => {
+    if (e.metaKey || e.ctrlKey) {
+      setSelectedUnplaced((prev) => {
+        const next = new Set(prev)
+        if (next.has(fixtureId)) next.delete(fixtureId)
+        else next.add(fixtureId)
+        return next
+      })
+      lastClickedRef.current = fixtureId
+      return
+    }
+    if (e.shiftKey && lastClickedRef.current) {
+      const lastIdx = unplacedFixtures.findIndex((f) => f.id === lastClickedRef.current)
+      const curIdx = unplacedFixtures.findIndex((f) => f.id === fixtureId)
+      if (lastIdx >= 0 && curIdx >= 0) {
+        const from = Math.min(lastIdx, curIdx)
+        const to = Math.max(lastIdx, curIdx)
+        setSelectedUnplaced((prev) => {
+          const next = new Set(prev)
+          for (let i = from; i <= to; i++) next.add(unplacedFixtures[i].id)
+          return next
+        })
+      }
+      return
+    }
+    if (selectedUnplaced.has(fixtureId)) {
+      const ids = unplacedFixtures.filter((f) => selectedUnplaced.has(f.id)).map((f) => f.id)
+      startSidebarDrag(ids, e)
+    } else {
+      setSelectedUnplaced(new Set([fixtureId]))
+      lastClickedRef.current = fixtureId
+      startSidebarDrag([fixtureId], e)
+    }
+  }, [unplacedFixtures, selectedUnplaced, startSidebarDrag])
 
   function getEffectiveChannel(universe: 0 | 1, channel: number): number {
     const raw = getChannel(universe, channel)
@@ -240,7 +285,14 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 </div>
                 <div className={styles.sidebarList}>
                   {unplacedFixtures.map((f) => (
-                    <div key={f.id} className={styles.sidebarItem} onMouseDown={(e) => startSidebarDrag(f.id, e)}>
+                    <div
+                      key={f.id}
+                      className={`${styles.sidebarItem}${selectedUnplaced.has(f.id) ? ` ${styles.sidebarItemSelected}` : ''}`}
+                      onMouseDown={(e) => {
+                        if (e.button !== 0) return
+                        handleSidebarMouseDown(f.id, e)
+                      }}
+                    >
                       <span className={styles.sidebarChannel}>{f.universe + 1}-{f.channel}</span>
                       <span className={styles.sidebarName}>{f.name}</span>
                     </div>
@@ -252,22 +304,36 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
         </div>
       )}
       {sidebarDrag && (() => {
-        const fixture = fixtures.find((f) => f.id === sidebarDrag.fixtureId)
-        if (!fixture) return null
-        const color = getFixtureColor(fixture)
-        const intensity = getFixtureIntensity(fixture) / 255
+        const dragFixtures = sidebarDrag.fixtureIds.map((id) => fixtures.find((f) => f.id === id)).filter(Boolean) as Fixture[]
+        if (dragFixtures.length === 0) return null
+        const primary = dragFixtures[0]
+        const color = getFixtureColor(primary)
+        const intensity = getFixtureIntensity(primary) / 255
+        const ghostSize = Math.max(9, Math.round(bulbSize * 0.28))
         return (
           <>
-            <div className={styles.dragGhost} style={{ left: sidebarDrag.mouseX, top: sidebarDrag.mouseY, width: bulbSize, height: bulbSize, fontSize: Math.max(9, Math.round(bulbSize * 0.28)), backgroundColor: intensity > 0 ? color : '#000000' }}>
-              <span className={styles.channelLabel}>{fixture.universe + 1}-{fixture.channel}</span>
+            <div className={styles.dragGhost} style={{ left: sidebarDrag.mouseX, top: sidebarDrag.mouseY, width: bulbSize, height: bulbSize, fontSize: ghostSize, backgroundColor: intensity > 0 ? color : '#000000' }}>
+              <span className={styles.channelLabel}>{dragFixtures.length > 1 ? `×${dragFixtures.length}` : `${primary.universe + 1}-${primary.channel}`}</span>
             </div>
-            {sidebarDrag.overStage && stageRef.current && (
-              <div className={styles.snapIndicator} style={{
-                left: stageRef.current.getBoundingClientRect().left + (colToPercent(sidebarDrag.snappedCol, gridCols) / 100) * stageRef.current.getBoundingClientRect().width,
-                top: stageRef.current.getBoundingClientRect().top + (rowToPercent(sidebarDrag.snappedRow, gridRows) / 100) * stageRef.current.getBoundingClientRect().height,
-                width: bulbSize + 8, height: bulbSize + 8,
-              }} />
-            )}
+            {sidebarDrag.overStage && stageRef.current && (() => {
+              const rect = stageRef.current.getBoundingClientRect()
+              return dragFixtures.map((_, i) => {
+                const col = sidebarDrag.vertical ? sidebarDrag.snappedCol : sidebarDrag.snappedCol + i
+                const row = sidebarDrag.vertical ? sidebarDrag.snappedRow + i : sidebarDrag.snappedRow
+                if (col >= gridCols || row >= gridRows) return null
+                return (
+                  <div
+                    key={i}
+                    className={`${styles.snapIndicator}${!sidebarDrag.valid ? ` ${styles.snapInvalid}` : ''}`}
+                    style={{
+                      left: rect.left + (colToPercent(col, gridCols) / 100) * rect.width,
+                      top: rect.top + (rowToPercent(row, gridRows) / 100) * rect.height,
+                      width: bulbSize + 8, height: bulbSize + 8,
+                    }}
+                  />
+                )
+              })
+            })()}
           </>
         )
       })()}
