@@ -17,7 +17,7 @@ npm install
 npm run build:mac
 ```
 
-Open `dist-electron/Lightz-0.2.0-arm64.dmg` (Apple Silicon) or `Lightz-0.2.0.dmg` (Intel) from Finder. Drag **Lightz** to Applications.
+Open `dist-electron/Lightz-0.2.1-arm64.dmg` (Apple Silicon) or `Lightz-0.2.1.dmg` (Intel) from Finder. Drag **Lightz** to Applications.
 
 ### Option B — Download pre-built .dmg
 
@@ -27,8 +27,8 @@ Download the right file for your Mac:
 
 | Download                                                                                                      | For                         |
 | ------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| [Lightz-0.2.0-arm64.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.0/Lightz-0.2.0-arm64.dmg) | Apple Silicon (M1/M2/M3/M4) |
-| [Lightz-0.2.0.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.0/Lightz-0.2.0.dmg)             | Intel Mac                   |
+| [Lightz-0.2.1-arm64.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.1/Lightz-0.2.1-arm64.dmg) | Apple Silicon (M1/M2/M3/M4) |
+| [Lightz-0.2.1.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.1/Lightz-0.2.1.dmg)             | Intel Mac                   |
 
 Double-click the `.dmg`, drag Lightz to Applications, then open it. macOS may prompt you in **System Settings → Privacy & Security** on first launch — click **Open Anyway**.
 
@@ -93,8 +93,13 @@ A 2D stage view that simulates your lighting output — works with or without DM
 - **Sticky bottom panel** — drag-resizable, collapsible, or pop out to a separate window.
 - **Stage layout** — fixtures render as colored circles at their current intensity and color. Drag them to arrange a room layout.
 - **Grid editing** — click the pencil icon to enter edit mode. Fixtures snap to grid points. Add/remove rows and columns with edge +/- buttons.
+- **Ghost-based drag** — dragging a light shows a ghost circle with snap indicators at the target position. Invalid placements (collisions, out of bounds) show red indicators. Fixtures stay in place until you drop.
+- **Marquee selection** — click and drag on empty stage space to draw a selection rectangle. Selected lights get an accent outline. Drag any selected light to move the whole group together, maintaining relative positions.
+- **Cmd+click** — toggle individual lights in/out of the selection.
+- **Delete/Backspace** — removes selected lights from the grid (returns them to unplaced).
+- **Fit/Scroll mode** — toggle between stretching the grid to fit the window or using a fixed-proportion grid with zoom and scrolling. In scroll mode, grid cells are always square regardless of window size.
 - **Multiple lights per channel** — one DMX channel often controls several physical fixtures. Duplicate a light with + to add more visual instances on the same channel.
-- **Unplaced fixtures** — fixtures not yet positioned appear in a sidebar. Drag them onto the grid, or click **Auto** to place them all sequentially.
+- **Unplaced fixtures** — fixtures not yet positioned appear in a sidebar. Click to select, Shift-click for range, Cmd-click to toggle. Drag onto the grid — hold Shift during drag to place vertically instead of horizontally.
 - **Group overrides** — mute, full, and fader states from groups are reflected in the visualizer.
 - **Labels toggle** — click the tag icon to show/hide fixture names and intensity percentages. Hover any light to see its info.
 - **Pop-out window** — detach the visualizer to a separate window (great for a second monitor), dock it back with one click.
@@ -181,6 +186,7 @@ Lightz runs a local HTTP server that Companion can call to fire scenes.
 
 | Action                        | How                                                                      |
 | ----------------------------- | ------------------------------------------------------------------------ |
+| Type a channel value          | Click the value number above any fader to type a DMX value (0–255)       |
 | Rename a fixture              | Click the channel label or fixture name on any fader                     |
 | Clear a fixture name          | Rename to empty — removes the fixture                                    |
 | Reorder scenes                | Drag a scene button left or right                                        |
@@ -191,6 +197,12 @@ Lightz runs a local HTTP server that Companion can call to fire scenes.
 | Expand sub-faders             | Click the **›** arrow on a multi-channel fixture                         |
 | Link/unlink a sub-fader       | Click the chain icon beneath the sub-fader label                        |
 | Collapse a section            | Click the section header (Scenes, Groups, Universe 1, Universe 2, etc.) |
+| Marquee-select lights         | Click and drag on empty stage space in edit mode                         |
+| Toggle light selection        | Cmd+click a light on the visualizer stage                                |
+| Move selected lights          | Drag any selected light — group moves together                           |
+| Unplace selected lights       | Press Delete or Backspace with lights selected                           |
+| Multi-select unplaced         | Shift-click (range) or Cmd-click (toggle) in unplaced sidebar            |
+| Place vertically              | Hold Shift while dragging unplaced fixtures onto the grid                |
 
 ---
 
