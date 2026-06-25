@@ -97,7 +97,7 @@
   display: flex;
   justify-content: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-6) 0;
+  padding: var(--space-3) var(--space-6) var(--space-2);
   flex-shrink: 0;
 }
 
@@ -116,12 +116,51 @@
   border-color: var(--text-secondary);
 }
 
+.layoutToggleBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.layoutToggleBtn:hover {
+  color: var(--text-secondary);
+  border-color: var(--text-secondary);
+}
+
+.layoutToggleBtn.layoutToggleActive {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .fixtures {
-  padding: var(--space-6);
+  padding: var(--space-2) var(--space-6) var(--space-6);
   display: flex;
   flex-wrap: wrap;
   gap: var(--fader-gap);
   align-content: flex-start;
+}
+
+.fixtures.fixturesHorizontal {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: var(--space-3);
+}
+
+.fixturesSection.fixturesSectionHorizontal {
+  overflow-y: hidden;
+  overflow-x: auto;
+  flex-direction: row;
+}
+
+.fixturesSectionHorizontal .universeGroup {
+  flex-shrink: 0;
 }
 
 .empty {

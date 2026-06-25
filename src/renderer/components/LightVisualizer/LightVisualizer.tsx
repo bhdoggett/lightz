@@ -18,6 +18,8 @@ interface Props {
   popped?: boolean
   onPopout?: () => void
   onDock?: () => void
+  defaultExpanded?: boolean
+  onExpandedChange?: (expanded: boolean) => void
 }
 
 const DEFAULT_HEIGHT = 250
@@ -26,9 +28,9 @@ const MAX_BULB_SIZE = 120
 const DEFAULT_BULB_SIZE = 48
 const BULB_STEP = 8
 
-export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixtureVizChange, popped = false, onPopout, onDock }: Props) {
+export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixtureVizChange, popped = false, onPopout, onDock, defaultExpanded = false, onExpandedChange }: Props) {
   const ownerWindow = useOwnerWindow()
-  const { expanded, setExpanded, height, onResizeStart, MIN_HEIGHT } = useStageResize(DEFAULT_HEIGHT, ownerWindow)
+  const { expanded, setExpanded, height, onResizeStart, MIN_HEIGHT } = useStageResize(DEFAULT_HEIGHT, ownerWindow, defaultExpanded)
   const [isEditing, setIsEditing] = useState(false)
   const [bulbSize, setBulbSize] = useState(DEFAULT_BULB_SIZE)
   const [showUnplaced, setShowUnplaced] = useState(false)
@@ -39,6 +41,48 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const [selectedUnplaced, setSelectedUnplaced] = useState<Set<string>>(new Set())
   const lastClickedRef = useRef<string | null>(null)
   const pendingClickNarrow = useRef<string | null>(null)
+
+  useEffect(() => {
+    onExpandedChange?.(expanded)
+  }, [expanded, onExpandedChange])
+
+  const handleWheel = useCallback((e: WheelEvent) => {
+    if (e.metaKey) {
+      e.preventDefault()
+      const step = e.deltaY > 0 ? -2 : 2
+      setBulbSize((s) => Math.max(MIN_BULB_SIZE, Math.min(MAX_BULB_SIZE, s + step)))
+    } else if (e.ctrlKey && !fitMode) {
+      // trackpad pinch reports ctrlKey — use for zoom in scroll mode
+      e.preventDefault()
+      setZoom((z) => Math.max(50, Math.min(300, z - Math.round(e.deltaY * 0.3))))
+    }
+    // plain scroll: let browser handle natively (scrolling in scroll mode)
+  }, [fitMode])
+
+  useEffect(() => {
+    const el = stageRef.current
+    if (!el || (!expanded && !popped)) return
+    el.addEventListener('wheel', handleWheel, { passive: false })
+    return () => el.removeEventListener('wheel', handleWheel)
+  }, [handleWheel, expanded, popped])
+
+  useEffect(() => {
+    if (popped) return
+    const onKey = (e: KeyboardEvent) => {
+      const active = document.activeElement
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLSelectElement || (active as HTMLElement)?.isContentEditable) return
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (e.key === 'v' && !e.shiftKey) {
+        e.preventDefault()
+        setExpanded((v) => !v)
+      } else if (e.key === 'V' && e.shiftKey) {
+        e.preventDefault()
+        onPopout?.()
+      }
+    }
+    ownerWindow.addEventListener('keydown', onKey)
+    return () => ownerWindow.removeEventListener('keydown', onKey)
+  }, [popped, onPopout, ownerWindow, setExpanded])
 
   const {
     gridCols, gridRows,
@@ -250,37 +294,39 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
           )}
           {!expanded && !popped && <div className={styles.compactStrip}>{compactDots}</div>}
         </div>
-        {expanded && (
-          <div className={styles.toolbarRight}>
-            <button className={styles.sizeBtn} onClick={() => setBulbSize((s) => Math.min(MAX_BULB_SIZE, s + BULB_STEP))} disabled={bulbSize >= MAX_BULB_SIZE} title="Larger lights">+</button>
-            <button className={styles.sizeBtn} onClick={() => setBulbSize((s) => Math.max(MIN_BULB_SIZE, s - BULB_STEP))} disabled={bulbSize <= MIN_BULB_SIZE} title="Smaller lights">−</button>
-            <button className={`${styles.editBtn}${showLabels ? ` ${styles.editing}` : ''}`} onClick={() => setShowLabels((v) => !v)} title={showLabels ? 'Hide labels' : 'Show labels'}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/>
-                <circle cx="7" cy="7" r="1" fill="currentColor"/>
-              </svg>
-            </button>
-            <button className={`${styles.editBtn}${isEditing ? ` ${styles.editing}` : ''}`} onClick={() => { if (isEditing) setShowUnplaced(false); setIsEditing((v) => !v) }} title={isEditing ? 'Done editing' : 'Edit layout'}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                <path d="m15 5 4 4"/>
-              </svg>
-            </button>
-            {popped ? (
-              <button className={styles.editBtn} onClick={onDock} title="Dock visualizer back">
+        <div className={styles.toolbarRight}>
+          {(expanded || popped) && (
+            <>
+              <button className={styles.sizeBtn} onClick={() => setBulbSize((s) => Math.min(MAX_BULB_SIZE, s + BULB_STEP))} disabled={bulbSize >= MAX_BULB_SIZE} title="Larger lights">+</button>
+              <button className={styles.sizeBtn} onClick={() => setBulbSize((s) => Math.max(MIN_BULB_SIZE, s - BULB_STEP))} disabled={bulbSize <= MIN_BULB_SIZE} title="Smaller lights">−</button>
+              <button className={`${styles.editBtn}${showLabels ? ` ${styles.editing}` : ''}`} onClick={() => setShowLabels((v) => !v)} title={showLabels ? 'Hide labels' : 'Show labels'}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/>
+                  <circle cx="7" cy="7" r="1" fill="currentColor"/>
                 </svg>
               </button>
-            ) : (
-              <button className={styles.editBtn} onClick={onPopout} title="Pop out visualizer">
+              <button className={`${styles.editBtn}${isEditing ? ` ${styles.editing}` : ''}`} onClick={() => { if (isEditing) setShowUnplaced(false); setIsEditing((v) => !v) }} title={isEditing ? 'Done editing' : 'Edit layout'}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
+                  <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                  <path d="m15 5 4 4"/>
                 </svg>
               </button>
-            )}
-          </div>
-        )}
+            </>
+          )}
+          {popped ? (
+            <button className={styles.editBtn} onClick={onDock} title="Dock visualizer back">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+              </svg>
+            </button>
+          ) : (
+            <button className={styles.editBtn} onClick={onPopout} title="Pop out visualizer">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3"/>
+              </svg>
+            </button>
+          )}
+        </div>
       </div>
       {(expanded || popped) && (
         <div className={styles.stageAndSidebar}>

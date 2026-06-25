@@ -42,6 +42,18 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   const [groupAddTrigger, setGroupAddTrigger] = useState(0)
 
   useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const active = document.activeElement
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLSelectElement || (active as HTMLElement)?.isContentEditable) return
+      if (e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return
+      if (e.key === 'f') { e.preventDefault(); setTab('full') }
+      else if (e.key === 'c') { e.preventDefault(); setTab('custom') }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
+
+  useEffect(() => {
     api.onMenuViewFull(() => setTab('full'))
     api.onMenuViewCustom(() => setTab('custom'))
     api.onMenuAddChannels(() => { setTab('custom'); setAddingFixtures(true) })
@@ -311,6 +323,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     return state.fader / 100
   }, [groups, groupStates])
 
+  const [fixturesHorizontal, setFixturesHorizontal] = useState(false)
   const [sectionsCollapsed, setSectionsCollapsed] = useState<Record<string, boolean>>({ scenes: false, groups: false, fixturesU0: false, fixturesU1: false })
   const toggleSection = (key: string) => setSectionsCollapsed((prev) => ({ ...prev, [key]: !prev[key] }))
 
@@ -389,8 +402,28 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
             <button className={styles.addFixtureBtn} onClick={() => setCreatingFixture(true)}>
               + Add Custom Fixture
             </button>
+            <button
+              className={`${styles.layoutToggleBtn}${fixturesHorizontal ? ` ${styles.layoutToggleActive}` : ''}`}
+              onClick={() => setFixturesHorizontal((v) => !v)}
+              title={fixturesHorizontal ? 'Wrap fixtures onto rows' : 'Scroll fixtures horizontally'}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                {fixturesHorizontal ? (
+                  <>
+                    <rect x="3" y="3" width="7" height="7" rx="1"/>
+                    <rect x="14" y="3" width="7" height="7" rx="1"/>
+                    <rect x="3" y="14" width="7" height="7" rx="1"/>
+                    <rect x="14" y="14" width="7" height="7" rx="1"/>
+                  </>
+                ) : (
+                  <>
+                    <path d="M4 12h16M16 8l4 4-4 4"/>
+                  </>
+                )}
+              </svg>
+            </button>
           </div>
-          <div className={styles.fixturesSection}>
+          <div className={`${styles.fixturesSection}${fixturesHorizontal ? ` ${styles.fixturesSectionHorizontal}` : ''}`}>
             {fixtures.length === 0 && (
               <p className={styles.empty}>No fixtures yet — click "+ Add Channels" to get started.</p>
             )}
@@ -403,7 +436,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
                   Universe {u + 1}
                 </button>
                 {!sectionsCollapsed[`fixturesU${u}`] && (
-                  <div className={styles.fixtures}>
+                  <div className={`${styles.fixtures}${fixturesHorizontal ? ` ${styles.fixturesHorizontal}` : ''}`}>
                     {fixturesByUniverse[u].map((fixture) =>
                       fixture.channels ? (
                         <MultiFixtureFader

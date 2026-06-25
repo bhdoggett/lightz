@@ -1,7 +1,7 @@
 {
   "name": "lightz",
   "productName": "Lightz",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "DMX lighting controller for Enttec USB DMX Pro Mk2",
   "author": "bdoggett@gmail.com",
   "private": true,

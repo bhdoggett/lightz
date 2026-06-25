@@ -3,8 +3,8 @@ import { useState, useCallback, useRef, useEffect } from 'react'
 const MIN_HEIGHT = 32
 const MAX_HEIGHT = 600
 
-export function useStageResize(defaultHeight: number, ownerWindow: Window) {
-  const [expanded, setExpanded] = useState(true)
+export function useStageResize(defaultHeight: number, ownerWindow: Window, initialExpanded = false) {
+  const [expanded, setExpanded] = useState(initialExpanded)
   const [height, setHeight] = useState(defaultHeight)
   const resizing = useRef(false)
   const startY = useRef(0)

@@ -5,6 +5,7 @@ import { CompanionModal } from './components/CompanionModal'
 import { ShowsModal } from './components/ShowsModal'
 import { LightVisualizer } from './components/LightVisualizer'
 import { PopoutWindow } from './components/PopoutWindow'
+import { Modal } from './components/Modal'
 import { useApi } from './api/context'
 import { useDmxState } from './hooks/useDmxState'
 import { useUpdateCheck } from './hooks/useUpdateCheck'
@@ -37,6 +38,8 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
   const saveTriggerRef = useRef<(() => void) | null>(null)
   const [overrideMap, setOverrideMap] = useState<Record<string, GroupChannelOverride>>({})
   const [vizPopped, setVizPopped] = useState(false)
+  const [aboutModalOpen, setAboutModalOpen] = useState(false)
+  const [vizExpanded, setVizExpanded] = useState(false)
   const { update, dismiss: dismissUpdate } = useUpdateCheck(APP_VERSION)
 
   useEffect(() => {
@@ -240,6 +243,9 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
                   <button className={styles.aboutLink} onClick={() => api.openExternal('https://github.com/bhdoggett/lightz')}>
                     GitHub repo
                   </button>
+                  <button className={styles.aboutLink} onClick={() => { setAboutOpen(false); setAboutModalOpen(true) }}>
+                    Keyboard shortcuts
+                  </button>
                 </div>
               )
             })()}
@@ -271,7 +277,7 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
         />
       </div>
       {vizPopped ? (
-        <PopoutWindow title="Lightz — Visualizer" onClose={() => setVizPopped(false)}>
+        <PopoutWindow title="Lightz — Visualizer" width={1200} height={800} onClose={() => setVizPopped(false)}>
           <LightVisualizer
             fixtures={config.fixtures}
             getChannel={getChannel}
@@ -288,6 +294,8 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
           overrideMap={overrideMap}
           onFixtureVizChange={handleFixtureVizChange}
           onPopout={() => setVizPopped(true)}
+          defaultExpanded={vizExpanded}
+          onExpandedChange={setVizExpanded}
         />
       )}
 
@@ -300,6 +308,34 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
           dirty={dirty}
           currentShowName={currentShowName}
         />
+      )}
+
+      {aboutModalOpen && (
+        <Modal title="Keyboard Shortcuts" onClose={() => setAboutModalOpen(false)} minWidth="340px" maxWidth="480px">
+          <div className={styles.shortcutsModal}>
+            <p className={styles.shortcutsSection}>App</p>
+            <table className={styles.shortcutsTable}>
+              <tbody>
+                <tr><td className={styles.shortcutKey}>F</td><td className={styles.shortcutDesc}>Switch to Full view</td></tr>
+                <tr><td className={styles.shortcutKey}>C</td><td className={styles.shortcutDesc}>Switch to Custom view</td></tr>
+                <tr><td className={styles.shortcutKey}>V</td><td className={styles.shortcutDesc}>Expand / collapse visualizer</td></tr>
+                <tr><td className={styles.shortcutKey}>⇧V</td><td className={styles.shortcutDesc}>Pop out visualizer</td></tr>
+              </tbody>
+            </table>
+            <p className={styles.shortcutsSection}>Visualizer</p>
+            <table className={styles.shortcutsTable}>
+              <tbody>
+                <tr><td className={styles.shortcutKey}>⌘ + scroll</td><td className={styles.shortcutDesc}>Resize fixture circles</td></tr>
+                <tr><td className={styles.shortcutKey}>Pinch</td><td className={styles.shortcutDesc}>Zoom in / out (scroll mode)</td></tr>
+                <tr><td className={styles.shortcutKey}>Scroll</td><td className={styles.shortcutDesc}>Pan around (scroll mode)</td></tr>
+                <tr><td className={styles.shortcutKey}>⌘ click</td><td className={styles.shortcutDesc}>Multi-select fixtures</td></tr>
+                <tr><td className={styles.shortcutKey}>Del / ⌫</td><td className={styles.shortcutDesc}>Remove selected fixture</td></tr>
+                <tr><td className={styles.shortcutKey}>Drag</td><td className={styles.shortcutDesc}>Place unplaced fixture on stage</td></tr>
+                <tr><td className={styles.shortcutKey}>⇧ + drag</td><td className={styles.shortcutDesc}>Toggle horizontal / vertical drop</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </Modal>
       )}
 
       {companionOpen && (
