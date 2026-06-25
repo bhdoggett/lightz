@@ -101,6 +101,7 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
       )
       return { ...c, fixtures }
     })
+    setDirty(true)
     if (config) {
       const fixture = config.fixtures.find((f) => f.id === fixtureId)
       if (fixture) {

@@ -150,6 +150,11 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
         api.setChannel({ universe: u, channel: ch, value: 0 })
       }
     }
+    setGroupStates((prev) => {
+      const reset: Record<string, GroupState> = {}
+      for (const id of Object.keys(prev)) reset[id] = { fader: 100, override: null }
+      return reset
+    })
     setActiveSceneId(null)
   }, [api, setLocal])
 

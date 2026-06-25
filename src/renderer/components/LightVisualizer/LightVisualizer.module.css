@@ -43,6 +43,8 @@
   align-items: center;
   gap: var(--space-2);
   cursor: pointer;
+  flex: 1;
+  min-width: 0;
 }
 
 .toolbarLabel {
@@ -66,6 +68,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-1);
+  flex-shrink: 0;
 }
 
 .sizeBtn {
@@ -153,6 +156,13 @@
   gap: 3px;
   padding: 0 var(--space-1);
   overflow-x: auto;
+  flex: 1;
+  min-width: 0;
+  scrollbar-width: none;
+}
+
+.compactStrip::-webkit-scrollbar {
+  display: none;
 }
 
 .compactDot {

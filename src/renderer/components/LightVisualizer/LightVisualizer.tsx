@@ -41,6 +41,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
   const [selectedUnplaced, setSelectedUnplaced] = useState<Set<string>>(new Set())
   const lastClickedRef = useRef<string | null>(null)
   const pendingClickNarrow = useRef<string | null>(null)
+  const lastClickedStageRef = useRef<string | null>(null)
 
   useEffect(() => {
     onExpandedChange?.(expanded)
@@ -54,7 +55,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
     } else if (e.ctrlKey && !fitMode) {
       // trackpad pinch reports ctrlKey — use for zoom in scroll mode
       e.preventDefault()
-      setZoom((z) => Math.max(50, Math.min(300, z - Math.round(e.deltaY * 0.3))))
+      setZoom((z) => Math.max(15, Math.min(300, z - Math.round(e.deltaY * 0.3))))
     }
     // plain scroll: let browser handle natively (scrolling in scroll mode)
   }, [fitMode])
@@ -282,7 +283,7 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                 <input
                   className={styles.zoomRange}
                   type="range"
-                  min={50}
+                  min={15}
                   max={300}
                   value={zoom}
                   onClick={(e) => e.stopPropagation()}
@@ -422,9 +423,39 @@ export function LightVisualizer({ fixtures, getChannel, overrideMap = {}, onFixt
                               else next.add(posKey)
                               return next
                             })
+                            lastClickedStageRef.current = posKey
                             return
                           }
-                          if (!isSelected) clearStageSelection()
+                          if (e.shiftKey) {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            const last = lastClickedStageRef.current
+                            if (last) {
+                              const ordered = placedFixtures.flatMap((f) =>
+                                getPositions(f).map((p, i) => ({ key: `${f.id}:${i}`, col: p.col, row: p.row }))
+                              ).sort((a, b) => a.row !== b.row ? a.row - b.row : a.col - b.col).map((x) => x.key)
+                              const fromIdx = ordered.indexOf(last)
+                              const toIdx = ordered.indexOf(posKey)
+                              if (fromIdx >= 0 && toIdx >= 0) {
+                                const lo = Math.min(fromIdx, toIdx)
+                                const hi = Math.max(fromIdx, toIdx)
+                                setSelectedStage((prev) => {
+                                  const next = new Set(prev)
+                                  for (let idx = lo; idx <= hi; idx++) next.add(ordered[idx])
+                                  return next
+                                })
+                              }
+                            } else {
+                              setSelectedStage(new Set([posKey]))
+                            }
+                            lastClickedStageRef.current = posKey
+                            return
+                          }
+                          // plain click/drag: select this fixture (keep group if already selected)
+                          if (!isSelected) {
+                            setSelectedStage(new Set([posKey]))
+                          }
+                          lastClickedStageRef.current = posKey
                           onLightDragStart(e, fixture.id, pi, pos)
                         }}
                       >
