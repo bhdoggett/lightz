@@ -48,6 +48,8 @@ export function useMarqueeSelect({ fixtures, gridCols, gridRows, isEditing, owne
   const [selectedStage, setSelectedStage] = useState<Set<string>>(new Set())
   const marqueeStart = useRef<{ x: number; y: number } | null>(null)
   const marqueeActive = useRef(false)
+  const marqueeAdditive = useRef(false)
+  const marqueeBase = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
@@ -68,7 +70,7 @@ export function useMarqueeSelect({ fixtures, gridCols, gridRows, isEditing, owne
       if (stageRef.current) {
         const stageRect = stageRef.current.getBoundingClientRect()
         const hits = positionsInRect(fixtures, rect, gridCols, gridRows, stageRect)
-        setSelectedStage(hits)
+        setSelectedStage(marqueeAdditive.current ? new Set([...marqueeBase.current, ...hits]) : hits)
       }
     }
 
@@ -76,7 +78,7 @@ export function useMarqueeSelect({ fixtures, gridCols, gridRows, isEditing, owne
       if (marqueeActive.current && marquee && stageRef.current) {
         const stageRect = stageRef.current.getBoundingClientRect()
         const hits = positionsInRect(fixtures, marquee, gridCols, gridRows, stageRect)
-        setSelectedStage(hits)
+        setSelectedStage(marqueeAdditive.current ? new Set([...marqueeBase.current, ...hits]) : hits)
       }
       marqueeStart.current = null
       marqueeActive.current = false
@@ -96,10 +98,14 @@ export function useMarqueeSelect({ fixtures, gridCols, gridRows, isEditing, owne
     e.preventDefault()
     marqueeStart.current = { x: e.clientX, y: e.clientY }
     marqueeActive.current = false
-    if (!e.shiftKey && !e.metaKey && !e.ctrlKey) {
+    marqueeAdditive.current = e.metaKey || e.ctrlKey
+    if (marqueeAdditive.current) {
+      marqueeBase.current = new Set(selectedStage)
+    } else {
+      marqueeBase.current = new Set()
       setSelectedStage(new Set())
     }
-  }, [isEditing])
+  }, [isEditing, selectedStage])
 
   const clearStageSelection = useCallback(() => {
     setSelectedStage(new Set())
