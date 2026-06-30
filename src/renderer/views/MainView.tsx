@@ -7,11 +7,10 @@ import { MultiFixtureFader } from '../components/MultiFixtureFader'
 import { CreateFixtureModal } from '../components/CreateFixtureModal'
 import { LiveView } from './LiveView'
 import { useApi } from '../api/context'
-import type { Fixture, Scene, Group, GroupChannelOverride, FixtureTemplate } from '../../shared/types'
+import type { Fixture, Scene, Group, GroupState, GroupChannelOverride, FixtureTemplate } from '../../shared/types'
 import styles from './MainView.module.css'
 
 type Tab = 'custom' | 'full'
-type GroupState = { fader: number; override: 'full' | 'mute' | null }
 
 interface Props {
   fixtures: Fixture[]
@@ -209,10 +208,17 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     if (!scene) return
     setActiveSceneId(id)
     applyScene(scene.values, fixtures)
+    setGroupStates(() => {
+      const next: Record<string, GroupState> = {}
+      for (const g of groups) {
+        next[g.id] = scene.groupStates?.[g.id] ?? { fader: 100, override: null }
+      }
+      return next
+    })
     await api.loadScene(id)
-  }, [scenes, fixtures, api, applyScene])
+  }, [scenes, fixtures, groups, api, applyScene])
 
-  const handleSave = useCallback(async (name: string, fadeDuration: number) => {
+  const handleSave = useCallback(async (name: string, fadeDuration: number, groupStates: Record<string, GroupState>) => {
     const values: Record<string, number> = {}
     for (const f of fixtures) {
       if (f.channels) {
@@ -223,12 +229,12 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
         values[f.id] = getChannel(f.universe, f.channel)
       }
     }
-    const saved = await api.saveScene({ name, fadeDuration, values })
+    const saved = await api.saveScene({ name, fadeDuration, values, groupStates })
     onScenesChange([...scenes, saved])
   }, [fixtures, scenes, api, getChannel, onScenesChange])
 
-  const handleSceneUpdate = useCallback(async (id: string, name: string, fadeDuration: number) => {
-    const updated = await api.updateScene({ id, name, fadeDuration })
+  const handleSceneUpdate = useCallback(async (id: string, name: string, fadeDuration: number, groupStates: Record<string, GroupState>) => {
+    const updated = await api.updateScene({ id, name, fadeDuration, groupStates })
     if (!updated) return
     onScenesChange(scenes.map((s) => s.id === id ? updated : s))
     if (activeSceneId === id) setActiveSceneId(updated.id)
@@ -371,6 +377,8 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
               <ScenesStrip
                 scenes={scenes}
                 activeSceneId={activeSceneId}
+                groups={groups}
+                currentGroupStates={groupStates}
                 onActivate={handleActivate}
                 onSave={handleSave}
                 onUpdate={handleSceneUpdate}
@@ -524,6 +532,8 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
               <ScenesStrip
                 scenes={scenes}
                 activeSceneId={activeSceneId}
+                groups={groups}
+                currentGroupStates={groupStates}
                 onActivate={handleActivate}
                 onSave={handleSave}
                 onUpdate={handleSceneUpdate}
