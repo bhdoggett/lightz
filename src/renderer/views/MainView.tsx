@@ -38,6 +38,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   const [fixtureTemplates, setFixtureTemplates] = useState<FixtureTemplate[]>(() => [])
 
   const [sceneSaveTrigger, setSceneSaveTrigger] = useState(0)
+  const [sceneEditTrigger, setSceneEditTrigger] = useState(0)
   const [groupAddTrigger, setGroupAddTrigger] = useState(0)
 
   useEffect(() => {
@@ -374,12 +375,22 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
       {tab === 'custom' && (
         <>
           <div className={styles.section}>
-            <button className={styles.sectionLabel} onClick={() => toggleSection('scenes')}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: sectionsCollapsed.scenes ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>
-                <path d="M6 9l6 6 6-6"/>
-              </svg>
-              Scenes
-            </button>
+            <div className={styles.sectionHeader}>
+              <button className={styles.sectionLabel} onClick={() => toggleSection('scenes')}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: sectionsCollapsed.scenes ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+                Scenes
+              </button>
+              {!sectionsCollapsed.scenes && (
+                <div className={styles.sectionActions}>
+                  {activeSceneId && (
+                    <button className={styles.sectionActionBtn} onClick={() => setSceneEditTrigger((n) => n + 1)}>Edit Scene</button>
+                  )}
+                  <button className={styles.sectionActionBtn} onClick={() => setSceneSaveTrigger((n) => n + 1)}>+ Save Scene</button>
+                </div>
+              )}
+            </div>
             {!sectionsCollapsed.scenes && (
               <ScenesStrip
                 scenes={scenes}
@@ -392,6 +403,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
                 onDelete={handleSceneDelete}
                 onReorder={handleSceneReorder}
                 saveTrigger={sceneSaveTrigger}
+                editTrigger={sceneEditTrigger}
               />
             )}
           </div>
@@ -529,12 +541,22 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
       {tab === 'full' && (
         <>
           <div className={styles.section}>
-            <button className={styles.sectionLabel} onClick={() => toggleSection('scenes')}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: sectionsCollapsed.scenes ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>
-                <path d="M6 9l6 6 6-6"/>
-              </svg>
-              Scenes
-            </button>
+            <div className={styles.sectionHeader}>
+              <button className={styles.sectionLabel} onClick={() => toggleSection('scenes')}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: sectionsCollapsed.scenes ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+                Scenes
+              </button>
+              {!sectionsCollapsed.scenes && (
+                <div className={styles.sectionActions}>
+                  {activeSceneId && (
+                    <button className={styles.sectionActionBtn} onClick={() => setSceneEditTrigger((n) => n + 1)}>Edit Scene</button>
+                  )}
+                  <button className={styles.sectionActionBtn} onClick={() => setSceneSaveTrigger((n) => n + 1)}>+ Save Scene</button>
+                </div>
+              )}
+            </div>
             {!sectionsCollapsed.scenes && (
               <ScenesStrip
                 scenes={scenes}
@@ -546,6 +568,8 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
                 onUpdate={handleSceneUpdate}
                 onDelete={handleSceneDelete}
                 onReorder={handleSceneReorder}
+                saveTrigger={sceneSaveTrigger}
+                editTrigger={sceneEditTrigger}
               />
             )}
           </div>

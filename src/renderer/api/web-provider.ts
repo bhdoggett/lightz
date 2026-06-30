@@ -59,7 +59,10 @@ export function createWebApi(callbacks: WebApiCallbacks): LightzApi {
 
     saveScene: async (args) => {
       const id = args.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
-      const scene: Scene = { id, name: args.name, fadeDuration: args.fadeDuration, values: args.values }
+      const scene: Scene = {
+        id, name: args.name, fadeDuration: args.fadeDuration, values: args.values,
+        ...(args.groupStates !== undefined && { groupStates: args.groupStates }),
+      }
       config.scenes.push(scene)
       return structuredClone(scene)
     },
@@ -121,6 +124,7 @@ export function createWebApi(callbacks: WebApiCallbacks): LightzApi {
         ...config.scenes[idx],
         id: newId, name: args.name, fadeDuration: args.fadeDuration,
         ...(args.values !== undefined && { values: args.values }),
+        ...(args.groupStates !== undefined && { groupStates: args.groupStates }),
       }
       return structuredClone(config.scenes[idx])
     },

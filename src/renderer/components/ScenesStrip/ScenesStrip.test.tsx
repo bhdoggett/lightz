@@ -40,32 +40,20 @@ describe('ScenesStrip', () => {
     expect(onActivate).toHaveBeenCalledWith('worship-mode')
   })
 
-  it('renders save scene button', () => {
-    render(<ScenesStrip {...defaultProps} />)
-    expect(screen.getByText(/save scene/i)).toBeInTheDocument()
+  it('opens save dialog when saveTrigger is set', () => {
+    render(<ScenesStrip {...defaultProps} saveTrigger={1} />)
+    expect(screen.getByPlaceholderText('Scene name')).toBeInTheDocument()
   })
 
-  it('does not show Edit button when no scene is active', () => {
-    render(<ScenesStrip {...defaultProps} activeSceneId={null} />)
-    expect(screen.queryByRole('button', { name: /^edit$/i })).not.toBeInTheDocument()
-  })
-
-  it('shows Edit button when a scene is active', () => {
-    render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" />)
-    expect(screen.getByRole('button', { name: /^edit$/i })).toBeInTheDocument()
-  })
-
-  it('opens edit dialog with pre-filled values when Edit clicked', async () => {
-    render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" />)
-    await userEvent.click(screen.getByRole('button', { name: /^edit$/i }))
+  it('opens edit dialog with pre-filled values when editTrigger is set', () => {
+    render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" editTrigger={1} />)
     expect(screen.getByDisplayValue('Worship Mode')).toBeInTheDocument()
     expect(screen.getByDisplayValue('1000')).toBeInTheDocument()
   })
 
   it('calls onUpdate when Update clicked in edit dialog', async () => {
     const onUpdate = vi.fn()
-    render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" onUpdate={onUpdate} />)
-    await userEvent.click(screen.getByRole('button', { name: /^edit$/i }))
+    render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" onUpdate={onUpdate} editTrigger={1} />)
     fireEvent.change(screen.getByDisplayValue('Worship Mode'), { target: { value: 'New Name' } })
     await userEvent.click(screen.getByRole('button', { name: /^update$/i }))
     expect(onUpdate).toHaveBeenCalledWith('worship-mode', 'New Name', 1000, {})
@@ -73,19 +61,16 @@ describe('ScenesStrip', () => {
 
   it('calls onDelete when Delete clicked in edit dialog', async () => {
     const onDelete = vi.fn()
-    render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" onDelete={onDelete} />)
-    await userEvent.click(screen.getByRole('button', { name: /^edit$/i }))
+    render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" onDelete={onDelete} editTrigger={1} />)
     await userEvent.click(screen.getByRole('button', { name: /^delete$/i }))
     expect(onDelete).toHaveBeenCalledWith('worship-mode')
   })
 
   it('closes edit dialog without changes when Cancel clicked', async () => {
-    render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" />)
-    await userEvent.click(screen.getByRole('button', { name: /^edit$/i }))
+    render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" editTrigger={1} />)
     expect(screen.getByDisplayValue('Worship Mode')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
     expect(screen.queryByDisplayValue('Worship Mode')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^edit$/i })).toBeInTheDocument()
   })
 })
 
@@ -100,25 +85,22 @@ const currentGroupStates = {
 }
 
 describe('ScenesStrip group checkboxes', () => {
-  it('shows group checkboxes in save dialog', async () => {
-    render(<ScenesStrip {...defaultProps} groups={groups} currentGroupStates={currentGroupStates} />)
-    await userEvent.click(screen.getByText(/save scene/i))
+  it('shows group checkboxes in save dialog', () => {
+    render(<ScenesStrip {...defaultProps} groups={groups} currentGroupStates={currentGroupStates} saveTrigger={1} />)
     expect(screen.getByText('Include group settings?')).toBeInTheDocument()
     expect(screen.getByLabelText('Stage Left')).toBeInTheDocument()
     expect(screen.getByLabelText('Stage Right')).toBeInTheDocument()
   })
 
-  it('group checkboxes default to unchecked', async () => {
-    render(<ScenesStrip {...defaultProps} groups={groups} currentGroupStates={currentGroupStates} />)
-    await userEvent.click(screen.getByText(/save scene/i))
+  it('group checkboxes default to unchecked', () => {
+    render(<ScenesStrip {...defaultProps} groups={groups} currentGroupStates={currentGroupStates} saveTrigger={1} />)
     expect(screen.getByLabelText('Stage Left')).not.toBeChecked()
     expect(screen.getByLabelText('Stage Right')).not.toBeChecked()
   })
 
   it('calls onSave with groupStates for checked groups only', async () => {
     const onSave = vi.fn()
-    render(<ScenesStrip {...defaultProps} groups={groups} currentGroupStates={currentGroupStates} onSave={onSave} />)
-    await userEvent.click(screen.getByText(/save scene/i))
+    render(<ScenesStrip {...defaultProps} groups={groups} currentGroupStates={currentGroupStates} onSave={onSave} saveTrigger={1} />)
     fireEvent.change(screen.getByPlaceholderText('Scene name'), { target: { value: 'My Scene' } })
     await userEvent.click(screen.getByLabelText('Stage Left'))
     await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
@@ -127,14 +109,13 @@ describe('ScenesStrip group checkboxes', () => {
 
   it('calls onSave with empty groupStates when no groups checked', async () => {
     const onSave = vi.fn()
-    render(<ScenesStrip {...defaultProps} groups={groups} currentGroupStates={currentGroupStates} onSave={onSave} />)
-    await userEvent.click(screen.getByText(/save scene/i))
+    render(<ScenesStrip {...defaultProps} groups={groups} currentGroupStates={currentGroupStates} onSave={onSave} saveTrigger={1} />)
     fireEvent.change(screen.getByPlaceholderText('Scene name'), { target: { value: 'My Scene' } })
     await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
     expect(onSave).toHaveBeenCalledWith('My Scene', 0, {})
   })
 
-  it('pre-checks groups already in scene when editing', async () => {
+  it('pre-checks groups already in scene when editing', () => {
     const sceneWithGroups: Scene = {
       ...scenes[0],
       groupStates: { g1: { fader: 75, override: null } },
@@ -146,9 +127,9 @@ describe('ScenesStrip group checkboxes', () => {
         currentGroupStates={currentGroupStates}
         scenes={[sceneWithGroups, scenes[1]]}
         activeSceneId={sceneWithGroups.id}
+        editTrigger={1}
       />
     )
-    await userEvent.click(screen.getByRole('button', { name: /^edit$/i }))
     expect(screen.getByLabelText('Stage Left')).toBeChecked()
     expect(screen.getByLabelText('Stage Right')).not.toBeChecked()
   })
@@ -167,16 +148,15 @@ describe('ScenesStrip group checkboxes', () => {
         scenes={[sceneWithGroups, scenes[1]]}
         activeSceneId={sceneWithGroups.id}
         onUpdate={onUpdate}
+        editTrigger={1}
       />
     )
-    await userEvent.click(screen.getByRole('button', { name: /^edit$/i }))
     await userEvent.click(screen.getByRole('button', { name: /^update$/i }))
     expect(onUpdate).toHaveBeenCalledWith(sceneWithGroups.id, 'Worship Mode', 1000, { g1: { fader: 75, override: null } })
   })
 
-  it('hides group section when no groups exist', async () => {
-    render(<ScenesStrip {...defaultProps} groups={[]} currentGroupStates={{}} />)
-    await userEvent.click(screen.getByText(/save scene/i))
+  it('hides group section when no groups exist', () => {
+    render(<ScenesStrip {...defaultProps} groups={[]} currentGroupStates={{}} saveTrigger={1} />)
     expect(screen.queryByText('Include group settings?')).not.toBeInTheDocument()
   })
 })

@@ -103,9 +103,10 @@ interface Props {
   onDelete: (id: string) => void
   onReorder: (scenes: Scene[]) => void
   saveTrigger?: number
+  editTrigger?: number
 }
 
-export function ScenesStrip({ scenes, activeSceneId, groups, currentGroupStates, onActivate, onSave, onUpdate, onDelete, onReorder, saveTrigger = 0 }: Props) {
+export function ScenesStrip({ scenes, activeSceneId, groups, currentGroupStates, onActivate, onSave, onUpdate, onDelete, onReorder, saveTrigger = 0, editTrigger = 0 }: Props) {
   const [saving, setSaving] = useState(false)
   const [editing, setEditing] = useState(false)
   const stripRef = useRef<HTMLDivElement>(null)
@@ -114,6 +115,10 @@ export function ScenesStrip({ scenes, activeSceneId, groups, currentGroupStates,
   useEffect(() => {
     if (saveTrigger > 0) { setEditing(false); setSaving(true) }
   }, [saveTrigger])
+
+  useEffect(() => {
+    if (editTrigger > 0) { setSaving(false); setEditing(true) }
+  }, [editTrigger])
 
   const activeScene = scenes.find((s) => s.id === activeSceneId) ?? null
   const showDialog = editing || saving
@@ -154,10 +159,6 @@ export function ScenesStrip({ scenes, activeSceneId, groups, currentGroupStates,
         ))}
         {dragId && insertIndex === scenes.length && (
           <div className={styles.insertIndicator} aria-hidden="true" />
-        )}
-        <button className={styles.saveBtn} onClick={() => { setEditing(false); setSaving((v) => !v) }}>+ Save Scene</button>
-        {activeSceneId && (
-          <button className={styles.editBtn} onClick={() => { setSaving(false); setEditing((v) => !v) }}>Edit</button>
         )}
       </div>
 
