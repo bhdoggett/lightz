@@ -76,8 +76,15 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
       if (!scene) return
       setActiveSceneId(sceneId)
       applyScene(scene.values, fixtures)
+      setGroupStates(() => {
+        const next: Record<string, GroupState> = {}
+        for (const g of groups) {
+          next[g.id] = scene.groupStates?.[g.id] ?? { fader: 100, override: null }
+        }
+        return next
+      })
     })
-  }, [scenes, fixtures, applyScene])
+  }, [scenes, fixtures, groups, applyScene])
 
   useEffect(() => {
     api.getConfig().then((cfg) => {

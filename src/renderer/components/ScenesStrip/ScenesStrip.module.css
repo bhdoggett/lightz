@@ -110,7 +110,7 @@
   line-height: 1;
 }
 
-.dialog input {
+.dialogRow input {
   padding: 4px 8px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-default);
