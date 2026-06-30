@@ -6,7 +6,7 @@ import { exportShow, importShow } from './show'
 import { listShows, saveNamedShow, loadNamedShow, deleteNamedShow } from './shows-library'
 import { listSerialPorts } from './ports'
 import type { DmxManager } from './dmx'
-import type { Fixture, SaveSceneArgs, SetChannelArgs, UpdateSceneArgs, Group, GroupChannelOverride, FixtureTemplate } from '../src/shared/types'
+import type { Fixture, SaveSceneArgs, SetChannelArgs, UpdateSceneArgs, Group, GroupChannelOverride, FixtureTemplate, Scene } from '../src/shared/types'
 
 export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: string) => void): void {
   ipcMain.handle('config:get', () => getConfig())
@@ -33,7 +33,13 @@ export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: 
     const config = getConfig()
     const existingIds = config.scenes.map((s) => s.id)
     const id = makeSceneId(args.name, existingIds)
-    const scene = { id, name: args.name, fadeDuration: args.fadeDuration, values: args.values }
+    const scene: Scene = {
+      id,
+      name: args.name,
+      fadeDuration: args.fadeDuration,
+      values: args.values,
+      ...(args.groupStates !== undefined && { groupStates: args.groupStates }),
+    }
     saveScene(scene)
     return scene
   })
@@ -65,7 +71,7 @@ export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: 
   })
 
   ipcMain.handle('scene:update', (_e, args: UpdateSceneArgs) => {
-    return updateScene(args.id, args.name, args.fadeDuration, args.values)
+    return updateScene(args.id, args.name, args.fadeDuration, args.values, args.groupStates)
   })
 
   ipcMain.handle('scene:reorder', (_e, { ids }: { ids: string[] }) => {

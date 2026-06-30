@@ -1,5 +1,5 @@
 import Store from 'electron-store'
-import type { Config, Fixture, Scene, Group, FixtureTemplate } from '../src/shared/types'
+import type { Config, Fixture, Scene, Group, FixtureTemplate, GroupState } from '../src/shared/types'
 import { makeSceneId } from './slug'
 
 const store = new Store<Config>({
@@ -97,13 +97,20 @@ export function deleteFixtureTemplate(id: string): FixtureTemplate[] {
   return templates
 }
 
-export function updateScene(id: string, name: string, fadeDuration: number, values?: Record<string, number>): Scene | null {
+export function updateScene(id: string, name: string, fadeDuration: number, values?: Record<string, number>, groupStates?: Record<string, GroupState>): Scene | null {
   const scenes = store.get('scenes', [])
   const idx = scenes.findIndex((s) => s.id === id)
   if (idx < 0) return null
   const otherIds = scenes.filter((s) => s.id !== id).map((s) => s.id)
   const newId = makeSceneId(name, otherIds)
-  scenes[idx] = { ...scenes[idx], id: newId, name, fadeDuration, ...(values !== undefined && { values }) }
+  scenes[idx] = {
+    ...scenes[idx],
+    id: newId,
+    name,
+    fadeDuration,
+    ...(values !== undefined && { values }),
+    ...(groupStates !== undefined && { groupStates }),
+  }
   store.set('scenes', scenes)
   return scenes[idx]
 }
