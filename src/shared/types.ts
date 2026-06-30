@@ -13,6 +13,8 @@ export interface FixtureChannel {
   linked: boolean
 }
 
+export type GroupState = { fader: number; override: 'full' | 'mute' | null }
+
 export interface FixtureTemplate {
   id: string
   name: string
@@ -40,10 +42,11 @@ export interface Fixture {
 }
 
 export interface Scene {
-  id: string           // url-safe slug, unique
+  id: string
   name: string
-  fadeDuration: number // ms, 0 = instant
-  values: Record<string, number> // fixtureId → 0–255
+  fadeDuration: number
+  values: Record<string, number>
+  groupStates?: Record<string, GroupState>
 }
 
 export interface Config {
@@ -69,7 +72,8 @@ export interface SetChannelArgs {
 export interface SaveSceneArgs {
   name: string
   fadeDuration: number
-  values: Record<string, number> // fixtureId → 0–255
+  values: Record<string, number>
+  groupStates?: Record<string, GroupState>
 }
 
 export interface UpdateSceneArgs {
@@ -77,6 +81,7 @@ export interface UpdateSceneArgs {
   name: string
   fadeDuration: number
   values?: Record<string, number>
+  groupStates?: Record<string, GroupState>
 }
 
 // Per-channel group override sent to DmxManager
