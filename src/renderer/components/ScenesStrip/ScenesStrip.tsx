@@ -1,50 +1,93 @@
 import React, { useState, useRef, useEffect } from 'react'
-import type { Scene } from '../../../shared/types'
+import type { Scene, Group, GroupState } from '../../../shared/types'
 import { useDragReorder } from '../../hooks/useDragReorder'
 import styles from './ScenesStrip.module.css'
 
 interface SceneDialogProps {
   initialName?: string
   initialFade?: number
-  onConfirm: (name: string, fadeDuration: number) => void
+  initialGroupStates?: Record<string, GroupState>
+  groups: Group[]
+  currentGroupStates: Record<string, GroupState>
+  onConfirm: (name: string, fadeDuration: number, groupStates: Record<string, GroupState>) => void
   onDelete?: () => void
   onCancel: () => void
 }
 
-function SceneDialog({ initialName = '', initialFade = 0, onConfirm, onDelete, onCancel }: SceneDialogProps) {
+function SceneDialog({ initialName = '', initialFade = 0, initialGroupStates, groups, currentGroupStates, onConfirm, onDelete, onCancel }: SceneDialogProps) {
   const [name, setName] = useState(initialName)
   const [fade, setFade] = useState(initialFade)
+  const [checkedGroupIds, setCheckedGroupIds] = useState<Set<string>>(
+    () => new Set(initialGroupStates ? Object.keys(initialGroupStates) : [])
+  )
   const nameRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { nameRef.current?.focus() }, [])
 
+  const toggleGroup = (id: string) => {
+    setCheckedGroupIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const handleConfirm = () => {
+    if (!name.trim()) return
+    const groupStates: Record<string, GroupState> = {}
+    for (const id of checkedGroupIds) {
+      if (currentGroupStates[id]) groupStates[id] = currentGroupStates[id]
+    }
+    onConfirm(name.trim(), fade, groupStates)
+  }
+
   return (
     <div className={styles.dialog}>
-      <input
-        ref={nameRef}
-        placeholder="Scene name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && name.trim()) onConfirm(name.trim(), fade)
-          if (e.key === 'Escape') onCancel()
-        }}
-      />
-      <label>
-        Fade (ms):
+      <div className={styles.dialogRow}>
         <input
-          type="number"
-          value={fade}
-          min={0}
-          step={500}
-          onChange={(e) => setFade(Number(e.target.value))}
+          ref={nameRef}
+          placeholder="Scene name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') handleConfirm()
+            if (e.key === 'Escape') onCancel()
+          }}
         />
-      </label>
-      <button className={styles.confirmBtn} onClick={() => name.trim() && onConfirm(name.trim(), fade)}>
-        {onDelete ? 'Update' : 'Save'}
-      </button>
-      {onDelete && <button className={styles.deleteBtn} onClick={onDelete}>Delete</button>}
-      <button className={styles.cancelBtn} onClick={onCancel}>Cancel</button>
+        <label>
+          Fade (ms):
+          <input
+            type="number"
+            value={fade}
+            min={0}
+            step={500}
+            onChange={(e) => setFade(Number(e.target.value))}
+          />
+        </label>
+        <button className={styles.confirmBtn} onClick={handleConfirm}>
+          {onDelete ? 'Update' : 'Save'}
+        </button>
+        {onDelete && <button className={styles.deleteBtn} onClick={onDelete}>Delete</button>}
+        <button className={styles.cancelBtn} onClick={onCancel}>Cancel</button>
+      </div>
+      {groups.length > 0 && (
+        <div className={styles.groupSection}>
+          <span className={styles.groupSectionLabel}>Include group settings?</span>
+          {groups.map((g) => (
+            <div key={g.id} className={styles.groupCheckbox}>
+              <input
+                id={`group-cb-${g.id}`}
+                type="checkbox"
+                checked={checkedGroupIds.has(g.id)}
+                onChange={() => toggleGroup(g.id)}
+              />
+              <span className={styles.groupSwatch} style={{ color: g.color }} aria-hidden="true">■</span>
+              <label htmlFor={`group-cb-${g.id}`}>{g.name}</label>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -52,15 +95,17 @@ function SceneDialog({ initialName = '', initialFade = 0, onConfirm, onDelete, o
 interface Props {
   scenes: Scene[]
   activeSceneId: string | null
+  groups: Group[]
+  currentGroupStates: Record<string, GroupState>
   onActivate: (id: string) => void
-  onSave: (name: string, fadeDuration: number) => void
-  onUpdate: (id: string, name: string, fadeDuration: number) => void
+  onSave: (name: string, fadeDuration: number, groupStates: Record<string, GroupState>) => void
+  onUpdate: (id: string, name: string, fadeDuration: number, groupStates: Record<string, GroupState>) => void
   onDelete: (id: string) => void
   onReorder: (scenes: Scene[]) => void
   saveTrigger?: number
 }
 
-export function ScenesStrip({ scenes, activeSceneId, onActivate, onSave, onUpdate, onDelete, onReorder, saveTrigger = 0 }: Props) {
+export function ScenesStrip({ scenes, activeSceneId, groups, currentGroupStates, onActivate, onSave, onUpdate, onDelete, onReorder, saveTrigger = 0 }: Props) {
   const [saving, setSaving] = useState(false)
   const [editing, setEditing] = useState(false)
   const stripRef = useRef<HTMLDivElement>(null)
@@ -123,13 +168,18 @@ export function ScenesStrip({ scenes, activeSceneId, onActivate, onSave, onUpdat
               key={activeScene.id}
               initialName={activeScene.name}
               initialFade={activeScene.fadeDuration}
-              onConfirm={(name, fade) => { onUpdate(activeScene.id, name, fade); setEditing(false) }}
+              initialGroupStates={activeScene.groupStates}
+              groups={groups}
+              currentGroupStates={currentGroupStates}
+              onConfirm={(name, fade, groupStates) => { onUpdate(activeScene.id, name, fade, groupStates); setEditing(false) }}
               onDelete={() => { onDelete(activeScene.id); setEditing(false) }}
               onCancel={() => setEditing(false)}
             />
           ) : saving ? (
             <SceneDialog
-              onConfirm={(name, fade) => { onSave(name, fade); setSaving(false) }}
+              groups={groups}
+              currentGroupStates={currentGroupStates}
+              onConfirm={(name, fade, groupStates) => { onSave(name, fade, groupStates); setSaving(false) }}
               onCancel={() => setSaving(false)}
             />
           ) : null}
