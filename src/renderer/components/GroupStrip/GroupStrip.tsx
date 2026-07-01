@@ -6,20 +6,22 @@ import { useDragReorder } from '../../hooks/useDragReorder'
 import type { Group, Fixture } from '../../../shared/types'
 import styles from './GroupStrip.module.css'
 
-type GroupState = { fader: number; override: 'full' | 'mute' | null }
+type GroupState = { fader: number }
 
 interface Props {
   groups: Group[]
   fixtures: Fixture[]
   groupStates: Record<string, GroupState>
   onStateChange: (groupId: string, state: GroupState) => void
+  onGroupFull: (groupId: string) => void
+  onGroupMute: (groupId: string) => void
   onSaveGroup: (group: Group) => void
   onDeleteGroup: (id: string) => void
   onReorder: (groups: Group[]) => void
   addTrigger?: number
 }
 
-export function GroupStrip({ groups, fixtures, groupStates, onStateChange, onSaveGroup, onDeleteGroup, onReorder, addTrigger = 0 }: Props) {
+export function GroupStrip({ groups, fixtures, groupStates, onStateChange, onGroupFull, onGroupMute, onSaveGroup, onDeleteGroup, onReorder, addTrigger = 0 }: Props) {
   const [editingId, setEditingId] = useState<string | 'new' | null>(null)
 
   useEffect(() => {
@@ -45,7 +47,7 @@ export function GroupStrip({ groups, fixtures, groupStates, onStateChange, onSav
       <div className={styles.strip}>
         <div className={styles.groupsRow} {...containerProps}>
           {groups.map((group, index) => {
-            const state = groupStates[group.id] ?? { fader: 100, override: null }
+            const state = groupStates[group.id] ?? { fader: 100 }
             return (
               <React.Fragment key={group.id}>
                 {dragId && insertIndex === index && (
@@ -58,9 +60,9 @@ export function GroupStrip({ groups, fixtures, groupStates, onStateChange, onSav
                   <GroupFader
                     group={group}
                     fader={state.fader}
-                    override={state.override}
-                    onFaderChange={(fader) => onStateChange(group.id, { ...state, fader })}
-                    onOverrideChange={(override) => onStateChange(group.id, { ...state, override })}
+                    onFaderChange={(fader) => onStateChange(group.id, { fader })}
+                    onFull={() => onGroupFull(group.id)}
+                    onMute={() => onGroupMute(group.id)}
                     onEdit={() => setEditingId(editingId === group.id ? null : group.id)}
                   />
                 </div>

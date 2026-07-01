@@ -37,7 +37,7 @@ function SceneDialog({ initialName = '', initialFade = 0, initialGroupStates, gr
     if (!name.trim()) return
     const groupStates: Record<string, GroupState> = {}
     for (const id of checkedGroupIds) {
-      groupStates[id] = currentGroupStates[id] ?? initialGroupStates?.[id] ?? { fader: 100, override: null }
+      groupStates[id] = currentGroupStates[id] ?? initialGroupStates?.[id] ?? { fader: 100 }
     }
     onConfirm(name.trim(), fade, groupStates)
   }

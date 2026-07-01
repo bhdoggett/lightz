@@ -12,7 +12,7 @@ const defaultProps = {
   scenes,
   activeSceneId: null as string | null,
   groups: [] as Group[],
-  currentGroupStates: {} as Record<string, { fader: number; override: 'full' | 'mute' | null }>,
+  currentGroupStates: {} as Record<string, { fader: number }>,
   onActivate: vi.fn(),
   onSave: vi.fn(),
   onUpdate: vi.fn(),
@@ -80,14 +80,14 @@ const groups: Group[] = [
 ]
 
 const currentGroupStates = {
-  g1: { fader: 75, override: null as null },
-  g2: { fader: 100, override: 'mute' as const },
+  g1: { fader: 75 },
+  g2: { fader: 100 },
 }
 
 describe('ScenesStrip group buttons', () => {
   it('shows group buttons in save dialog', () => {
     render(<ScenesStrip {...defaultProps} groups={groups} currentGroupStates={currentGroupStates} saveTrigger={1} />)
-    expect(screen.getByText('Groups')).toBeInTheDocument()
+    expect(screen.getByText('Include Group Settings')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Stage Left/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Stage Right/i })).toBeInTheDocument()
   })
@@ -104,7 +104,7 @@ describe('ScenesStrip group buttons', () => {
     fireEvent.change(screen.getByPlaceholderText('Scene name'), { target: { value: 'My Scene' } })
     await userEvent.click(screen.getByRole('button', { name: /Stage Left/i }))
     await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
-    expect(onSave).toHaveBeenCalledWith('My Scene', 0, { g1: { fader: 75, override: null } })
+    expect(onSave).toHaveBeenCalledWith('My Scene', 0, { g1: { fader: 75 } })
   })
 
   it('calls onSave with empty groupStates when no groups selected', async () => {
@@ -118,7 +118,7 @@ describe('ScenesStrip group buttons', () => {
   it('pre-selects groups already in scene when editing', () => {
     const sceneWithGroups: Scene = {
       ...scenes[0],
-      groupStates: { g1: { fader: 75, override: null } },
+      groupStates: { g1: { fader: 75 } },
     }
     render(
       <ScenesStrip
@@ -138,7 +138,7 @@ describe('ScenesStrip group buttons', () => {
     const onUpdate = vi.fn()
     const sceneWithGroups: Scene = {
       ...scenes[0],
-      groupStates: { g1: { fader: 75, override: null } },
+      groupStates: { g1: { fader: 75 } },
     }
     render(
       <ScenesStrip
@@ -152,7 +152,7 @@ describe('ScenesStrip group buttons', () => {
       />
     )
     await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
-    expect(onUpdate).toHaveBeenCalledWith(sceneWithGroups.id, 'Worship Mode', 1000, { g1: { fader: 75, override: null } })
+    expect(onUpdate).toHaveBeenCalledWith(sceneWithGroups.id, 'Worship Mode', 1000, { g1: { fader: 75 } })
   })
 
   it('hides group section when no groups exist', () => {
