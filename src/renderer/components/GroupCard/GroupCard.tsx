@@ -62,6 +62,14 @@ export function GroupCard({
     >
       <div className={styles.colorBar} style={{ background: group.color }} />
       <span className={styles.name}>{group.name}</span>
+      <span className={styles.faderValue}>{fader}%</span>
+      <Slider
+        value={fader}
+        min={0}
+        max={100}
+        fillColor={group.color}
+        onChange={onFaderChange}
+      />
       <div className={styles.controls}>
         <button
           className={`${styles.overrideBtn} ${styles.fullBtn}${fullFlash ? ` ${styles.flash}` : ''}`}
@@ -78,15 +86,6 @@ export function GroupCard({
           onAnimationEnd={() => setMuteFlash(false)}
         >✕</button>
       </div>
-      <span className={styles.faderValue}>{fader}%</span>
-      <Slider
-        value={fader}
-        min={0}
-        max={100}
-        height={60}
-        fillColor={group.color}
-        onChange={onFaderChange}
-      />
       <div className={styles.footer}>
         <button
           className={styles.gearBtn}

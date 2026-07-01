@@ -208,7 +208,7 @@ export function MainView({
       const fixture = fixtures.find((f) => f.id === fixtureId)
       if (!fixture) continue
       if (fixture.channels) {
-        for (const ch of fixture.channels) {
+        for (const ch of fixture.channels.filter((c) => c.linked)) {
           setLocal(ch.universe, ch.channel, value)
           api.setChannel({ universe: ch.universe, channel: ch.channel, value })
         }

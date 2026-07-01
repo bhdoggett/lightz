@@ -1,7 +1,7 @@
 .card {
   display: inline-flex;
   flex-direction: row;
-  align-items: stretch;
+  align-items: flex-start;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-md);
   background: var(--bg-surface);
@@ -20,9 +20,10 @@
   border-radius: var(--radius-md);
 }
 
-.expanded .masterPanel {
+.expanded > .masterPanel {
   border-right: 1px solid var(--border-subtle);
   border-radius: var(--radius-md) 0 0 var(--radius-md);
+  padding-right: var(--space-2);
 }
 
 .dropTarget {
@@ -99,7 +100,6 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  margin-top: auto;
 }
 
 .gearBtn,
