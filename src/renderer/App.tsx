@@ -3,6 +3,7 @@ import { MainView } from './views/MainView'
 import { ConnectionBadge } from './components/ConnectionBadge'
 import { CompanionModal } from './components/CompanionModal'
 import { ShowsModal } from './components/ShowsModal'
+import { LaunchModal } from './components/LaunchModal'
 import { LightVisualizer } from './components/LightVisualizer'
 import { PopoutWindow } from './components/PopoutWindow'
 import { Modal } from './components/Modal'
@@ -28,6 +29,7 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
   const [dmxStatus, setDmxStatus] = useState<DmxStatus>('disconnected')
   const [companionOpen, setCompanionOpen] = useState(false)
   const [showsOpen, setShowsOpen] = useState(false)
+  const [launchOpen, setLaunchOpen] = useState(true)
   const [aboutOpen, setAboutOpen] = useState(false)
   const aboutRef = useRef<HTMLDivElement>(null)
   const [currentShowName, setCurrentShowName] = useState<string | null>(null)
@@ -350,6 +352,13 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
           onDevicePathChange={handleDevicePathChange}
           onDmxOutputPortChange={handleDmxOutputPortChange}
           onClose={() => setCompanionOpen(false)}
+        />
+      )}
+
+      {launchOpen && (
+        <LaunchModal
+          onNew={(fresh) => { setConfig(fresh); setCurrentShowName(null); setDirty(false); setLaunchOpen(false) }}
+          onLoad={(loaded, name) => { setConfig(loaded); setCurrentShowName(name); setDirty(false); setLaunchOpen(false) }}
         />
       )}
     </div>
