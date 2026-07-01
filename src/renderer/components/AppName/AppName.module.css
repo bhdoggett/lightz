@@ -1,0 +1,71 @@
+.appNameZ {
+  transition: color 0.3s ease;
+}
+
+.appName:hover .appNameZ {
+  color: #eeff88;
+}
+
+.appName {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--app-name-size, 20px);
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-primary);
+  position: relative;
+  cursor: default;
+  transition: text-shadow 0.3s ease, color 0.3s ease;
+  z-index: 1;
+}
+
+/* Spotlight glow — brightens the area behind the text */
+.appName::before {
+  content: '';
+  position: absolute;
+  top: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 350%;
+  height: 70px;
+  background: radial-gradient(ellipse at 50% 20%, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 240, 0.15) 40%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.appName:hover::before {
+  opacity: 1;
+}
+
+/* Shadow reflection — mirrored, squished, fanned out */
+.appName::after {
+  content: 'LIGHTZ';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%) perspective(60px) rotateX(30deg) scaleY(-0.9);
+  transform-origin: bottom center;
+  font-family: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+  line-height: 1;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: rgba(0, 0, 0, 0.6);
+  filter: blur(0.5px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.appName:hover::after {
+  opacity: 1;
+}
+
+.appName:hover {
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.7), 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: #fff;
+}

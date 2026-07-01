@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { AppName } from '../AppName'
 import { useApi } from '../../api/context'
 import type { Config, ShowInfo } from '../../../shared/types'
 import styles from './LaunchModal.module.css'
@@ -46,7 +47,7 @@ export function LaunchModal({ onNew, onLoad }: Props) {
   return (
     <div className={styles.overlay}>
       <div className={styles.card}>
-        <h2 className={styles.title}>Lightz</h2>
+        <div className={styles.title}><AppName /></div>
         {error && <p className={styles.error}>{error}</p>}
         <button className={styles.newBtn} onClick={handleNew} disabled={resetting || loadingName !== null}>
           {resetting ? 'Creating…' : '+ New Show'}

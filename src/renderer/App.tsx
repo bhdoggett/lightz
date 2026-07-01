@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { MainView } from './views/MainView'
+import { AppName } from './components/AppName'
 import { ConnectionBadge } from './components/ConnectionBadge'
 import { CompanionModal } from './components/CompanionModal'
 import { ShowsModal } from './components/ShowsModal'
@@ -175,7 +176,7 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
         </div>
       )}
       <header className={styles.header}>
-        <span className={styles.appName}>Light<span className={styles.appNameZ}>z</span></span>
+        <AppName />
         <div className={styles.headerRight}>
           {currentShowName && (
             <button

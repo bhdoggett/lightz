@@ -20,12 +20,10 @@
 }
 
 .title {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--text-primary);
-  text-align: center;
-  margin: 0 0 var(--space-2);
-  letter-spacing: -0.5px;
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--space-2);
+  --app-name-size: 28px;
 }
 
 .error {
