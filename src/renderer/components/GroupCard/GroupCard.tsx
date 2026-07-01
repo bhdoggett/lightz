@@ -185,7 +185,6 @@ export function GroupCard({
                 onEdit={onFixtureEdit ? () => onFixtureEdit(fixture) : undefined}
                 groupColor={group.color}
                 groupMultiplier={multiplier}
-                hasLeftNeighbor={fixtureIndex > 0}
                 hasRightNeighbor={fixtureIndex < fixtures.length - 1}
               />
             ) : (

@@ -594,7 +594,6 @@ export function MainView({
                         onEdit={() => setEditingFixture(item.fixture)}
                         groupColor={getFixtureGroupColor(item.fixture.id)}
                         groupMultiplier={getFixtureGroupMultiplier(item.fixture.id)}
-                        hasLeftNeighbor={index > 0}
                         hasRightNeighbor={index < sectionItems.length - 1}
                       />
                     ) : (

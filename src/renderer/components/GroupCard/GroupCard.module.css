@@ -176,8 +176,7 @@
   flex-direction: row;
   align-items: flex-start;
   align-self: flex-start;
-  gap: var(--fader-gap);
-  padding: var(--space-2);
+  gap: 0;
   flex-wrap: wrap;
 }
 
