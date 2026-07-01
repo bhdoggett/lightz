@@ -2,16 +2,19 @@
 import { describe, it, expect, vi } from 'vitest'
 import Store from 'electron-store'
 
-import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, updateScene, reorderScenes, saveGroup, deleteGroup, saveFixtureTemplate, deleteFixtureTemplate } from '../store'
+import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, updateScene, reorderScenes, saveGroup, deleteGroup, saveFixtureTemplate, deleteFixtureTemplate, saveFixtureSectionOrder, saveShowGroupStrip } from '../store'
 import type { Fixture, Scene, Group, FixtureTemplate } from '../../src/shared/types'
 
 vi.mock('electron-store', () => {
   return {
-    default: vi.fn().mockImplementation(() => ({
-      get: vi.fn((key: string, def: unknown) => def),
-      set: vi.fn(),
-      store: {},
-    })),
+    default: vi.fn().mockImplementation(() => {
+      const storage: Record<string, unknown> = {}
+      return {
+        get: vi.fn((key: string, def: unknown) => key in storage ? storage[key] : def),
+        set: vi.fn((key: string, value: unknown) => { storage[key] = value }),
+        store: {},
+      }
+    }),
   }
 })
 
@@ -52,6 +55,19 @@ describe('config store', () => {
     setCompanionPort(4000)
     expect(true).toBe(true)
   })
+})
+
+it('saveFixtureSectionOrder persists and retrieves order', () => {
+  const ids = ['group-1', 'fixture-a', 'fixture-b']
+  saveFixtureSectionOrder(ids)
+  expect(getConfig().fixtureSectionOrder).toEqual(ids)
+})
+
+it('saveShowGroupStrip persists and retrieves boolean', () => {
+  saveShowGroupStrip(false)
+  expect(getConfig().showGroupStrip).toBe(false)
+  saveShowGroupStrip(true)
+  expect(getConfig().showGroupStrip).toBe(true)
 })
 
 const inst = () => (Store as any).mock.results[0].value

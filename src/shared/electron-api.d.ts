@@ -24,6 +24,8 @@ declare global {
       saveGroup: (group: Group) => Promise<Group[]>
       deleteGroup: (id: string) => Promise<void>
       reorderGroups: (ids: string[]) => Promise<void>
+      reorderFixtureSection(ids: string[]): Promise<void>
+      setShowGroupStrip(show: boolean): Promise<void>
       setGroupOverrides: (map: Record<string, GroupChannelOverride>) => Promise<void>
       exportShow: () => Promise<boolean>
       importShow: () => Promise<Config | null>

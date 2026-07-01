@@ -13,7 +13,7 @@ export interface FixtureChannel {
   linked: boolean
 }
 
-export type GroupState = { fader: number; override: 'full' | 'mute' | null }
+export type GroupState = { fader: number }
 
 export interface FixtureTemplate {
   id: string
@@ -57,6 +57,8 @@ export interface Config {
   companionPort: number // default 5551
   devicePath: string   // e.g. /dev/tty.usbserial-XXXXX, empty = no connection
   dmxOutputPort: 0 | 1 | 2 // MK2 output port (matches QLC+ output 1/2/3)
+  fixtureSectionOrder?: string[]  // ordered IDs: fixture IDs and group IDs interleaved
+  showGroupStrip?: boolean        // defaults to true when absent
 }
 
 // Sent from main → renderer whenever DMX connection state changes

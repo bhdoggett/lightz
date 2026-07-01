@@ -1,7 +1,7 @@
 import { ipcMain, shell } from 'electron'
 import { v4 as uuid } from 'uuid'
 import { makeSceneId } from './slug'
-import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, setDevicePath, setDmxOutputPort, replaceConfig, updateScene, reorderScenes, saveGroup, deleteGroup, reorderGroups, saveFixtureTemplate, deleteFixtureTemplate } from './store'
+import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, setDevicePath, setDmxOutputPort, replaceConfig, updateScene, reorderScenes, saveGroup, deleteGroup, reorderGroups, saveFixtureTemplate, deleteFixtureTemplate, saveFixtureSectionOrder, saveShowGroupStrip } from './store'
 import { exportShow, importShow } from './show'
 import { listShows, saveNamedShow, loadNamedShow, deleteNamedShow } from './shows-library'
 import { listSerialPorts } from './ports'
@@ -112,6 +112,14 @@ export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: 
 
   ipcMain.handle('group:reorder', (_e, { ids }: { ids: string[] }) => {
     reorderGroups(ids)
+  })
+
+  ipcMain.handle('fixture:reorderSection', (_e, { ids }: { ids: string[] }) => {
+    saveFixtureSectionOrder(ids)
+  })
+
+  ipcMain.handle('config:setShowGroupStrip', (_e, { show }: { show: boolean }) => {
+    saveShowGroupStrip(show)
   })
 
   ipcMain.handle('group:setOverrides', (_e, map: Record<string, GroupChannelOverride>) => {

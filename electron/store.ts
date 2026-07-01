@@ -28,6 +28,8 @@ export function getConfig(): Config {
     companionPort: store.get('companionPort', 5551),
     devicePath: store.get('devicePath', ''),
     dmxOutputPort: store.get('dmxOutputPort', 0),
+    fixtureSectionOrder: store.get('fixtureSectionOrder' as any, undefined),
+    showGroupStrip: store.get('showGroupStrip' as any, undefined),
   }
 }
 
@@ -121,6 +123,14 @@ export function reorderGroups(ids: string[]): void {
   store.set('groups', ordered)
 }
 
+export function saveFixtureSectionOrder(ids: string[]): void {
+  store.set('fixtureSectionOrder' as any, ids)
+}
+
+export function saveShowGroupStrip(show: boolean): void {
+  store.set('showGroupStrip' as any, show)
+}
+
 export function reorderScenes(ids: string[]): void {
   const scenes = store.get('scenes', [])
   const ordered = ids.map((id) => scenes.find((s) => s.id === id)).filter((s): s is Scene => s !== undefined)
@@ -147,4 +157,10 @@ export function replaceConfig(config: Config): void {
   store.set('companionPort', config.companionPort)
   store.set('devicePath', config.devicePath ?? '')
   store.set('dmxOutputPort', config.dmxOutputPort ?? 0)
+  if (config.fixtureSectionOrder !== undefined) {
+    store.set('fixtureSectionOrder' as any, config.fixtureSectionOrder)
+  }
+  if (config.showGroupStrip !== undefined) {
+    store.set('showGroupStrip' as any, config.showGroupStrip)
+  }
 }

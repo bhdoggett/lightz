@@ -179,6 +179,13 @@ export function createWebApi(callbacks: WebApiCallbacks): LightzApi {
         .filter((g): g is Group => g !== undefined)
     },
 
+    reorderFixtureSection: async (ids) => {
+      config.fixtureSectionOrder = ids
+    },
+    setShowGroupStrip: async (show) => {
+      config.showGroupStrip = show
+    },
+
     setGroupOverrides: async () => {},
 
     resetShow: async () => {

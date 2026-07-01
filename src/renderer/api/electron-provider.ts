@@ -22,6 +22,8 @@ export const electronApi: LightzApi = {
   saveGroup: (g) => window.electronAPI.saveGroup(g),
   deleteGroup: (id) => window.electronAPI.deleteGroup(id),
   reorderGroups: (ids) => window.electronAPI.reorderGroups(ids),
+  reorderFixtureSection: (ids) => window.electronAPI.reorderFixtureSection(ids),
+  setShowGroupStrip: (show) => window.electronAPI.setShowGroupStrip(show),
   setGroupOverrides: (map) => window.electronAPI.setGroupOverrides(map),
 
   resetShow: () => window.electronAPI.resetShow(),
