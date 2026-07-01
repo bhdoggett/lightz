@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { ApiProvider } from '../../api/context'
 import { LaunchModal } from './LaunchModal'
 import type { LightzApi } from '../../api/types'
