@@ -1,12 +1,16 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { ScenesStrip } from '../components/ScenesStrip'
 import { FixtureFader } from '../components/FixtureFader'
 import { GroupStrip } from '../components/GroupStrip'
+import { GroupCard } from '../components/GroupCard'
+import { GroupEditor } from '../components/GroupEditor'
+import { Modal } from '../components/Modal'
 import { AddFixturesModal } from '../components/AddFixturesModal'
 import { MultiFixtureFader } from '../components/MultiFixtureFader'
 import { CreateFixtureModal } from '../components/CreateFixtureModal'
 import { LiveView } from './LiveView'
 import { useApi } from '../api/context'
+import { useDragReorder } from '../hooks/useDragReorder'
 import type { Fixture, Scene, Group, GroupState, GroupChannelOverride, FixtureTemplate } from '../../shared/types'
 import styles from './MainView.module.css'
 
@@ -25,9 +29,43 @@ interface Props {
   setChannel: (universe: 0 | 1, channel: number, value: number) => void
   applyScene: (values: Record<string, number>, fixtures: Fixture[]) => void
   onOverrideMapChange?: (map: Record<string, GroupChannelOverride>) => void
+  fixtureSectionOrder?: string[]
+  showGroupStrip?: boolean
+  onSectionReorder: (ids: string[]) => void
+  onToggleGroupStrip: () => void
 }
 
-export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesChange, onGroupsChange, currentShowName = null, onSave, getChannel, setChannel: setLocal, applyScene, onOverrideMapChange }: Props) {
+export function deriveSectionOrder(
+  stored: string[] | undefined,
+  fixtures: Fixture[],
+  groups: Group[]
+): string[] {
+  const groupedFixtureIds = new Set(groups.flatMap((g) => g.fixtureIds))
+  const allSectionIds = new Set([
+    ...groups.map((g) => g.id),
+    ...fixtures.filter((f) => !groupedFixtureIds.has(f.id)).map((f) => f.id),
+  ])
+  if (!stored) {
+    const ungrouped = fixtures
+      .filter((f) => !groupedFixtureIds.has(f.id))
+      .sort((a, b) => a.channel - b.channel)
+      .map((f) => f.id)
+    return [...groups.map((g) => g.id), ...ungrouped]
+  }
+  const known = stored.filter((id) => allSectionIds.has(id))
+  const missing = [...allSectionIds].filter((id) => !stored.includes(id))
+  return [...known, ...missing]
+}
+
+export function MainView({
+  fixtures, scenes, groups,
+  onScenesChange, onFixturesChange, onGroupsChange,
+  currentShowName = null, onSave, getChannel, setChannel: setLocal, applyScene, onOverrideMapChange,
+  fixtureSectionOrder: storedOrder,
+  showGroupStrip = true,
+  onSectionReorder,
+  onToggleGroupStrip,
+}: Props) {
   const api = useApi()
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('custom')
@@ -36,10 +74,10 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   const [creatingFixture, setCreatingFixture] = useState(false)
   const [editingFixture, setEditingFixture] = useState<Fixture | null>(null)
   const [fixtureTemplates, setFixtureTemplates] = useState<FixtureTemplate[]>(() => [])
+  const [editingGroupId, setEditingGroupId] = useState<string | 'new' | null>(null)
 
   const [sceneSaveTrigger, setSceneSaveTrigger] = useState(0)
   const [sceneEditTrigger, setSceneEditTrigger] = useState(0)
-  const [groupAddTrigger, setGroupAddTrigger] = useState(0)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -63,11 +101,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
       setSectionsCollapsed((prev) => ({ ...prev, scenes: false }))
       setSceneSaveTrigger((n) => n + 1)
     })
-    api.onMenuAddGroup(() => {
-      setTab('custom')
-      setSectionsCollapsed((prev) => ({ ...prev, groups: false }))
-      setGroupAddTrigger((n) => n + 1)
-    })
+    api.onMenuAddGroup(() => { setTab('custom'); setEditingGroupId('new') })
   }, [])
 
   // Sync UI when Companion activates a scene externally
@@ -80,7 +114,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
       setGroupStates(() => {
         const next: Record<string, GroupState> = {}
         for (const g of groups) {
-          next[g.id] = scene.groupStates?.[g.id] ?? { fader: 100, override: null }
+          next[g.id] = scene.groupStates?.[g.id] ?? { fader: 100 }
         }
         return next
       })
@@ -98,7 +132,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     setGroupStates((prev) => {
       const next = { ...prev }
       for (const g of groups) {
-        if (!next[g.id]) next[g.id] = { fader: 100, override: null }
+        if (!next[g.id]) next[g.id] = { fader: 100 }
       }
       return next
     })
@@ -108,19 +142,14 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
   const overrideMap = useMemo(() => {
     const map: Record<string, GroupChannelOverride> = {}
     for (const group of groups) {
-      const state = groupStates[group.id] ?? { fader: 100, override: null }
-      const channelOverride: GroupChannelOverride =
-        state.override === 'full' ? { kind: 'full' } :
-        state.override === 'mute' ? { kind: 'mute' } :
-        { kind: 'percent', multiplier: state.fader / 100 }
+      const state = groupStates[group.id] ?? { fader: 100 }
+      const channelOverride: GroupChannelOverride = { kind: 'percent', multiplier: state.fader / 100 }
       for (const fixtureId of group.fixtureIds) {
         const fixture = fixtures.find((f) => f.id === fixtureId)
         if (!fixture) continue
         if (fixture.channels) {
-          if (state.override !== 'full') {
-            for (const ch of fixture.channels) {
-              map[`${ch.universe}-${ch.channel}`] = channelOverride
-            }
+          for (const ch of fixture.channels) {
+            map[`${ch.universe}-${ch.channel}`] = channelOverride
           }
         } else {
           map[`${fixture.universe}-${fixture.channel}`] = channelOverride
@@ -159,7 +188,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     }
     setGroupStates((prev) => {
       const reset: Record<string, GroupState> = {}
-      for (const id of Object.keys(prev)) reset[id] = { fader: 100, override: null }
+      for (const id of Object.keys(prev)) reset[id] = { fader: 100 }
       return reset
     })
     setActiveSceneId(null)
@@ -175,6 +204,24 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     await api.reorderGroups(reordered.map((g) => g.id))
     onGroupsChange(reordered)
   }, [api, onGroupsChange])
+
+  const setGroupChannels = useCallback((groupId: string, value: number) => {
+    const group = groups.find((g) => g.id === groupId)
+    if (!group) return
+    for (const fixtureId of group.fixtureIds) {
+      const fixture = fixtures.find((f) => f.id === fixtureId)
+      if (!fixture) continue
+      if (fixture.channels) {
+        for (const ch of fixture.channels) {
+          setLocal(ch.universe, ch.channel, value)
+          api.setChannel({ universe: ch.universe, channel: ch.channel, value })
+        }
+      } else {
+        setLocal(fixture.universe, fixture.channel, value)
+        api.setChannel({ universe: fixture.universe, channel: fixture.channel, value })
+      }
+    }
+  }, [groups, fixtures, api, setLocal])
 
   const handleSetChannel = useCallback((fixture: Fixture, value: number) => {
     setLocal(fixture.universe, fixture.channel, value)
@@ -219,7 +266,7 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     setGroupStates(() => {
       const next: Record<string, GroupState> = {}
       for (const g of groups) {
-        next[g.id] = scene.groupStates?.[g.id] ?? { fader: 100, override: null }
+        next[g.id] = scene.groupStates?.[g.id] ?? { fader: 100 }
       }
       return next
     })
@@ -338,30 +385,51 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     return groups.find((g) => g.fixtureIds.includes(fixtureId))?.color
   }, [groups])
 
-  const getFixtureOverride = useCallback((fixtureId: string): 'full' | 'mute' | null => {
-    const group = groups.find((g) => g.fixtureIds.includes(fixtureId))
-    if (!group) return null
-    return groupStates[group.id]?.override ?? null
-  }, [groups, groupStates])
-
   const getFixtureGroupMultiplier = useCallback((fixtureId: string): number | undefined => {
     const group = groups.find((g) => g.fixtureIds.includes(fixtureId))
     if (!group) return undefined
     const state = groupStates[group.id]
     if (!state) return undefined
-    if (state.override === 'full' || state.override === 'mute') return undefined
     return state.fader / 100
   }, [groups, groupStates])
 
   const [fixturesHorizontal, setFixturesHorizontal] = useState(false)
-  const [sectionsCollapsed, setSectionsCollapsed] = useState<Record<string, boolean>>({ scenes: false, groups: false, fixturesU0: false, fixturesU1: false })
+  const [sectionsCollapsed, setSectionsCollapsed] = useState<Record<string, boolean>>({ scenes: false, groups: false })
   const toggleSection = (key: string) => setSectionsCollapsed((prev) => ({ ...prev, [key]: !prev[key] }))
 
-  const sorted = [...fixtures].sort((a, b) => a.channel - b.channel)
-  const fixturesByUniverse = {
-    0: sorted.filter((f) => (f.channels ? f.channels[0]?.universe : f.universe) === 0),
-    1: sorted.filter((f) => (f.channels ? f.channels[0]?.universe : f.universe) === 1),
-  }
+  // Derived unified section order (groups + ungrouped fixtures)
+  const sectionOrder = useMemo(
+    () => deriveSectionOrder(storedOrder, fixtures, groups),
+    [storedOrder, fixtures, groups]
+  )
+
+  const sectionItems = useMemo(() => {
+    return sectionOrder.map((id) => {
+      const group = groups.find((g) => g.id === id)
+      if (group) return { id, kind: 'group' as const, group }
+      const fixture = fixtures.find((f) => f.id === id)
+      if (fixture) return { id, kind: 'fixture' as const, fixture }
+      return null
+    }).filter((item): item is NonNullable<typeof item> => item !== null)
+  }, [sectionOrder, groups, fixtures])
+
+  const handleSectionReorder = useCallback(async (reordered: typeof sectionItems) => {
+    const ids = reordered.map((item) => item.id)
+    onSectionReorder(ids)
+    await api.reorderFixtureSection(ids)
+  }, [api, onSectionReorder])
+
+  const handleDropFixtureOnGroup = useCallback(async (groupId: string, fixtureId: string) => {
+    const targetGroup = groups.find((g) => g.id === groupId)
+    if (!targetGroup) return
+    const updatedGroup = {
+      ...targetGroup,
+      fixtureIds: [...targetGroup.fixtureIds.filter((id) => id !== fixtureId), fixtureId],
+    }
+    await handleSaveGroup(updatedGroup)
+  }, [groups, handleSaveGroup])
+
+  const { dragId, insertIndex, containerProps, itemProps } = useDragReorder(sectionItems, handleSectionReorder)
 
   return (
     <div className={styles.view}>
@@ -425,22 +493,35 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
             )}
           </div>
           <div className={styles.section}>
-            <button className={styles.sectionLabel} onClick={() => toggleSection('groups')}>
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: sectionsCollapsed.groups ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>
-                <path d="M6 9l6 6 6-6"/>
-              </svg>
-              Groups
-            </button>
-            {!sectionsCollapsed.groups && (
+            <div className={styles.sectionHeader}>
+              <button className={styles.sectionLabel} onClick={() => toggleSection('groups')}>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: sectionsCollapsed.groups ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>
+                  <path d="M6 9l6 6 6-6"/>
+                </svg>
+                Groups
+              </button>
+              {!sectionsCollapsed.groups && (
+                <button
+                  className={styles.sectionActionBtn}
+                  onClick={onToggleGroupStrip}
+                  title={showGroupStrip ? 'Hide group strip' : 'Show group strip'}
+                >
+                  {showGroupStrip ? 'Hide strip' : 'Show strip'}
+                </button>
+              )}
+            </div>
+            {!sectionsCollapsed.groups && showGroupStrip && (
               <GroupStrip
                 groups={groups}
                 fixtures={fixtures}
                 groupStates={groupStates}
                 onStateChange={handleStateChange}
+                onGroupFull={(groupId) => setGroupChannels(groupId, 255)}
+                onGroupMute={(groupId) => setGroupChannels(groupId, 0)}
                 onSaveGroup={handleSaveGroup}
                 onDeleteGroup={handleDeleteGroup}
                 onReorder={handleGroupReorder}
-                addTrigger={groupAddTrigger}
+                addTrigger={0}
               />
             )}
           </div>
@@ -450,6 +531,9 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
             </button>
             <button className={styles.addFixtureBtn} onClick={() => setCreatingFixture(true)}>
               + Add Custom Fixture
+            </button>
+            <button className={styles.addFixtureBtn} onClick={() => setEditingGroupId('new')}>
+              + Add Group
             </button>
             <button
               className={`${styles.layoutToggleBtn}${fixturesHorizontal ? ` ${styles.layoutToggleActive}` : ''}`}
@@ -473,53 +557,69 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
             </button>
           </div>
           <div className={`${styles.fixturesSection}${fixturesHorizontal ? ` ${styles.fixturesSectionHorizontal}` : ''}`}>
-            {fixtures.length === 0 && (
-              <p className={styles.empty}>No fixtures yet — click "+ Add Channels" to get started.</p>
+            {sectionItems.length === 0 && (
+              <p className={styles.empty}>No fixtures yet — click &quot;+ Add Channels&quot; to get started.</p>
             )}
-            {([0, 1] as const).map((u) => fixturesByUniverse[u].length === 0 ? null : (
-              <div key={u} className={styles.universeGroup}>
-                <button className={styles.sectionLabel} onClick={() => toggleSection(`fixturesU${u}`)}>
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" style={{ transform: sectionsCollapsed[`fixturesU${u}`] ? 'rotate(-90deg)' : 'none', transition: 'transform 0.15s' }}>
-                    <path d="M6 9l6 6 6-6"/>
-                  </svg>
-                  Universe {u + 1}
-                </button>
-                {!sectionsCollapsed[`fixturesU${u}`] && (
-                  <div className={`${styles.fixtures}${fixturesHorizontal ? ` ${styles.fixturesHorizontal}` : ''}`}>
-                    {fixturesByUniverse[u].map((fixture) =>
-                      fixture.channels ? (
-                        <MultiFixtureFader
-                          key={fixture.id}
-                          fixture={fixture}
-                          values={Object.fromEntries(
-                            fixture.channels.map((ch) => [ch.id, getChannel(ch.universe, ch.channel)])
-                          )}
-                          onChange={(newValues) => handleMultiFixtureChange(fixture, newValues)}
-                          onRename={(name) => handleFixtureRename(fixture, name)}
-                          onEdit={() => setEditingFixture(fixture)}
-                          groupColor={getFixtureGroupColor(fixture.id)}
-                          groupOverride={getFixtureOverride(fixture.id)}
-                          groupMultiplier={getFixtureGroupMultiplier(fixture.id)}
-                        />
-                      ) : (
-                        <FixtureFader
-                          key={fixture.id}
-                          channel={fixture.channel}
-                          universe={fixture.universe}
-                          name={fixture.name}
-                          value={getChannel(fixture.universe, fixture.channel)}
-                          onChange={(v) => handleSetChannel(fixture, v)}
-                          onRename={(name) => handleFixtureRename(fixture, name)}
-                          groupColor={getFixtureGroupColor(fixture.id)}
-                          groupOverride={getFixtureOverride(fixture.id)}
-                          groupMultiplier={getFixtureGroupMultiplier(fixture.id)}
-                        />
-                      )
+            <div
+              className={`${styles.fixtures}${fixturesHorizontal ? ` ${styles.fixturesHorizontal}` : ''}`}
+              {...containerProps}
+            >
+              {sectionItems.map((item, index) => (
+                <React.Fragment key={item.id}>
+                  {dragId && insertIndex === index && (
+                    <div className={styles.insertIndicator} aria-hidden="true" />
+                  )}
+                  <div
+                    className={item.id === dragId ? styles.dragging : undefined}
+                    {...itemProps(item.id)}
+                  >
+                    {item.kind === 'group' ? (
+                      <GroupCard
+                        group={item.group}
+                        fader={groupStates[item.group.id]?.fader ?? 100}
+                        fixtures={fixtures.filter((f) => item.group.fixtureIds.includes(f.id))}
+                        getChannel={getChannel}
+                        onFaderChange={(fader) => handleStateChange(item.group.id, { fader })}
+                        onFull={() => setGroupChannels(item.group.id, 255)}
+                        onMute={() => setGroupChannels(item.group.id, 0)}
+                        onEdit={() => setEditingGroupId(item.group.id)}
+                        onFixtureChange={handleSetChannel}
+                        onMultiFixtureChange={handleMultiFixtureChange}
+                        onFixtureRename={(fixture, name) => handleFixtureRename(fixture, name)}
+                        onFixtureEdit={(fixture) => setEditingFixture(fixture)}
+                        onDropFixture={(fixtureId) => handleDropFixtureOnGroup(item.group.id, fixtureId)}
+                      />
+                    ) : item.fixture.channels ? (
+                      <MultiFixtureFader
+                        fixture={item.fixture}
+                        values={Object.fromEntries(
+                          item.fixture.channels.map((ch) => [ch.id, getChannel(ch.universe, ch.channel)])
+                        )}
+                        onChange={(newValues) => handleMultiFixtureChange(item.fixture, newValues)}
+                        onRename={(name) => handleFixtureRename(item.fixture, name)}
+                        onEdit={() => setEditingFixture(item.fixture)}
+                        groupColor={getFixtureGroupColor(item.fixture.id)}
+                        groupMultiplier={getFixtureGroupMultiplier(item.fixture.id)}
+                      />
+                    ) : (
+                      <FixtureFader
+                        channel={item.fixture.channel}
+                        universe={item.fixture.universe}
+                        name={item.fixture.name}
+                        value={getChannel(item.fixture.universe, item.fixture.channel)}
+                        onChange={(v) => handleSetChannel(item.fixture, v)}
+                        onRename={(name) => handleFixtureRename(item.fixture, name)}
+                        groupColor={getFixtureGroupColor(item.fixture.id)}
+                        groupMultiplier={getFixtureGroupMultiplier(item.fixture.id)}
+                      />
                     )}
                   </div>
-                )}
-              </div>
-            ))}
+                </React.Fragment>
+              ))}
+              {dragId && insertIndex === sectionItems.length && (
+                <div className={styles.insertIndicator} aria-hidden="true" />
+              )}
+            </div>
           </div>
         </>
       )}
@@ -553,6 +653,25 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
           onTemplateDelete={handleDeleteTemplate}
           onClose={() => setEditingFixture(null)}
         />
+      )}
+
+      {editingGroupId !== null && (
+        <Modal
+          title={editingGroupId === 'new'
+            ? 'New Group'
+            : `Edit: ${groups.find((g) => g.id === editingGroupId)?.name ?? ''}`}
+          onClose={() => setEditingGroupId(null)}
+          centered
+        >
+          <GroupEditor
+            groups={groups}
+            fixtures={fixtures}
+            editing={editingGroupId === 'new' ? null : groups.find((g) => g.id === editingGroupId) ?? null}
+            onSave={async (group) => { await handleSaveGroup(group); setEditingGroupId(null) }}
+            onDelete={async (id) => { await handleDeleteGroup(id); setEditingGroupId(null) }}
+            onCancel={() => setEditingGroupId(null)}
+          />
+        </Modal>
       )}
 
       {tab === 'full' && (

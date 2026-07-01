@@ -200,3 +200,15 @@
   color: var(--text-muted);
   font-size: 14px;
 }
+
+.insertIndicator {
+  width: 2px;
+  align-self: stretch;
+  background: var(--accent);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.dragging {
+  opacity: 0.4;
+}

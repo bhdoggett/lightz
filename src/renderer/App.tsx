@@ -132,6 +132,18 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
     setDirty(true)
   }
 
+  const handleSectionReorder = (fixtureSectionOrder: string[]) => {
+    setConfig((c) => c ? { ...c, fixtureSectionOrder } : c)
+    setDirty(true)
+  }
+
+  const handleToggleGroupStrip = async () => {
+    const next = !(config.showGroupStrip ?? true)
+    setConfig((c) => c ? { ...c, showGroupStrip: next } : c)
+    setDirty(true)
+    await api.setShowGroupStrip(next)
+  }
+
   const handlePortChange = async (port: number) => {
     await api.setPort(port)
     setConfig((c) => c ? { ...c, companionPort: port } : c)
@@ -278,6 +290,10 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
           setChannel={setLocal}
           applyScene={applyScene}
           onOverrideMapChange={setOverrideMap}
+          fixtureSectionOrder={config.fixtureSectionOrder}
+          showGroupStrip={config.showGroupStrip ?? true}
+          onSectionReorder={handleSectionReorder}
+          onToggleGroupStrip={handleToggleGroupStrip}
         />
       </div>
       {vizPopped ? (
