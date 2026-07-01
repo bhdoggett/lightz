@@ -11,11 +11,10 @@ interface Props {
   onRename?: (name: string) => void
   fillColor?: string
   groupColor?: string
-  groupOverride?: 'full' | 'mute' | null
   groupMultiplier?: number
 }
 
-export function RawFader({ channel, universe, value, label, onChange, onRename, fillColor, groupColor, groupOverride, groupMultiplier }: Props) {
+export function RawFader({ channel, universe, value, label, onChange, onRename, fillColor, groupColor, groupMultiplier }: Props) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -24,6 +23,8 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
   const [valueDraft, setValueDraft] = useState('')
   const valueInputRef = useRef<HTMLInputElement>(null)
 
+  const [groupLocked, setGroupLocked] = useState(false)
+
   useEffect(() => {
     if (editing) inputRef.current?.select()
   }, [editing])
@@ -31,6 +32,9 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
   useEffect(() => {
     if (editingValue) valueInputRef.current?.select()
   }, [editingValue])
+
+  const isGroupScaling = groupMultiplier !== undefined && groupMultiplier < 1
+  const displayedValue = isGroupScaling ? Math.round(value * groupMultiplier) : value
 
   const startEdit = () => {
     if (!onRename) return
@@ -49,9 +53,12 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
   }
 
   const startValueEdit = () => {
-    if (groupOverride) return
-    const displayed = groupOverride === 'full' ? 255 : groupOverride === 'mute' ? 0 : value
-    setValueDraft(String(displayed))
+    if (isGroupScaling) {
+      setGroupLocked(false)
+      requestAnimationFrame(() => setGroupLocked(true))
+      return
+    }
+    setValueDraft(String(value))
     setEditingValue(true)
   }
 
@@ -76,7 +83,6 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
       className={[
         styles.fader,
         groupColor ? styles.grouped : '',
-        groupOverride === 'mute' ? styles.muted : '',
       ].filter(Boolean).join(' ')}
       style={groupColor ? { '--group-color': groupColor } as React.CSSProperties : undefined}
     >
@@ -93,11 +99,18 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
           />
         ) : (
           <span
-            className={`${styles.value} ${styles.editable}${value > 0 || groupOverride === 'full' ? ` ${styles.active}` : ''}`}
+            className={[
+              styles.value,
+              styles.editable,
+              displayedValue > 0 ? styles.active : '',
+              isGroupScaling ? styles.scaled : '',
+              groupLocked ? styles.groupLockAlert : '',
+            ].filter(Boolean).join(' ')}
             onClick={startValueEdit}
+            onAnimationEnd={() => setGroupLocked(false)}
             data-testid="value-display"
           >
-            {groupOverride === 'full' ? 255 : groupOverride === 'mute' ? 0 : value}
+            {displayedValue}
           </span>
         )}
         {groupColor && (
@@ -109,7 +122,10 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
           />
         )}
       </div>
-      <Slider value={value} onChange={onChange} fillColor={fillColor} disabled={groupOverride !== null && groupOverride !== undefined} groupMultiplier={groupMultiplier} />
+      {groupLocked && (
+        <span className={styles.groupLockMsg} aria-live="polite">Group fader active</span>
+      )}
+      <Slider value={value} onChange={onChange} fillColor={fillColor} groupMultiplier={groupMultiplier} />
       <button
         className={`${styles.toggleBtn}${value > 0 ? ` ${styles.on}` : ''}`}
         aria-label="toggle"
@@ -118,11 +134,7 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
       >
         <span
           className={styles.toggleDot}
-          style={{
-            background: groupOverride === 'full'
-              ? 'rgba(255,255,255,1)'
-              : `rgba(255,255,255,${value / 255})`,
-          }}
+          style={{ background: `rgba(255,255,255,${value / 255})` }}
         />
       </button>
       <div

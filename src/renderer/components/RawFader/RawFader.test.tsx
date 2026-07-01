@@ -153,10 +153,5 @@ describe('RawFader', () => {
       expect(screen.getByTestId('value-display')).toBeInTheDocument()
     })
 
-    it('does not open value editor when group override is active', async () => {
-      render(<RawFader channel={1} value={128} onChange={vi.fn()} groupOverride="full" groupColor="#ff0" />)
-      await userEvent.click(screen.getByTestId('value-display'))
-      expect(screen.queryByTestId('value-input')).not.toBeInTheDocument()
-    })
   })
 })

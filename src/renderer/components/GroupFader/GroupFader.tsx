@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Slider } from '../Slider'
 import styles from './GroupFader.module.css'
 import type { Group } from '../../../shared/types'
@@ -5,19 +6,27 @@ import type { Group } from '../../../shared/types'
 interface Props {
   group: Group
   fader: number
-  override: 'full' | 'mute' | null
   onFaderChange: (value: number) => void
-  onOverrideChange: (override: 'full' | 'mute' | null) => void
+  onFull: () => void
+  onMute: () => void
   onEdit: () => void
 }
 
-export function GroupFader({ group, fader, override, onFaderChange, onOverrideChange, onEdit }: Props) {
-  const displayValue = override === 'full' ? '255'
-                     : override === 'mute' ? '0'
-                     : `${fader}%`
+export function GroupFader({ group, fader, onFaderChange, onFull, onMute, onEdit }: Props) {
+  const [fullFlash, setFullFlash] = useState(false)
+  const [muteFlash, setMuteFlash] = useState(false)
 
-  const handleFullToggle = () => onOverrideChange(override === 'full' ? null : 'full')
-  const handleMuteToggle = () => onOverrideChange(override === 'mute' ? null : 'mute')
+  const handleFull = () => {
+    onFull()
+    setFullFlash(false)
+    requestAnimationFrame(() => setFullFlash(true))
+  }
+
+  const handleMute = () => {
+    onMute()
+    setMuteFlash(false)
+    requestAnimationFrame(() => setMuteFlash(true))
+  }
 
   return (
     <div className={styles.fader}>
@@ -28,34 +37,33 @@ export function GroupFader({ group, fader, override, onFaderChange, onOverrideCh
         </button>
         <div className={styles.overrides}>
           <button
-            className={`${styles.overrideBtn} ${styles.fullBtn}${override === 'full' ? ` ${styles.active}` : ''}`}
+            className={`${styles.overrideBtn} ${styles.fullBtn}${fullFlash ? ` ${styles.flash}` : ''}`}
             aria-label="full"
-            title="Full override"
-            onClick={handleFullToggle}
+            title="Set to full"
+            onClick={handleFull}
+            onAnimationEnd={() => setFullFlash(false)}
           >
             ○
           </button>
           <button
-            className={`${styles.overrideBtn} ${styles.muteBtn}${override === 'mute' ? ` ${styles.active}` : ''}`}
+            className={`${styles.overrideBtn} ${styles.muteBtn}${muteFlash ? ` ${styles.flash}` : ''}`}
             aria-label="mute"
-            title="Mute override"
-            onClick={handleMuteToggle}
+            title="Set to off"
+            onClick={handleMute}
+            onAnimationEnd={() => setMuteFlash(false)}
           >
             ✕
           </button>
         </div>
       </div>
       <div className={styles.sliderWrap} data-no-drag>
-        <span className={`${styles.value}${override !== null ? ` ${styles.overridden}` : ''}`}>
-          {displayValue}
-        </span>
+        <span className={styles.value}>{fader}%</span>
         <Slider
           value={fader}
           min={0}
           max={100}
           height={60}
           fillColor={group.color}
-          disabled={override !== null}
           onChange={onFaderChange}
         />
       </div>

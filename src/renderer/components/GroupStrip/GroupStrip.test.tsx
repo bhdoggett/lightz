@@ -12,14 +12,16 @@ const fixtures: Fixture[] = [
   { id: 'f2', name: 'Spot', channel: 2, universe: 0, type: 'dimmer' },
 ]
 const defaultStates = {
-  g1: { fader: 100, override: null as 'full' | 'mute' | null },
-  g2: { fader: 100, override: null as 'full' | 'mute' | null },
+  g1: { fader: 100 },
+  g2: { fader: 100 },
 }
 const defaultProps = {
   groups,
   fixtures,
   groupStates: defaultStates,
   onStateChange: vi.fn(),
+  onGroupFull: vi.fn(),
+  onGroupMute: vi.fn(),
   onSaveGroup: vi.fn(),
   onDeleteGroup: vi.fn(),
 }
@@ -56,6 +58,6 @@ describe('GroupStrip', () => {
     render(<GroupStrip {...defaultProps} onStateChange={onStateChange} />)
     const sliders = screen.getAllByRole('slider')
     fireEvent.change(sliders[0], { target: { value: '50' } })
-    expect(onStateChange).toHaveBeenCalledWith('g1', { fader: 50, override: null })
+    expect(onStateChange).toHaveBeenCalledWith('g1', { fader: 50 })
   })
 })

@@ -71,16 +71,22 @@
   border-color: var(--text-secondary);
 }
 
-.fullBtn.active {
-  border-color: var(--accent);
-  background: var(--accent);
-  color: #fff;
+@keyframes btnFlash {
+  0%   { border-color: var(--accent); background: var(--accent); color: #fff; }
+  100% { border-color: var(--border-default); background: transparent; color: var(--text-secondary); }
 }
 
-.muteBtn.active {
-  border-color: var(--status-error);
-  background: var(--status-error);
-  color: #fff;
+.fullBtn.flash {
+  animation: btnFlash 400ms ease-out forwards;
+}
+
+@keyframes btnFlashMute {
+  0%   { border-color: var(--status-error); background: var(--status-error); color: #fff; }
+  100% { border-color: var(--border-default); background: transparent; color: var(--text-secondary); }
+}
+
+.muteBtn.flash {
+  animation: btnFlashMute 400ms ease-out forwards;
 }
 
 .sliderWrap {
@@ -99,8 +105,4 @@
   text-align: center;
 }
 
-.value.overridden {
-  color: var(--text-secondary);
-  font-weight: 700;
-}
 

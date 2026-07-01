@@ -8,9 +8,9 @@ const group: Group = { id: 'g1', name: 'Front Wash', color: '#6366f1', fixtureId
 const defaultProps = {
   group,
   fader: 100,
-  override: null as 'full' | 'mute' | null,
   onFaderChange: vi.fn(),
-  onOverrideChange: vi.fn(),
+  onFull: vi.fn(),
+  onMute: vi.fn(),
   onEdit: vi.fn(),
 }
 
@@ -26,19 +26,9 @@ describe('GroupFader', () => {
     expect(screen.getByRole('slider')).toHaveValue('75')
   })
 
-  it('shows fader value when no override', () => {
-    render(<GroupFader {...defaultProps} fader={75} override={null} />)
+  it('shows fader percentage value', () => {
+    render(<GroupFader {...defaultProps} fader={75} />)
     expect(screen.getByText('75%')).toBeInTheDocument()
-  })
-
-  it('shows 255 when full override active', () => {
-    render(<GroupFader {...defaultProps} fader={75} override="full" />)
-    expect(screen.getByText('255')).toBeInTheDocument()
-  })
-
-  it('shows 0 when mute override active', () => {
-    render(<GroupFader {...defaultProps} fader={75} override="mute" />)
-    expect(screen.getByText('0')).toBeInTheDocument()
   })
 
   it('calls onFaderChange when slider moves', () => {
@@ -48,32 +38,30 @@ describe('GroupFader', () => {
     expect(onFaderChange).toHaveBeenCalledWith(50)
   })
 
-  it('calls onOverrideChange("full") when full button clicked while no override', async () => {
-    const onOverrideChange = vi.fn()
-    render(<GroupFader {...defaultProps} override={null} onOverrideChange={onOverrideChange} />)
+  it('calls onFull when full button clicked', async () => {
+    const onFull = vi.fn()
+    render(<GroupFader {...defaultProps} onFull={onFull} />)
     await userEvent.click(screen.getByRole('button', { name: /full/i }))
-    expect(onOverrideChange).toHaveBeenCalledWith('full')
+    expect(onFull).toHaveBeenCalled()
   })
 
-  it('releases full override when full button clicked while already full', async () => {
-    const onOverrideChange = vi.fn()
-    render(<GroupFader {...defaultProps} override="full" onOverrideChange={onOverrideChange} />)
+  it('calls onMute when mute button clicked', async () => {
+    const onMute = vi.fn()
+    render(<GroupFader {...defaultProps} onMute={onMute} />)
+    await userEvent.click(screen.getByRole('button', { name: /mute/i }))
+    expect(onMute).toHaveBeenCalled()
+  })
+
+  it('does not change fader when full button clicked', async () => {
+    const onFaderChange = vi.fn()
+    render(<GroupFader {...defaultProps} fader={40} onFaderChange={onFaderChange} />)
     await userEvent.click(screen.getByRole('button', { name: /full/i }))
-    expect(onOverrideChange).toHaveBeenCalledWith(null)
+    expect(onFaderChange).not.toHaveBeenCalled()
   })
 
-  it('calls onOverrideChange("mute") when mute button clicked while no override', async () => {
-    const onOverrideChange = vi.fn()
-    render(<GroupFader {...defaultProps} override={null} onOverrideChange={onOverrideChange} />)
-    await userEvent.click(screen.getByRole('button', { name: /mute/i }))
-    expect(onOverrideChange).toHaveBeenCalledWith('mute')
-  })
-
-  it('releases mute override when mute button clicked while already muted', async () => {
-    const onOverrideChange = vi.fn()
-    render(<GroupFader {...defaultProps} override="mute" onOverrideChange={onOverrideChange} />)
-    await userEvent.click(screen.getByRole('button', { name: /mute/i }))
-    expect(onOverrideChange).toHaveBeenCalledWith(null)
+  it('slider is always enabled', () => {
+    render(<GroupFader {...defaultProps} />)
+    expect(screen.getByRole('slider')).not.toBeDisabled()
   })
 
   it('calls onEdit when name clicked', async () => {
@@ -81,10 +69,5 @@ describe('GroupFader', () => {
     render(<GroupFader {...defaultProps} onEdit={onEdit} />)
     await userEvent.click(screen.getByText('Front Wash'))
     expect(onEdit).toHaveBeenCalled()
-  })
-
-  it('slider is disabled when override is active', () => {
-    render(<GroupFader {...defaultProps} override="full" />)
-    expect(screen.getByRole('slider')).toBeDisabled()
   })
 })

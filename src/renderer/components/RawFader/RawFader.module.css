@@ -13,9 +13,6 @@
   border-bottom-color: var(--group-color);
 }
 
-.muted {
-  opacity: 0.35;
-}
 
 .value {
   font-size: 11px;
@@ -37,6 +34,44 @@
 
 .value.editable:hover {
   color: var(--accent);
+}
+
+.value.scaled {
+  cursor: not-allowed;
+  color: var(--text-secondary);
+}
+
+.value.scaled:hover {
+  color: var(--text-secondary);
+}
+
+@keyframes groupLockShake {
+  0%   { transform: translateX(0); }
+  20%  { transform: translateX(-3px); }
+  40%  { transform: translateX(3px); }
+  60%  { transform: translateX(-2px); }
+  80%  { transform: translateX(2px); }
+  100% { transform: translateX(0); }
+}
+
+.value.groupLockAlert {
+  animation: groupLockShake 0.35s ease;
+}
+
+@keyframes groupLockMsgFade {
+  0%   { opacity: 0.9; }
+  60%  { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+
+.groupLockMsg {
+  font-size: 8px;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+  animation: groupLockMsgFade 1.4s ease forwards;
+  pointer-events: none;
+  line-height: 1;
 }
 
 .valueInput {
