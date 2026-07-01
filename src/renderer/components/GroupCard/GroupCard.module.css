@@ -1,7 +1,7 @@
 .card {
   display: inline-flex;
   flex-direction: row;
-  align-items: flex-start;
+  align-items: stretch;
   border: 1px solid var(--border-default);
   border-bottom: 3px solid var(--group-color, var(--border-default));
   border-radius: var(--radius-md);
@@ -16,7 +16,7 @@
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-2);
-  width: var(--fader-width);
+  width: 5rem;
   flex-shrink: 0;
   border-radius: var(--radius-md);
 }
@@ -24,7 +24,6 @@
 .expanded > .masterPanel {
   border-right: 1px solid var(--border-subtle);
   border-radius: var(--radius-md) 0 0 var(--radius-md);
-  padding-right: var(--space-2);
 }
 
 .dropTarget {
@@ -53,6 +52,7 @@
   width: 100%;
   overflow: hidden;
   padding: 2px 0;
+  margin-top: auto;
 }
 
 .name {
