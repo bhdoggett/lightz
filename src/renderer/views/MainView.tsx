@@ -30,9 +30,7 @@ interface Props {
   applyScene: (values: Record<string, number>, fixtures: Fixture[]) => void
   onOverrideMapChange?: (map: Record<string, GroupChannelOverride>) => void
   fixtureSectionOrder?: string[]
-  showGroupStrip?: boolean
   onSectionReorder: (ids: string[]) => void
-  onToggleGroupStrip: () => void
 }
 
 export function deriveSectionOrder(
@@ -62,9 +60,7 @@ export function MainView({
   onScenesChange, onFixturesChange, onGroupsChange,
   currentShowName = null, onSave, getChannel, setChannel: setLocal, applyScene, onOverrideMapChange,
   fixtureSectionOrder: storedOrder,
-  showGroupStrip = true,
   onSectionReorder,
-  onToggleGroupStrip,
 }: Props) {
   const api = useApi()
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null)
@@ -500,17 +496,8 @@ export function MainView({
                 </svg>
                 Groups
               </button>
-              {!sectionsCollapsed.groups && (
-                <button
-                  className={styles.sectionActionBtn}
-                  onClick={onToggleGroupStrip}
-                  title={showGroupStrip ? 'Hide group strip' : 'Show group strip'}
-                >
-                  {showGroupStrip ? 'Hide strip' : 'Show strip'}
-                </button>
-              )}
             </div>
-            {!sectionsCollapsed.groups && showGroupStrip && (
+            {!sectionsCollapsed.groups && (
               <GroupStrip
                 groups={groups}
                 fixtures={fixtures}

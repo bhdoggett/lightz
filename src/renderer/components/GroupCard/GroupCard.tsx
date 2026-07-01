@@ -50,7 +50,6 @@ export function GroupCard({
     <div
       className={`${styles.masterPanel}${dropTarget ? ` ${styles.dropTarget}` : ''}`}
       data-testid="group-drop-target"
-      data-no-drag
       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDropTarget(true) }}
       onDragLeave={() => setDropTarget(false)}
       onDrop={(e) => {
