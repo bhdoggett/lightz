@@ -127,12 +127,19 @@
 }
 
 .addFixtureRow {
+  position: relative;
   display: flex;
-  justify-content: flex-start;
   align-items: center;
-  gap: var(--space-3);
   padding: var(--space-3) var(--space-6) var(--space-2);
   flex-shrink: 0;
+}
+
+.addFixtureBtns {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: var(--space-3);
 }
 
 .addFixtureBtn {

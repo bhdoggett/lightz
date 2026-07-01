@@ -513,15 +513,17 @@ export function MainView({
             )}
           </div>
           <div className={styles.addFixtureRow}>
-            <button className={styles.addFixtureBtn} onClick={() => setAddingFixtures(true)}>
-              + Add Channels
-            </button>
-            <button className={styles.addFixtureBtn} onClick={() => setCreatingFixture(true)}>
-              + Add Custom Fixture
-            </button>
-            <button className={styles.addFixtureBtn} onClick={() => setEditingGroupId('new')}>
-              + Add Group
-            </button>
+            <div className={styles.addFixtureBtns}>
+              <button className={styles.addFixtureBtn} onClick={() => setAddingFixtures(true)}>
+                + Add Channels
+              </button>
+              <button className={styles.addFixtureBtn} onClick={() => setCreatingFixture(true)}>
+                + Add Custom Fixture
+              </button>
+              <button className={styles.addFixtureBtn} onClick={() => setEditingGroupId('new')}>
+                + Add Group
+              </button>
+            </div>
             <div className={`${styles.layoutToggleGroup} ${styles.layoutToggleRight}`}>
               <button
                 className={`${styles.layoutToggleBtn}${!fixturesHorizontal ? ` ${styles.layoutToggleActive}` : ''}`}
