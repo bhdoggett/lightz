@@ -144,8 +144,8 @@ export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit,
                       label={ch.label}
                       onChange={(v) => handleChannelChange(ch, v)}
                       fillColor={roleToFillColor(ch.role)}
-                      groupColor={groupColor}
-                      groupMultiplier={groupMultiplier}
+                      groupColor={isLinked ? groupColor : undefined}
+                      groupMultiplier={isLinked ? groupMultiplier : undefined}
                     />
                     <button
                       className={`${styles.linkBtn}${isLinked ? ` ${styles.linked}` : ''}`}
