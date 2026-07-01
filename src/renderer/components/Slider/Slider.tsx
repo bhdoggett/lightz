@@ -6,13 +6,14 @@ interface Props {
   min?: number
   max?: number
   height?: number
+  stretch?: boolean
   fillColor?: string
   disabled?: boolean
   groupMultiplier?: number
   onChange: (value: number) => void
 }
 
-export function Slider({ value, min = 0, max = 255, height = 120, fillColor, disabled = false, groupMultiplier, onChange }: Props) {
+export function Slider({ value, min = 0, max = 255, height = 120, stretch = false, fillColor, disabled = false, groupMultiplier, onChange }: Props) {
   const fillPct = `${((value - min) / (max - min)) * 100}%`
   const effectivePct = groupMultiplier !== undefined
     ? `${((value - min) / (max - min)) * groupMultiplier * 100}%`
@@ -23,7 +24,7 @@ export function Slider({ value, min = 0, max = 255, height = 120, fillColor, dis
       role="slider"
       className={styles.slider}
       style={{
-        height: `${height}px`,
+        height: stretch ? '100%' : `${height}px`,
         ['--fill-pct']: fillPct,
         ...(effectivePct ? { ['--effective-pct']: effectivePct } : {}),
         ...(fillColor ? { ['--fill-color']: fillColor } : {}),

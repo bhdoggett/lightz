@@ -48,11 +48,17 @@
   flex-shrink: 0;
 }
 
+.sliderWrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  width: 100%;
+}
+
 .nameArea {
   width: 100%;
   overflow: hidden;
   padding: 2px 0;
-  margin-top: auto;
 }
 
 .name {
@@ -67,10 +73,6 @@
   display: block;
 }
 
-.controls {
-  display: flex;
-  gap: var(--space-1);
-}
 
 .overrideBtn {
   width: 24px;
@@ -118,6 +120,7 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
+  gap: var(--space-1);
 }
 
 .gearBtn,

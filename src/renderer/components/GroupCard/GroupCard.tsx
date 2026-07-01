@@ -66,14 +66,20 @@ export function GroupCard({
         <span className={styles.faderValue}>{fader}%</span>
         <span className={styles.groupDot} style={{ background: group.color }} />
       </div>
-      <Slider
-        value={fader}
-        min={0}
-        max={100}
-        fillColor={group.color}
-        onChange={onFaderChange}
-      />
-      <div className={styles.controls}>
+      <div className={styles.sliderWrap}>
+        <Slider
+          value={fader}
+          min={0}
+          max={100}
+          stretch
+          fillColor={group.color}
+          onChange={onFaderChange}
+        />
+      </div>
+      <div className={styles.nameArea}>
+        <span className={styles.name}>{group.name}</span>
+      </div>
+      <div className={styles.footer}>
         <button
           className={`${styles.overrideBtn} ${styles.fullBtn}${fullFlash ? ` ${styles.flash}` : ''}`}
           aria-label="full"
@@ -88,11 +94,6 @@ export function GroupCard({
           onClick={handleMute}
           onAnimationEnd={() => setMuteFlash(false)}
         >✕</button>
-      </div>
-      <div className={styles.nameArea}>
-        <span className={styles.name}>{group.name}</span>
-      </div>
-      <div className={styles.footer}>
         <button
           className={styles.gearBtn}
           aria-label="Edit group"
