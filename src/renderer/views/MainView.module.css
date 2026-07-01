@@ -200,6 +200,7 @@
   flex-wrap: wrap;
   gap: var(--fader-gap);
   align-content: flex-start;
+  align-items: flex-start;
 }
 
 .fixtures.fixturesHorizontal {

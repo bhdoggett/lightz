@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Slider } from '../Slider'
 import { FixtureFader } from '../FixtureFader'
 import { MultiFixtureFader } from '../MultiFixtureFader'
@@ -14,6 +14,7 @@ interface Props {
   onFull: () => void
   onMute: () => void
   onEdit: () => void
+  onRename?: (name: string) => void
   onFixtureChange: (fixture: Fixture, value: number) => void
   onMultiFixtureChange: (fixture: Fixture, values: Record<string, number>) => void
   onFixtureRename?: (fixture: Fixture, name: string) => void
@@ -24,7 +25,7 @@ interface Props {
 
 export function GroupCard({
   group, fader, fixtures, getChannel,
-  onFaderChange, onFull, onMute, onEdit,
+  onFaderChange, onFull, onMute, onEdit, onRename,
   onFixtureChange, onMultiFixtureChange,
   onFixtureRename, onFixtureEdit, onDropFixture,
   horizontal = false,
@@ -33,6 +34,29 @@ export function GroupCard({
   const [fullFlash, setFullFlash] = useState(false)
   const [muteFlash, setMuteFlash] = useState(false)
   const [dropTarget, setDropTarget] = useState(false)
+  const [editingName, setEditingName] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
+  const nameInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (editingName) nameInputRef.current?.select()
+  }, [editingName])
+
+  const startNameEdit = () => {
+    if (!onRename) return
+    setNameDraft(group.name)
+    setEditingName(true)
+  }
+
+  const commitNameEdit = () => {
+    setEditingName(false)
+    if (onRename && nameDraft.trim()) onRename(nameDraft.trim())
+  }
+
+  const handleNameKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') commitNameEdit()
+    if (e.key === 'Escape') setEditingName(false)
+  }
 
   const handleFull = () => {
     onFull()
@@ -71,15 +95,12 @@ export function GroupCard({
           value={fader}
           min={0}
           max={100}
-          stretch
+          height={120}
           fillColor={group.color}
           onChange={onFaderChange}
         />
       </div>
-      <div className={styles.nameArea}>
-        <span className={styles.name}>{group.name}</span>
-      </div>
-      <div className={styles.footer}>
+      <div className={styles.controls}>
         <button
           className={`${styles.overrideBtn} ${styles.fullBtn}${fullFlash ? ` ${styles.flash}` : ''}`}
           aria-label="full"
@@ -94,6 +115,28 @@ export function GroupCard({
           onClick={handleMute}
           onAnimationEnd={() => setMuteFlash(false)}
         >✕</button>
+      </div>
+      <div
+        className={`${styles.nameArea}${onRename ? ` ${styles.renameable}` : ''}`}
+        onClick={startNameEdit}
+      >
+        {editingName ? (
+          <input
+            ref={nameInputRef}
+            className={styles.renameInput}
+            value={nameDraft}
+            onChange={(e) => setNameDraft(e.target.value)}
+            onBlur={commitNameEdit}
+            onKeyDown={handleNameKeyDown}
+            onClick={(e) => e.stopPropagation()}
+            placeholder="group name…"
+            data-no-drag
+          />
+        ) : (
+          <span className={styles.name}>{group.name}</span>
+        )}
+      </div>
+      <div className={styles.footer}>
         <button
           className={styles.gearBtn}
           aria-label="Edit group"
@@ -129,7 +172,7 @@ export function GroupCard({
       {masterPanel}
       {expanded && (
         <div className={`${styles.fixturePanel}${horizontal ? ` ${styles.fixturePanelHorizontal}` : ''}`}>
-          {fixtures.map((fixture) =>
+          {fixtures.map((fixture, fixtureIndex) =>
             fixture.channels ? (
               <MultiFixtureFader
                 key={fixture.id}
@@ -142,6 +185,8 @@ export function GroupCard({
                 onEdit={onFixtureEdit ? () => onFixtureEdit(fixture) : undefined}
                 groupColor={group.color}
                 groupMultiplier={multiplier}
+                hasLeftNeighbor={fixtureIndex > 0}
+                hasRightNeighbor={fixtureIndex < fixtures.length - 1}
               />
             ) : (
               <FixtureFader

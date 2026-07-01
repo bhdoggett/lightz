@@ -15,9 +15,11 @@ interface Props {
   onEdit?: () => void
   groupColor?: string
   groupMultiplier?: number
+  hasLeftNeighbor?: boolean
+  hasRightNeighbor?: boolean
 }
 
-export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit, groupColor, groupMultiplier }: Props) {
+export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit, groupColor, groupMultiplier, hasLeftNeighbor = true, hasRightNeighbor = true }: Props) {
   const api = useApi()
   const channels = fixture.channels!
   const [expanded, setExpanded] = useState(false)
@@ -127,7 +129,11 @@ export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit,
   return (
     <div ref={cardRef} className={styles.card}>
       {expanded ? (
-        <div className={styles.expandedPanel}>
+        <div className={[
+          styles.expandedPanel,
+          hasLeftNeighbor ? styles.borderLeft : '',
+          hasRightNeighbor ? styles.borderRight : '',
+        ].filter(Boolean).join(' ')}>
           <div className={styles.masterPanel}>
             {masterPanel}
           </div>

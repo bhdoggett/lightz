@@ -575,6 +575,7 @@ export function MainView({
                         onFull={() => setGroupChannels(item.group.id, 255)}
                         onMute={() => setGroupChannels(item.group.id, 0)}
                         onEdit={() => setEditingGroupId(item.group.id)}
+                        onRename={(name) => handleSaveGroup({ ...item.group, name })}
                         onFixtureChange={handleSetChannel}
                         onMultiFixtureChange={handleMultiFixtureChange}
                         onFixtureRename={(fixture, name) => handleFixtureRename(fixture, name)}
@@ -593,6 +594,8 @@ export function MainView({
                         onEdit={() => setEditingFixture(item.fixture)}
                         groupColor={getFixtureGroupColor(item.fixture.id)}
                         groupMultiplier={getFixtureGroupMultiplier(item.fixture.id)}
+                        hasLeftNeighbor={index > 0}
+                        hasRightNeighbor={index < sectionItems.length - 1}
                       />
                     ) : (
                       <FixtureFader
