@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Slider } from '../Slider'
 import { FixtureFader } from '../FixtureFader'
 import { MultiFixtureFader } from '../MultiFixtureFader'
@@ -19,6 +19,7 @@ interface Props {
   onFixtureRename?: (fixture: Fixture, name: string) => void
   onFixtureEdit?: (fixture: Fixture) => void
   onDropFixture?: (fixtureId: string) => void
+  horizontal?: boolean
 }
 
 export function GroupCard({
@@ -26,6 +27,7 @@ export function GroupCard({
   onFaderChange, onFull, onMute, onEdit,
   onFixtureChange, onMultiFixtureChange,
   onFixtureRename, onFixtureEdit, onDropFixture,
+  horizontal = false,
 }: Props) {
   const [expanded, setExpanded] = useState(false)
   const [fullFlash, setFullFlash] = useState(false)
@@ -60,9 +62,10 @@ export function GroupCard({
         if (fixtureId && onDropFixture) onDropFixture(fixtureId)
       }}
     >
-      <div className={styles.colorBar} style={{ background: group.color }} />
-      <span className={styles.name}>{group.name}</span>
-      <span className={styles.faderValue}>{fader}%</span>
+      <div className={styles.valueRow}>
+        <span className={styles.faderValue}>{fader}%</span>
+        <span className={styles.groupDot} style={{ background: group.color }} />
+      </div>
       <Slider
         value={fader}
         min={0}
@@ -85,6 +88,9 @@ export function GroupCard({
           onClick={handleMute}
           onAnimationEnd={() => setMuteFlash(false)}
         >✕</button>
+      </div>
+      <div className={styles.nameArea}>
+        <span className={styles.name}>{group.name}</span>
       </div>
       <div className={styles.footer}>
         <button
@@ -115,10 +121,13 @@ export function GroupCard({
   )
 
   return (
-    <div className={`${styles.card}${expanded ? ` ${styles.expanded}` : ''}`}>
+    <div
+      className={`${styles.card}${expanded ? ` ${styles.expanded}` : ''}`}
+      style={{ '--group-color': group.color } as React.CSSProperties}
+    >
       {masterPanel}
       {expanded && (
-        <div className={styles.fixturePanel}>
+        <div className={`${styles.fixturePanel}${horizontal ? ` ${styles.fixturePanelHorizontal}` : ''}`}>
           {fixtures.map((fixture) =>
             fixture.channels ? (
               <MultiFixtureFader

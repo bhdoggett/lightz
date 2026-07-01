@@ -575,6 +575,7 @@ export function MainView({
                         onFixtureRename={(fixture, name) => handleFixtureRename(fixture, name)}
                         onFixtureEdit={(fixture) => setEditingFixture(fixture)}
                         onDropFixture={(fixtureId) => handleDropFixtureOnGroup(item.group.id, fixtureId)}
+                        horizontal={fixturesHorizontal}
                       />
                     ) : item.fixture.channels ? (
                       <MultiFixtureFader

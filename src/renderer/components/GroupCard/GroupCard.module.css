@@ -3,6 +3,7 @@
   flex-direction: row;
   align-items: flex-start;
   border: 1px solid var(--border-default);
+  border-bottom: 3px solid var(--group-color, var(--border-default));
   border-radius: var(--radius-md);
   background: var(--bg-surface);
   overflow: visible;
@@ -32,22 +33,38 @@
   border-radius: var(--radius-md);
 }
 
-.colorBar {
-  height: 3px;
-  border-radius: 2px;
+.valueRow {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  min-height: 16px;
+  width: 100%;
+  justify-content: center;
+}
+
+.groupDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
   flex-shrink: 0;
-  align-self: stretch;
+}
+
+.nameArea {
+  width: 100%;
+  overflow: hidden;
+  padding: 2px 0;
 }
 
 .name {
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
   text-align: center;
+  display: block;
 }
 
 .controls {
@@ -90,7 +107,8 @@
 .muteBtn.flash { animation: btnFlashMute 400ms ease-out forwards; }
 
 .faderValue {
-  font-size: 10px;
+  font-size: 11px;
+  font-weight: 600;
   font-family: var(--font-mono);
   color: var(--text-muted);
 }
@@ -126,6 +144,11 @@
   gap: var(--fader-gap);
   padding: var(--space-2);
   flex-wrap: wrap;
+}
+
+.fixturePanelHorizontal {
+  flex-wrap: nowrap;
+  overflow-x: auto;
 }
 
 .empty {
