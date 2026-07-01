@@ -522,26 +522,29 @@ export function MainView({
             <button className={styles.addFixtureBtn} onClick={() => setEditingGroupId('new')}>
               + Add Group
             </button>
-            <button
-              className={`${styles.layoutToggleBtn}${fixturesHorizontal ? ` ${styles.layoutToggleActive}` : ''}`}
-              onClick={() => setFixturesHorizontal((v) => !v)}
-              title={fixturesHorizontal ? 'Wrap fixtures onto rows' : 'Scroll fixtures horizontally'}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                {fixturesHorizontal ? (
-                  <>
-                    <rect x="3" y="3" width="7" height="7" rx="1"/>
-                    <rect x="14" y="3" width="7" height="7" rx="1"/>
-                    <rect x="3" y="14" width="7" height="7" rx="1"/>
-                    <rect x="14" y="14" width="7" height="7" rx="1"/>
-                  </>
-                ) : (
-                  <>
-                    <path d="M4 12h16M16 8l4 4-4 4"/>
-                  </>
-                )}
-              </svg>
-            </button>
+            <div className={styles.layoutToggleGroup}>
+              <button
+                className={`${styles.layoutToggleBtn}${!fixturesHorizontal ? ` ${styles.layoutToggleActive}` : ''}`}
+                onClick={() => setFixturesHorizontal(false)}
+                title="Wrap fixtures onto rows"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <rect x="3" y="3" width="7" height="7" rx="1"/>
+                  <rect x="14" y="3" width="7" height="7" rx="1"/>
+                  <rect x="3" y="14" width="7" height="7" rx="1"/>
+                  <rect x="14" y="14" width="7" height="7" rx="1"/>
+                </svg>
+              </button>
+              <button
+                className={`${styles.layoutToggleBtn}${fixturesHorizontal ? ` ${styles.layoutToggleActive}` : ''}`}
+                onClick={() => setFixturesHorizontal(true)}
+                title="Scroll fixtures horizontally"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 12h16M16 8l4 4-4 4"/>
+                </svg>
+              </button>
+            </div>
           </div>
           <div className={`${styles.fixturesSection}${fixturesHorizontal ? ` ${styles.fixturesSectionHorizontal}` : ''}`}>
             {sectionItems.length === 0 && (

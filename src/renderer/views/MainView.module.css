@@ -149,26 +149,37 @@
   border-color: var(--text-secondary);
 }
 
+.layoutToggleGroup {
+  display: flex;
+  flex-direction: row;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
 .layoutToggleBtn {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-default);
+  padding: 5px 7px;
+  border: none;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
 }
 
+.layoutToggleBtn + .layoutToggleBtn {
+  border-left: 1px solid var(--border-default);
+}
+
 .layoutToggleBtn:hover {
   color: var(--text-secondary);
-  border-color: var(--text-secondary);
+  background: var(--bg-raised);
 }
 
 .layoutToggleBtn.layoutToggleActive {
   color: var(--accent);
-  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
 }
 
 .fixtures {
