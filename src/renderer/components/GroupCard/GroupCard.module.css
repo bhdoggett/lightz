@@ -50,7 +50,8 @@
 
 .sliderWrap {
   flex: 1;
-  min-height: 0;
+  min-height: 80px;
+  max-height: 220px;
   display: flex;
   width: 100%;
 }
@@ -59,6 +60,7 @@
   width: 100%;
   overflow: hidden;
   padding: 2px 0;
+  margin-top: auto;
 }
 
 .name {
