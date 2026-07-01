@@ -239,14 +239,25 @@ export function MainView({ fixtures, scenes, groups, onScenesChange, onFixturesC
     }
     const saved = await api.saveScene({ name, fadeDuration, values, groupStates })
     onScenesChange([...scenes, saved])
+    setActiveSceneId(saved.id)
   }, [fixtures, scenes, api, getChannel, onScenesChange])
 
   const handleSceneUpdate = useCallback(async (id: string, name: string, fadeDuration: number, groupStates: Record<string, GroupState>) => {
-    const updated = await api.updateScene({ id, name, fadeDuration, groupStates })
+    const values: Record<string, number> = {}
+    for (const f of fixtures) {
+      if (f.channels) {
+        for (const ch of f.channels) {
+          values[ch.id] = getChannel(ch.universe, ch.channel)
+        }
+      } else {
+        values[f.id] = getChannel(f.universe, f.channel)
+      }
+    }
+    const updated = await api.updateScene({ id, name, fadeDuration, values, groupStates })
     if (!updated) return
     onScenesChange(scenes.map((s) => s.id === id ? updated : s))
     if (activeSceneId === id) setActiveSceneId(updated.id)
-  }, [scenes, api, onScenesChange, activeSceneId])
+  }, [fixtures, scenes, api, getChannel, onScenesChange, activeSceneId])
 
   const handleSaveSceneValues = useCallback(async () => {
     if (!activeSceneId) return

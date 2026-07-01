@@ -37,7 +37,7 @@ function SceneDialog({ initialName = '', initialFade = 0, initialGroupStates, gr
     if (!name.trim()) return
     const groupStates: Record<string, GroupState> = {}
     for (const id of checkedGroupIds) {
-      if (currentGroupStates[id]) groupStates[id] = currentGroupStates[id]
+      groupStates[id] = currentGroupStates[id] ?? initialGroupStates?.[id] ?? { fader: 100, override: null }
     }
     onConfirm(name.trim(), fade, groupStates)
   }
@@ -66,25 +66,25 @@ function SceneDialog({ initialName = '', initialFade = 0, initialGroupStates, gr
           />
         </label>
         <button className={styles.confirmBtn} onClick={handleConfirm}>
-          {onDelete ? 'Update' : 'Save'}
+          Save
         </button>
         {onDelete && <button className={styles.deleteBtn} onClick={onDelete}>Delete</button>}
         <button className={styles.cancelBtn} onClick={onCancel}>Cancel</button>
       </div>
       {groups.length > 0 && (
         <div className={styles.groupSection}>
-          <span className={styles.groupSectionLabel}>Include group settings?</span>
+          <span className={styles.groupSectionLabel}>Include Group Settings</span>
           {groups.map((g) => (
-            <div key={g.id} className={styles.groupCheckbox}>
-              <input
-                id={`group-cb-${g.id}`}
-                type="checkbox"
-                checked={checkedGroupIds.has(g.id)}
-                onChange={() => toggleGroup(g.id)}
-              />
+            <button
+              key={g.id}
+              type="button"
+              className={[styles.groupBtn, checkedGroupIds.has(g.id) ? styles.groupBtnSelected : ''].filter(Boolean).join(' ')}
+              aria-pressed={checkedGroupIds.has(g.id)}
+              onClick={() => toggleGroup(g.id)}
+            >
               <span className={styles.groupSwatch} style={{ color: g.color }} aria-hidden="true">■</span>
-              <label htmlFor={`group-cb-${g.id}`}>{g.name}</label>
-            </div>
+              {g.name}
+            </button>
           ))}
         </div>
       )}

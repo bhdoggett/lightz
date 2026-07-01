@@ -55,7 +55,7 @@ describe('ScenesStrip', () => {
     const onUpdate = vi.fn()
     render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" onUpdate={onUpdate} editTrigger={1} />)
     fireEvent.change(screen.getByDisplayValue('Worship Mode'), { target: { value: 'New Name' } })
-    await userEvent.click(screen.getByRole('button', { name: /^update$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
     expect(onUpdate).toHaveBeenCalledWith('worship-mode', 'New Name', 1000, {})
   })
 
@@ -84,30 +84,30 @@ const currentGroupStates = {
   g2: { fader: 100, override: 'mute' as const },
 }
 
-describe('ScenesStrip group checkboxes', () => {
-  it('shows group checkboxes in save dialog', () => {
+describe('ScenesStrip group buttons', () => {
+  it('shows group buttons in save dialog', () => {
     render(<ScenesStrip {...defaultProps} groups={groups} currentGroupStates={currentGroupStates} saveTrigger={1} />)
-    expect(screen.getByText('Include group settings?')).toBeInTheDocument()
-    expect(screen.getByLabelText('Stage Left')).toBeInTheDocument()
-    expect(screen.getByLabelText('Stage Right')).toBeInTheDocument()
+    expect(screen.getByText('Groups')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Stage Left/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Stage Right/i })).toBeInTheDocument()
   })
 
-  it('group checkboxes default to unchecked', () => {
+  it('group buttons default to not pressed', () => {
     render(<ScenesStrip {...defaultProps} groups={groups} currentGroupStates={currentGroupStates} saveTrigger={1} />)
-    expect(screen.getByLabelText('Stage Left')).not.toBeChecked()
-    expect(screen.getByLabelText('Stage Right')).not.toBeChecked()
+    expect(screen.getByRole('button', { name: /Stage Left/i })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: /Stage Right/i })).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('calls onSave with groupStates for checked groups only', async () => {
+  it('calls onSave with groupStates for selected groups only', async () => {
     const onSave = vi.fn()
     render(<ScenesStrip {...defaultProps} groups={groups} currentGroupStates={currentGroupStates} onSave={onSave} saveTrigger={1} />)
     fireEvent.change(screen.getByPlaceholderText('Scene name'), { target: { value: 'My Scene' } })
-    await userEvent.click(screen.getByLabelText('Stage Left'))
+    await userEvent.click(screen.getByRole('button', { name: /Stage Left/i }))
     await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
     expect(onSave).toHaveBeenCalledWith('My Scene', 0, { g1: { fader: 75, override: null } })
   })
 
-  it('calls onSave with empty groupStates when no groups checked', async () => {
+  it('calls onSave with empty groupStates when no groups selected', async () => {
     const onSave = vi.fn()
     render(<ScenesStrip {...defaultProps} groups={groups} currentGroupStates={currentGroupStates} onSave={onSave} saveTrigger={1} />)
     fireEvent.change(screen.getByPlaceholderText('Scene name'), { target: { value: 'My Scene' } })
@@ -115,7 +115,7 @@ describe('ScenesStrip group checkboxes', () => {
     expect(onSave).toHaveBeenCalledWith('My Scene', 0, {})
   })
 
-  it('pre-checks groups already in scene when editing', () => {
+  it('pre-selects groups already in scene when editing', () => {
     const sceneWithGroups: Scene = {
       ...scenes[0],
       groupStates: { g1: { fader: 75, override: null } },
@@ -130,11 +130,11 @@ describe('ScenesStrip group checkboxes', () => {
         editTrigger={1}
       />
     )
-    expect(screen.getByLabelText('Stage Left')).toBeChecked()
-    expect(screen.getByLabelText('Stage Right')).not.toBeChecked()
+    expect(screen.getByRole('button', { name: /Stage Left/i })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /Stage Right/i })).toHaveAttribute('aria-pressed', 'false')
   })
 
-  it('calls onUpdate with groupStates for checked groups', async () => {
+  it('calls onUpdate with groupStates for selected groups', async () => {
     const onUpdate = vi.fn()
     const sceneWithGroups: Scene = {
       ...scenes[0],
@@ -151,12 +151,12 @@ describe('ScenesStrip group checkboxes', () => {
         editTrigger={1}
       />
     )
-    await userEvent.click(screen.getByRole('button', { name: /^update$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
     expect(onUpdate).toHaveBeenCalledWith(sceneWithGroups.id, 'Worship Mode', 1000, { g1: { fader: 75, override: null } })
   })
 
   it('hides group section when no groups exist', () => {
     render(<ScenesStrip {...defaultProps} groups={[]} currentGroupStates={{}} saveTrigger={1} />)
-    expect(screen.queryByText('Include group settings?')).not.toBeInTheDocument()
+    expect(screen.queryByText('Groups')).not.toBeInTheDocument()
   })
 })
