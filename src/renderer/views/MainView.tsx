@@ -522,7 +522,7 @@ export function MainView({
             <button className={styles.addFixtureBtn} onClick={() => setEditingGroupId('new')}>
               + Add Group
             </button>
-            <div className={styles.layoutToggleGroup}>
+            <div className={`${styles.layoutToggleGroup} ${styles.layoutToggleRight}`}>
               <button
                 className={`${styles.layoutToggleBtn}${!fixturesHorizontal ? ` ${styles.layoutToggleActive}` : ''}`}
                 onClick={() => setFixturesHorizontal(false)}
