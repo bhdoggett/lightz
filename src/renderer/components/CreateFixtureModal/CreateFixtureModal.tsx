@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { Modal } from '../Modal'
+import { ChannelGrid, type ChannelCell } from '../ChannelGrid'
 import type { Fixture, FixtureChannel, FixtureTemplate, ChannelRole } from '../../../shared/types'
 import { getUsedChannels, isStartChannelAvailable } from '../../utils/fixtureChannelAvailability'
 import styles from './CreateFixtureModal.module.css'
+import gridStyles from '../ChannelGrid/ChannelGrid.module.css'
 
 const PRESETS: Record<string, Array<{ role: ChannelRole; label: string; linked: boolean }>> = {
   'RGBAW+UV': [
@@ -112,6 +114,15 @@ export function CreateFixtureModal({ templates, existingFixtures, initialFixture
     setStartChannel(ch)
   }
 
+  const getCell = (ch: number): ChannelCell => {
+    const inRange = startChannel !== null && ch >= startChannel && ch < startChannel + count
+    const isUnavailable = !inRange && unavailableStarts.has(ch)
+    return {
+      className: inRange ? gridStyles.selected : isUnavailable ? gridStyles.unavailable : '',
+      title: isUnavailable ? `Channel ${ch} unavailable` : `Channel ${ch}`,
+    }
+  }
+
   return (
     <Modal
       title={editing ? 'Edit Fixture' : 'Add Multi-Channel Fixture'}
@@ -141,28 +152,11 @@ export function CreateFixtureModal({ templates, existingFixtures, initialFixture
           <button className={`${styles.uBtn}${universe === 1 ? ` ${styles.active}` : ''}`} onClick={() => setUniverse(1)}>U2</button>
         </div>
 
-        <div>
-          <div className={styles.gridLabel}>Starting channel — click to select</div>
-          <div className={styles.grid}>
-            {Array.from({ length: 512 }, (_, i) => i + 1).map((ch) => {
-              const inRange = startChannel !== null && ch >= startChannel && ch < startChannel + count
-              return (
-                <div
-                  key={ch}
-                  className={[
-                    styles.cell,
-                    inRange ? styles.selected : '',
-                    !inRange && unavailableStarts.has(ch) ? styles.unavailable : '',
-                  ].filter(Boolean).join(' ')}
-                  onClick={() => handleCellClick(ch)}
-                  title={unavailableStarts.has(ch) && !inRange ? `Channel ${ch} unavailable` : `Channel ${ch}`}
-                >
-                  {ch}
-                </div>
-              )
-            })}
-          </div>
-        </div>
+        <ChannelGrid
+          label="Starting channel — click to select"
+          onCellClick={handleCellClick}
+          getCell={getCell}
+        />
 
         <div className={styles.presetRow}>
           {Object.keys(PRESETS).map((key) => (

@@ -1,10 +1,12 @@
 import { useState, useRef } from 'react'
 import { Modal } from '../Modal'
 import { Toast } from '../Toast'
+import { ChannelGrid, type ChannelCell } from '../ChannelGrid'
 import type { Fixture, FixtureChannel, FixtureTemplate, ChannelRole } from '../../../shared/types'
 import { GROUP_COLORS } from '../../../shared/types'
 import { getUsedChannels, isStartChannelAvailable, describeConflict } from '../../utils/fixtureChannelAvailability'
 import styles from './AddMultiChannelFixturesModal.module.css'
+import gridStyles from '../ChannelGrid/ChannelGrid.module.css'
 
 const PRESETS: Record<string, Array<{ role: ChannelRole; label: string; linked: boolean }>> = {
   'RGBAW+UV': [
@@ -152,6 +154,24 @@ export function AddMultiChannelFixturesModal({ templates, existingFixtures, onAp
     })
   }
 
+  const getCell = (ch: number): ChannelCell => {
+    const info = cellOwner(ch)
+    const isSavedUsed = savedUsed.has(ch)
+    return {
+      className: [
+        info ? styles.claimed : '',
+        info?.isStart ? styles.start : '',
+        info ? gridStyles.noHover : '',
+        !info && isSavedUsed ? gridStyles.unavailable : '',
+      ].filter(Boolean).join(' '),
+      style: info ? { '--draft-color': info.draft.color } as React.CSSProperties : undefined,
+      title: info?.isStart ? `Channel ${ch} — click to remove` :
+        info ? `Channel ${ch}` :
+        isSavedUsed ? `Channel ${ch} unavailable` :
+        `Channel ${ch}`,
+    }
+  }
+
   const handleSaveTemplateForDraft = (draft: FixtureDraft) => {
     if (!draft.templateName.trim()) return
     onTemplateSave({
@@ -210,37 +230,11 @@ export function AddMultiChannelFixturesModal({ templates, existingFixtures, onAp
           <button className={`${styles.uBtn}${universe === 1 ? ` ${styles.active}` : ''}`} onClick={() => switchUniverse(1)}>U2</button>
         </div>
 
-        <div>
-          <div className={styles.gridLabel}>Click a free channel to start a fixture</div>
-          <div className={styles.grid}>
-            {Array.from({ length: 512 }, (_, i) => i + 1).map((ch) => {
-              const info = cellOwner(ch)
-              const isSavedUsed = savedUsed.has(ch)
-              const style = info ? { '--draft-color': info.draft.color } as React.CSSProperties : undefined
-              return (
-                <div
-                  key={ch}
-                  className={[
-                    styles.cell,
-                    info ? styles.claimed : '',
-                    info?.isStart ? styles.start : '',
-                    !info && isSavedUsed ? styles.unavailable : '',
-                  ].filter(Boolean).join(' ')}
-                  style={style}
-                  onClick={() => handleCellClick(ch)}
-                  title={
-                    info?.isStart ? `Channel ${ch} — click to remove` :
-                    info ? `Channel ${ch}` :
-                    isSavedUsed ? `Channel ${ch} unavailable` :
-                    `Channel ${ch}`
-                  }
-                >
-                  {ch}
-                </div>
-              )
-            })}
-          </div>
-        </div>
+        <ChannelGrid
+          label="Click a free channel to start a fixture"
+          onCellClick={handleCellClick}
+          getCell={getCell}
+        />
 
         <div className={styles.draftList}>
           {drafts.map((draft) => (

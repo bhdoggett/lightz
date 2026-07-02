@@ -1,0 +1,52 @@
+.gridLabel {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-1);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 3px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.cell {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  font-size: 9px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, border-color 0.1s;
+  user-select: none;
+}
+
+.cell:hover:not(.unavailable):not(.selected):not(.noHover) {
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+}
+
+.cell.selected {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+.cell.unavailable {
+  background: var(--bg-raised);
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
+  opacity: 0.35;
+  cursor: not-allowed;
+}

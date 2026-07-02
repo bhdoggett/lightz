@@ -1,8 +1,10 @@
 import { useState, useCallback } from 'react'
 import { Modal } from '../Modal'
+import { ChannelGrid, type ChannelCell } from '../ChannelGrid'
 import type { Fixture } from '../../../shared/types'
 import { getUsedChannels } from '../../utils/fixtureChannelAvailability'
 import styles from './AddSingleChannelFixturesModal.module.css'
+import gridStyles from '../ChannelGrid/ChannelGrid.module.css'
 
 interface Props {
   existingFixtures: Fixture[]
@@ -56,6 +58,14 @@ export function AddSingleChannelFixturesModal({ existingFixtures, onApply, onClo
     setSelected(new Set(channels))
   }
 
+  const getCell = (ch: number): ChannelCell => {
+    const isUsed = usedChannels.has(ch)
+    return {
+      className: selected.has(ch) ? gridStyles.selected : isUsed ? gridStyles.unavailable : '',
+      title: isUsed ? `Channel ${ch} unavailable` : `Channel ${ch}`,
+    }
+  }
+
   const sortedSelected = [...selected].sort((a, b) => a - b)
 
   const handleApply = () => {
@@ -104,28 +114,11 @@ export function AddSingleChannelFixturesModal({ existingFixtures, onApply, onClo
           <span className={styles.rangeHint}>or click below</span>
         </div>
 
-        <div>
-          <div className={styles.gridLabel}>Click a free channel to add a fixture</div>
-          <div className={styles.grid}>
-            {Array.from({ length: 512 }, (_, i) => i + 1).map((ch) => {
-              const isUsed = usedChannels.has(ch)
-              return (
-                <div
-                  key={ch}
-                  className={[
-                    styles.cell,
-                    selected.has(ch) ? styles.selected : '',
-                    isUsed ? styles.unavailable : '',
-                  ].filter(Boolean).join(' ')}
-                  onClick={() => toggleChannel(ch)}
-                  title={isUsed ? `Channel ${ch} unavailable` : `Channel ${ch}`}
-                >
-                  {ch}
-                </div>
-              )
-            })}
-          </div>
-        </div>
+        <ChannelGrid
+          label="Click a free channel to add a fixture"
+          onCellClick={toggleChannel}
+          getCell={getCell}
+        />
 
         {sortedSelected.length > 0 && (
           <div>
