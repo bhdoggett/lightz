@@ -136,20 +136,33 @@ export function GroupCard({
         {isEditing && <div className={styles.selectOverlay} data-testid="select-overlay" />}
       </div>
       <div className={styles.controls}>
-        <button
-          className={`${styles.overrideBtn} ${styles.fullBtn}${fullFlash ? ` ${styles.flash}` : ''}`}
-          aria-label="full"
-          title="Set all to full"
-          onClick={isEditing ? undefined : handleFull}
-          onAnimationEnd={() => setFullFlash(false)}
-        >○</button>
-        <button
-          className={`${styles.overrideBtn} ${styles.muteBtn}${muteFlash ? ` ${styles.flash}` : ''}`}
-          aria-label="mute"
-          title="Set all to off"
-          onClick={isEditing ? undefined : handleMute}
-          onAnimationEnd={() => setMuteFlash(false)}
-        >✕</button>
+        {isEditing ? (
+          <button
+            className={styles.unpackBtn}
+            aria-label="Unpack group"
+            title="Remove group, keep fixtures"
+            onClick={(e) => { e.stopPropagation(); onUnpack?.() }}
+          >
+            Unpack
+          </button>
+        ) : (
+          <>
+            <button
+              className={`${styles.overrideBtn} ${styles.fullBtn}${fullFlash ? ` ${styles.flash}` : ''}`}
+              aria-label="full"
+              title="Set all to full"
+              onClick={handleFull}
+              onAnimationEnd={() => setFullFlash(false)}
+            >○</button>
+            <button
+              className={`${styles.overrideBtn} ${styles.muteBtn}${muteFlash ? ` ${styles.flash}` : ''}`}
+              aria-label="mute"
+              title="Set all to off"
+              onClick={handleMute}
+              onAnimationEnd={() => setMuteFlash(false)}
+            >✕</button>
+          </>
+        )}
       </div>
       <div
         className={`${styles.nameArea}${onRename ? ` ${styles.renameable}` : ''}`}
@@ -183,30 +196,18 @@ export function GroupCard({
             <path d="M19.622 10.395l-1.097-2.65L20 6l-2-2-1.735 1.483-2.707-1.113L12.935 2h-1.954l-.632 2.401-2.645 1.115L6 4 4 6l1.453 1.789-1.08 2.657L2 11v2l2.401.655L5.516 16.3 4 18l2 2 1.791-1.46 2.606 1.072L11 22h2l.604-2.387 2.651-1.098C16.697 19.187 18 20 18 20l2-2-1.484-1.752 1.098-2.652 2.386-.62V11l-2.378-.605Z"/>
           </svg>
         </button>
-        <div className={styles.footerRight}>
-          {isEditing && (
-            <button
-              className={styles.unpackBtn}
-              aria-label="Unpack group"
-              title="Remove group, keep fixtures"
-              onClick={(e) => { e.stopPropagation(); onUnpack?.() }}
-            >
-              Unpack
-            </button>
-          )}
-          <button
-            className={styles.expandBtn}
-            aria-label={expanded ? 'Collapse' : 'Expand'}
-            title={expanded ? 'Collapse group' : 'Expand group'}
-            onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v) }}
-          >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              {expanded
-                ? <path d="M15 18l-6-6 6-6"/>
-                : <path d="M9 18l6-6-6-6"/>}
-            </svg>
-          </button>
-        </div>
+        <button
+          className={styles.expandBtn}
+          aria-label={expanded ? 'Collapse' : 'Expand'}
+          title={expanded ? 'Collapse group' : 'Expand group'}
+          onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v) }}
+        >
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            {expanded
+              ? <path d="M15 18l-6-6 6-6"/>
+              : <path d="M9 18l6-6-6-6"/>}
+          </svg>
+        </button>
       </div>
     </div>
   )

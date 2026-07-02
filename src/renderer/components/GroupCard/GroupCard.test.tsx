@@ -100,11 +100,11 @@ describe('GroupCard', () => {
       expect(onSelect).toHaveBeenCalled()
     })
 
-    it('does not call onFull when the full button is clicked while editing', async () => {
-      const onFull = vi.fn()
-      render(<GroupCard {...defaultProps} onFull={onFull} isEditing onSelect={vi.fn()} />)
-      await userEvent.click(screen.getByRole('button', { name: /full/i }))
-      expect(onFull).not.toHaveBeenCalled()
+    it('replaces the full/mute buttons with Unpack while editing', () => {
+      render(<GroupCard {...defaultProps} isEditing onSelect={vi.fn()} onUnpack={vi.fn()} />)
+      expect(screen.queryByRole('button', { name: /^full$/i })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /^mute$/i })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /unpack/i })).toBeInTheDocument()
     })
 
     it('renders Unpack alongside Expand while editing (both available)', () => {
