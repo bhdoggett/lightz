@@ -612,11 +612,12 @@ export function MainView({
                 +
               </button>
               <button
-                className={styles.addFixtureBtn}
+                className={`${styles.addFixtureBtn}${editMode ? ` ${styles.addFixtureBtnActive}` : ''}`}
                 disabled={sectionItems.length === 0}
                 onClick={toggleEditMode}
+                aria-pressed={editMode}
               >
-                {editMode ? 'Done' : 'Edit'}
+                Edit
               </button>
               {editMode && selection.selected.size > 0 && (
                 <button className={styles.removeBtn} onClick={handleRemoveSelected}>

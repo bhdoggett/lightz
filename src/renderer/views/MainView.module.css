@@ -157,6 +157,18 @@
   border-color: var(--text-secondary);
 }
 
+.addFixtureBtnActive {
+  border-style: solid;
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.addFixtureBtnActive:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .layoutToggleRight {
   margin-left: auto;
 }
