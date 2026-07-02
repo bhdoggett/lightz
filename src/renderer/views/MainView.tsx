@@ -55,6 +55,65 @@ export function deriveSectionOrder(
   return [...known, ...missing]
 }
 
+export interface SelectionState {
+  selected: Set<string>
+  lastClickedId: string | null
+}
+
+export function computeClickSelection(
+  state: SelectionState,
+  clickedId: string,
+  sectionOrder: string[],
+  modifiers: { cmd: boolean; shift: boolean }
+): SelectionState {
+  if (modifiers.shift) {
+    const anchor = state.lastClickedId ?? clickedId
+    const anchorIndex = sectionOrder.indexOf(anchor)
+    const clickedIndex = sectionOrder.indexOf(clickedId)
+    if (anchorIndex === -1 || clickedIndex === -1) {
+      return { selected: new Set([clickedId]), lastClickedId: clickedId }
+    }
+    const [start, end] = anchorIndex <= clickedIndex
+      ? [anchorIndex, clickedIndex]
+      : [clickedIndex, anchorIndex]
+    return {
+      selected: new Set(sectionOrder.slice(start, end + 1)),
+      lastClickedId: state.lastClickedId ?? clickedId,
+    }
+  }
+  if (modifiers.cmd) {
+    const next = new Set(state.selected)
+    if (next.has(clickedId)) next.delete(clickedId)
+    else next.add(clickedId)
+    return { selected: next, lastClickedId: clickedId }
+  }
+  return { selected: new Set([clickedId]), lastClickedId: clickedId }
+}
+
+export interface RemovalPlan {
+  fixtureIds: string[]
+  groupIds: string[]
+}
+
+export function computeRemovalPlan(
+  selectedIds: Set<string>,
+  fixtures: Fixture[],
+  groups: Group[]
+): RemovalPlan {
+  const fixtureIds = new Set<string>()
+  const groupIds: string[] = []
+  for (const id of selectedIds) {
+    const group = groups.find((g) => g.id === id)
+    if (group) {
+      groupIds.push(group.id)
+      for (const fid of group.fixtureIds) fixtureIds.add(fid)
+    } else if (fixtures.some((f) => f.id === id)) {
+      fixtureIds.add(id)
+    }
+  }
+  return { fixtureIds: [...fixtureIds], groupIds }
+}
+
 export function MainView({
   fixtures, scenes, groups,
   onScenesChange, onFixturesChange, onGroupsChange,
