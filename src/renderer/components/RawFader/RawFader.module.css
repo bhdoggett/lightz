@@ -200,3 +200,22 @@
   padding: 2px 4px;
   outline: none;
 }
+
+.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.dragHandle {
+  cursor: grab;
+}
+
+.sliderGuard {
+  position: relative;
+}
+
+.selectOverlay {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Slider } from '../Slider'
 import styles from './RawFader.module.css'
+import type { DragHandleProps } from '../../hooks/useDragReorder'
 
 interface Props {
   channel?: number
@@ -12,9 +13,16 @@ interface Props {
   fillColor?: string
   groupColor?: string
   groupMultiplier?: number
+  isEditing?: boolean
+  selected?: boolean
+  onSelect?: (e: React.MouseEvent) => void
+  dragHandleProps?: DragHandleProps
 }
 
-export function RawFader({ channel, universe, value, label, onChange, onRename, fillColor, groupColor, groupMultiplier }: Props) {
+export function RawFader({
+  channel, universe, value, label, onChange, onRename, fillColor, groupColor, groupMultiplier,
+  isEditing = false, selected = false, onSelect, dragHandleProps,
+}: Props) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -80,14 +88,26 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
 
   return (
     <div
+      data-testid="fader-root"
       className={[
         styles.fader,
         groupColor ? styles.grouped : '',
+        selected ? styles.selected : '',
       ].filter(Boolean).join(' ')}
       style={groupColor ? { '--group-color': groupColor } as React.CSSProperties : undefined}
+      onClick={isEditing ? onSelect : undefined}
     >
       <div className={styles.valueRow}>
-        {editingValue ? (
+        {isEditing ? (
+          <span
+            className={`${styles.value} ${styles.dragHandle}`}
+            data-testid="drag-handle"
+            onClick={(e) => e.stopPropagation()}
+            {...dragHandleProps}
+          >
+            {displayedValue}
+          </span>
+        ) : editingValue ? (
           <input
             ref={valueInputRef}
             className={styles.valueInput}
@@ -125,12 +145,15 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
       {groupLocked && (
         <span className={styles.groupLockMsg} aria-live="polite">Group fader active</span>
       )}
-      <Slider value={value} onChange={onChange} fillColor={fillColor} groupMultiplier={groupMultiplier} />
+      <div className={styles.sliderGuard}>
+        <Slider value={value} onChange={onChange} fillColor={fillColor} groupMultiplier={groupMultiplier} />
+        {isEditing && <div className={styles.selectOverlay} data-testid="select-overlay" />}
+      </div>
       <button
         className={`${styles.toggleBtn}${value > 0 ? ` ${styles.on}` : ''}`}
         aria-label="toggle"
         aria-pressed={value > 0}
-        onClick={() => onChange(value > 0 ? 0 : 255)}
+        onClick={isEditing ? undefined : () => onChange(value > 0 ? 0 : 255)}
       >
         <span
           className={styles.toggleDot}
@@ -139,7 +162,7 @@ export function RawFader({ channel, universe, value, label, onChange, onRename, 
       </button>
       <div
         className={`${styles.nameArea}${onRename ? ` ${styles.renameable}` : ''}`}
-        onClick={startEdit}
+        onClick={isEditing ? undefined : startEdit}
       >
         {editing ? (
           <input

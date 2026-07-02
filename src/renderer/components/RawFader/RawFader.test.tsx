@@ -154,4 +154,78 @@ describe('RawFader', () => {
     })
 
   })
+
+  describe('edit mode', () => {
+    it('renders a drag handle instead of the editable value display when isEditing', () => {
+      render(<RawFader channel={1} value={128} onChange={vi.fn()} isEditing />)
+      expect(screen.getByTestId('drag-handle')).toBeInTheDocument()
+      expect(screen.queryByTestId('value-display')).not.toBeInTheDocument()
+    })
+
+    it('does not render drag handle or select overlay when isEditing is false', () => {
+      render(<RawFader channel={1} value={0} onChange={vi.fn()} />)
+      expect(screen.queryByTestId('drag-handle')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('select-overlay')).not.toBeInTheDocument()
+    })
+
+    it('calls onSelect when the select overlay is clicked', async () => {
+      const onSelect = vi.fn()
+      render(<RawFader channel={1} value={0} onChange={vi.fn()} isEditing onSelect={onSelect} />)
+      await userEvent.click(screen.getByTestId('select-overlay'))
+      expect(onSelect).toHaveBeenCalled()
+    })
+
+    it('calls onSelect when clicking the toggle button area (bubbles to root)', async () => {
+      const onSelect = vi.fn()
+      render(<RawFader channel={1} value={0} onChange={vi.fn()} isEditing onSelect={onSelect} />)
+      await userEvent.click(screen.getByRole('button', { name: /toggle/i }))
+      expect(onSelect).toHaveBeenCalled()
+    })
+
+    it('does not call onChange when the toggle button is clicked while editing', async () => {
+      const onChange = vi.fn()
+      render(<RawFader channel={1} value={0} onChange={onChange} isEditing onSelect={vi.fn()} />)
+      await userEvent.click(screen.getByRole('button', { name: /toggle/i }))
+      expect(onChange).not.toHaveBeenCalled()
+    })
+
+    it('does not call onSelect when clicking the drag handle itself', async () => {
+      const onSelect = vi.fn()
+      render(<RawFader channel={1} value={0} onChange={vi.fn()} isEditing onSelect={onSelect} />)
+      await userEvent.click(screen.getByTestId('drag-handle'))
+      expect(onSelect).not.toHaveBeenCalled()
+    })
+
+    it('does not open the rename input when the name area is clicked while editing', async () => {
+      render(<RawFader channel={1} value={0} label="Old Name" onChange={vi.fn()} onRename={vi.fn()} isEditing onSelect={vi.fn()} />)
+      await userEvent.click(screen.getByText('Old Name'))
+      expect(screen.queryByTestId('rename-input')).not.toBeInTheDocument()
+    })
+
+    it('renders the selected class on the root when selected', () => {
+      render(<RawFader channel={1} value={0} onChange={vi.fn()} isEditing selected />)
+      expect(screen.getByTestId('fader-root').className).toMatch(/selected/)
+    })
+
+    it('spreads dragHandleProps onto the drag handle', () => {
+      render(
+        <RawFader
+          channel={1}
+          value={0}
+          onChange={vi.fn()}
+          isEditing
+          dragHandleProps={{
+            draggable: true,
+            'data-drag-id': 'f1',
+            onMouseDown: vi.fn(),
+            onDragStart: vi.fn(),
+            onDragEnd: vi.fn(),
+          }}
+        />
+      )
+      const handle = screen.getByTestId('drag-handle')
+      expect(handle).toHaveAttribute('draggable', 'true')
+      expect(handle).toHaveAttribute('data-drag-id', 'f1')
+    })
+  })
 })
