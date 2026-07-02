@@ -70,4 +70,23 @@ describe('CreateFixtureModal', () => {
     fireEvent.click(screen.getByText('RGB'))
     expect(addBtn).not.toBeDisabled()
   })
+
+  it('keeps the selection but disables Add Fixture when widening the layout creates a conflict', () => {
+    const existingFixtures: Fixture[] = [{
+      id: 'f1', name: 'Existing', channel: 8, universe: 0, type: 'dimmer',
+      channels: [{ id: 'c1', role: 'red', label: 'Red', channel: 8, universe: 0, linked: true }],
+    }]
+    render(<CreateFixtureModal {...defaultProps} existingFixtures={existingFixtures} />)
+    fireEvent.change(screen.getByPlaceholderText('Fixture name'), { target: { value: 'Q6' } })
+    const startCell = screen.getByTitle('Channel 5')
+    fireEvent.click(startCell)
+    fireEvent.click(screen.getByText('RGB'))
+    expect(screen.getByText('Add Fixture')).not.toBeDisabled()
+
+    fireEvent.click(screen.getByText('RGBAW+UV'))
+    expect(screen.getByText(/Channels already in use/)).toBeInTheDocument()
+    expect(startCell.className).toMatch(/selected/)
+    expect(startCell.className).not.toMatch(/unavailable/)
+    expect(screen.getByText('Add Fixture')).toBeDisabled()
+  })
 })

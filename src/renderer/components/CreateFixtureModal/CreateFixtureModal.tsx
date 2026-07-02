@@ -105,7 +105,7 @@ export function CreateFixtureModal({ templates, existingFixtures, initialFixture
     .map((_, i) => startChannel + i)
     .filter((ch) => usedChannels.has(ch))
 
-  const canApply = name.trim().length > 0 && startChannel !== null && channels.length > 0
+  const canApply = name.trim().length > 0 && startChannel !== null && channels.length > 0 && conflictingChannels.length === 0
 
   const handleCellClick = (ch: number) => {
     if (unavailableStarts.has(ch)) return
