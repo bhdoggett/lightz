@@ -105,7 +105,12 @@ export function RawFader({
             onClick={(e) => e.stopPropagation()}
             {...dragHandleProps}
           >
-            {displayedValue}
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+              <circle cx="2.5" cy="2.5" r="1.2" />
+              <circle cx="7.5" cy="2.5" r="1.2" />
+              <circle cx="2.5" cy="7.5" r="1.2" />
+              <circle cx="7.5" cy="7.5" r="1.2" />
+            </svg>
           </span>
         ) : editingValue ? (
           <input

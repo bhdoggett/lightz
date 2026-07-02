@@ -102,7 +102,12 @@ export function GroupCard({
             onClick={(e) => e.stopPropagation()}
             {...dragHandleProps}
           >
-            {fader}%
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor" aria-hidden="true">
+              <circle cx="2.5" cy="2.5" r="1.2" />
+              <circle cx="7.5" cy="2.5" r="1.2" />
+              <circle cx="2.5" cy="7.5" r="1.2" />
+              <circle cx="7.5" cy="7.5" r="1.2" />
+            </svg>
           </span>
         ) : (
           <span className={styles.faderValue}>{fader}%</span>
