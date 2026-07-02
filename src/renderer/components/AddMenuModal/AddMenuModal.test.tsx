@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { AddMenuModal } from './AddMenuModal'
 
 describe('AddMenuModal', () => {
-  it('calls onAddChannels when "Single Channel Fixtures" is clicked', () => {
+  it('calls onAddChannels when "Single-Channel Fixtures" is clicked', () => {
     const onAddChannels = vi.fn()
     render(
       <AddMenuModal
@@ -13,7 +13,7 @@ describe('AddMenuModal', () => {
         onClose={vi.fn()}
       />
     )
-    fireEvent.click(screen.getByText('+ Single Channel Fixtures'))
+    fireEvent.click(screen.getByText('+ Single-Channel Fixtures'))
     expect(onAddChannels).toHaveBeenCalled()
   })
 
