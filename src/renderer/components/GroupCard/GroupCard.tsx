@@ -3,7 +3,7 @@ import { Slider } from '../Slider'
 import { FixtureFader } from '../FixtureFader'
 import { MultiFixtureFader } from '../MultiFixtureFader'
 import type { Group, Fixture } from '../../../shared/types'
-import type { DragHandleProps } from '../../hooks/useDragReorder'
+import { useDragReorder, type DragHandleProps } from '../../hooks/useDragReorder'
 import styles from './GroupCard.module.css'
 
 interface Props {
@@ -20,7 +20,8 @@ interface Props {
   onMultiFixtureChange: (fixture: Fixture, values: Record<string, number>) => void
   onFixtureRename?: (fixture: Fixture, name: string) => void
   onFixtureEdit?: (fixture: Fixture) => void
-  onDropFixture?: (fixtureId: string) => void
+  onDropFixture?: (fixtureId: string, index?: number) => void
+  onReorderFixtures?: (fixtureIds: string[]) => void
   horizontal?: boolean
   isEditing?: boolean
   selected?: boolean
@@ -33,7 +34,7 @@ export function GroupCard({
   group, fader, fixtures, getChannel,
   onFaderChange, onFull, onMute, onEdit, onRename,
   onFixtureChange, onMultiFixtureChange,
-  onFixtureRename, onFixtureEdit, onDropFixture,
+  onFixtureRename, onFixtureEdit, onDropFixture, onReorderFixtures,
   horizontal = false,
   isEditing = false, selected = false, onSelect, dragHandleProps, onUnpack,
 }: Props) {
@@ -79,19 +80,29 @@ export function GroupCard({
 
   const multiplier = fader / 100
 
+  const {
+    dragId: fixtureDragId,
+    insertIndex: fixtureInsertIndex,
+    containerProps: fixtureContainerProps,
+    itemProps: fixtureItemProps,
+  } = useDragReorder(fixtures, (reordered) => onReorderFixtures?.(reordered.map((f) => f.id)))
+
+  const handleFixturePanelDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.stopPropagation()
+    const sourceId = e.dataTransfer.getData('text/plain')
+    const dropIndex = fixtureInsertIndex
+    const isMember = fixtures.some((f) => f.id === sourceId)
+    fixtureContainerProps.onDrop(e)
+    if (sourceId && !isMember && dropIndex !== null) {
+      onDropFixture?.(sourceId, dropIndex)
+    }
+    setDropTarget(false)
+  }
+
   const masterPanel = (
     <div
-      className={`${styles.masterPanel}${dropTarget ? ` ${styles.dropTarget}` : ''}`}
+      className={styles.masterPanel}
       data-testid="group-drop-target"
-      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDropTarget(true) }}
-      onDragLeave={() => setDropTarget(false)}
-      onDrop={(e) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setDropTarget(false)
-        const fixtureId = e.dataTransfer.getData('text/plain')
-        if (fixtureId && onDropFixture) onDropFixture(fixtureId)
-      }}
       onClick={isEditing ? onSelect : undefined}
     >
       <div className={styles.valueRow}>
@@ -172,21 +183,22 @@ export function GroupCard({
             <path d="M19.622 10.395l-1.097-2.65L20 6l-2-2-1.735 1.483-2.707-1.113L12.935 2h-1.954l-.632 2.401-2.645 1.115L6 4 4 6l1.453 1.789-1.08 2.657L2 11v2l2.401.655L5.516 16.3 4 18l2 2 1.791-1.46 2.606 1.072L11 22h2l.604-2.387 2.651-1.098C16.697 19.187 18 20 18 20l2-2-1.484-1.752 1.098-2.652 2.386-.62V11l-2.378-.605Z"/>
           </svg>
         </button>
-        {isEditing ? (
-          <button
-            className={styles.unpackBtn}
-            aria-label="Unpack group"
-            title="Remove group, keep fixtures"
-            onClick={(e) => { e.stopPropagation(); onUnpack?.() }}
-          >
-            Unpack
-          </button>
-        ) : (
+        <div className={styles.footerRight}>
+          {isEditing && (
+            <button
+              className={styles.unpackBtn}
+              aria-label="Unpack group"
+              title="Remove group, keep fixtures"
+              onClick={(e) => { e.stopPropagation(); onUnpack?.() }}
+            >
+              Unpack
+            </button>
+          )}
           <button
             className={styles.expandBtn}
             aria-label={expanded ? 'Collapse' : 'Expand'}
             title={expanded ? 'Collapse group' : 'Expand group'}
-            onClick={() => setExpanded((v) => !v)}
+            onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v) }}
           >
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               {expanded
@@ -194,7 +206,7 @@ export function GroupCard({
                 : <path d="M9 18l6-6-6-6"/>}
             </svg>
           </button>
-        )}
+        </div>
       </div>
     </div>
   )
@@ -202,40 +214,76 @@ export function GroupCard({
   return (
     <div
       data-testid="group-card"
-      className={`${styles.card}${expanded ? ` ${styles.expanded}` : ''}${selected ? ` ${styles.selected}` : ''}`}
+      className={[
+        styles.card,
+        expanded ? styles.expanded : '',
+        selected ? styles.selected : '',
+        dropTarget ? styles.dropTarget : '',
+      ].filter(Boolean).join(' ')}
       style={{ '--group-color': group.color } as React.CSSProperties}
+      onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDropTarget(true) }}
+      onDragLeave={() => setDropTarget(false)}
+      onDrop={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setDropTarget(false)
+        const fixtureId = e.dataTransfer.getData('text/plain')
+        if (fixtureId && onDropFixture) onDropFixture(fixtureId)
+      }}
     >
       {masterPanel}
       {expanded && (
-        <div className={`${styles.fixturePanel}${horizontal ? ` ${styles.fixturePanelHorizontal}` : ''}`}>
-          {fixtures.map((fixture, fixtureIndex) =>
-            fixture.channels ? (
-              <MultiFixtureFader
-                key={fixture.id}
-                fixture={fixture}
-                values={Object.fromEntries(
-                  fixture.channels.map((ch) => [ch.id, getChannel(ch.universe, ch.channel)])
+        <div
+          className={`${styles.fixturePanel}${horizontal ? ` ${styles.fixturePanelHorizontal}` : ''}`}
+          data-testid="fixture-panel"
+          onDragOver={isEditing ? fixtureContainerProps.onDragOver : undefined}
+          onDragLeave={isEditing ? fixtureContainerProps.onDragLeave : undefined}
+          onDrop={isEditing ? handleFixturePanelDrop : undefined}
+        >
+          {fixtures.map((fixture, fixtureIndex) => {
+            const { 'data-drag-id': _unused, ...handleProps } = fixtureItemProps(fixture.id)
+            return (
+              <React.Fragment key={fixture.id}>
+                {isEditing && fixtureInsertIndex === fixtureIndex && (
+                  <div className={styles.insertIndicator} aria-hidden="true" />
                 )}
-                onChange={(vals) => onMultiFixtureChange(fixture, vals)}
-                onRename={onFixtureRename ? (name) => onFixtureRename(fixture, name) : undefined}
-                onEdit={onFixtureEdit ? () => onFixtureEdit(fixture) : undefined}
-                groupColor={group.color}
-                groupMultiplier={multiplier}
-                hasRightNeighbor={fixtureIndex < fixtures.length - 1}
-              />
-            ) : (
-              <FixtureFader
-                key={fixture.id}
-                channel={fixture.channel}
-                universe={fixture.universe}
-                name={fixture.name}
-                value={getChannel(fixture.universe, fixture.channel)}
-                onChange={(v) => onFixtureChange(fixture, v)}
-                onRename={onFixtureRename ? (name) => onFixtureRename(fixture, name) : undefined}
-                groupColor={group.color}
-                groupMultiplier={multiplier}
-              />
+                <div
+                  data-drag-id={isEditing ? fixture.id : undefined}
+                  className={fixture.id === fixtureDragId ? styles.dragging : undefined}
+                >
+                  {fixture.channels ? (
+                    <MultiFixtureFader
+                      fixture={fixture}
+                      values={Object.fromEntries(
+                        fixture.channels.map((ch) => [ch.id, getChannel(ch.universe, ch.channel)])
+                      )}
+                      onChange={(vals) => onMultiFixtureChange(fixture, vals)}
+                      onRename={onFixtureRename ? (name) => onFixtureRename(fixture, name) : undefined}
+                      onEdit={onFixtureEdit ? () => onFixtureEdit(fixture) : undefined}
+                      groupColor={group.color}
+                      groupMultiplier={multiplier}
+                      hasRightNeighbor={fixtureIndex < fixtures.length - 1}
+                      dragHandleProps={isEditing ? handleProps : undefined}
+                    />
+                  ) : (
+                    <FixtureFader
+                      channel={fixture.channel}
+                      universe={fixture.universe}
+                      name={fixture.name}
+                      value={getChannel(fixture.universe, fixture.channel)}
+                      onChange={(v) => onFixtureChange(fixture, v)}
+                      onRename={onFixtureRename ? (name) => onFixtureRename(fixture, name) : undefined}
+                      groupColor={group.color}
+                      groupMultiplier={multiplier}
+                      dragHandleProps={isEditing ? handleProps : undefined}
+                    />
+                  )}
+                </div>
+              </React.Fragment>
             )
+          })}
+          {isEditing && fixtureInsertIndex === fixtures.length && (
+            <div className={styles.insertIndicator} aria-hidden="true" />
           )}
           {fixtures.length === 0 && (
             <span className={styles.empty}>No fixtures — use gear to add</span>
