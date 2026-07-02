@@ -3,7 +3,7 @@ import type React from 'react'
 
 export interface DragHandleProps {
   draggable: true
-  'data-drag-id': string
+  'data-drag-id'?: string
   onMouseDown: (e: React.MouseEvent<HTMLElement>) => void
   onDragStart: (e: React.DragEvent<HTMLElement>) => void
   onDragEnd: () => void

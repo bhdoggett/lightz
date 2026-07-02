@@ -656,13 +656,16 @@ export function MainView({
               className={`${styles.fixtures}${fixturesHorizontal ? ` ${styles.fixturesHorizontal}` : ''}`}
               {...containerProps}
             >
-              {sectionItems.map((item, index) => (
+              {sectionItems.map((item, index) => {
+                const { 'data-drag-id': _unused, ...dragHandleProps } = itemProps(item.id)
+                return (
                 <React.Fragment key={item.id}>
                   {dragId && insertIndex === index && (
                     <div className={styles.insertIndicator} aria-hidden="true" />
                   )}
                   <div
                     className={item.id === dragId ? styles.dragging : undefined}
+                    data-drag-id={editMode ? item.id : undefined}
                   >
                     {item.kind === 'group' ? (
                       <GroupCard
@@ -684,7 +687,7 @@ export function MainView({
                         isEditing={editMode}
                         selected={selection.selected.has(item.id)}
                         onSelect={(e) => handleItemSelect(item.id, e)}
-                        dragHandleProps={editMode ? itemProps(item.id) : undefined}
+                        dragHandleProps={editMode ? dragHandleProps : undefined}
                         onUnpack={() => handleUnpackGroup(item.group.id)}
                       />
                     ) : item.fixture.channels ? (
@@ -702,7 +705,7 @@ export function MainView({
                         isEditing={editMode}
                         selected={selection.selected.has(item.id)}
                         onSelect={(e) => handleItemSelect(item.id, e)}
-                        dragHandleProps={editMode ? itemProps(item.id) : undefined}
+                        dragHandleProps={editMode ? dragHandleProps : undefined}
                       />
                     ) : (
                       <FixtureFader
@@ -717,12 +720,13 @@ export function MainView({
                         isEditing={editMode}
                         selected={selection.selected.has(item.id)}
                         onSelect={(e) => handleItemSelect(item.id, e)}
-                        dragHandleProps={editMode ? itemProps(item.id) : undefined}
+                        dragHandleProps={editMode ? dragHandleProps : undefined}
                       />
                     )}
                   </div>
                 </React.Fragment>
-              ))}
+                )
+              })}
               {dragId && insertIndex === sectionItems.length && (
                 <div className={styles.insertIndicator} aria-hidden="true" />
               )}
