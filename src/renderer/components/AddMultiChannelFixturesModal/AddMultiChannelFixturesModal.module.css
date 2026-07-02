@@ -1,0 +1,342 @@
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.input {
+  padding: 7px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input:focus { outline: 1px solid var(--accent); }
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.universeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.uBtn {
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.uBtn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.gridLabel {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-1);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(16, 1fr);
+  gap: 3px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.cell {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-muted);
+  font-size: 9px;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, border-color 0.1s;
+  user-select: none;
+}
+
+.cell:hover:not(.unavailable):not(.claimed) {
+  border-color: var(--border-default);
+  color: var(--text-secondary);
+}
+
+.cell.unavailable {
+  background: var(--bg-raised);
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.cell.claimed {
+  background: color-mix(in srgb, var(--draft-color, var(--accent)) 35%, var(--bg-surface));
+  border-color: var(--draft-color, var(--accent));
+  color: #fff;
+  cursor: default;
+}
+
+.cell.start {
+  box-shadow: 0 0 0 2px #fff inset;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.toastRow {
+  min-height: 28px;
+}
+
+.draftList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.draftCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--draft-color, var(--accent));
+  border-radius: var(--radius-md);
+}
+
+.draftHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.colorSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--draft-color, var(--accent));
+  flex-shrink: 0;
+}
+
+.removeDraftBtn {
+  padding: 5px 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.removeDraftBtn:hover { color: var(--status-error); border-color: var(--status-error); }
+
+.presetRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.presetBtn {
+  padding: 4px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.presetBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.templateRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.templateChip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.templateBtn {
+  padding: 3px 8px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.templateDeleteBtn {
+  padding: 3px 6px;
+  background: transparent;
+  border: none;
+  border-left: 1px solid var(--border-default);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.channelList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.channelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.channelNum {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  width: 32px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.roleSelect {
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 12px;
+  width: 100px;
+}
+
+.labelInput {
+  flex: 1;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--bg-raised);
+  color: var(--text-primary);
+  font-size: 12px;
+}
+
+.linkToggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  opacity: 0.35;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+}
+
+.linkToggle.linked { opacity: 1; }
+
+.deleteRowBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+}
+
+.deleteRowBtn:hover { color: var(--status-error); }
+
+.addRowBtn {
+  align-self: flex-start;
+  background: none;
+  border: 1px dashed var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
+.addRowBtn:hover { border-color: var(--accent); color: var(--accent); }
+
+.saveTemplateRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.saveTemplateBtn {
+  padding: 7px 14px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--bg-overlay);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.saveTemplateBtn:disabled { opacity: 0.4; cursor: default; }
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.cancelBtn {
+  padding: 7px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addBtn {
+  padding: 7px 16px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.addBtn:hover { background: var(--accent-hover); }
+
+.addBtn:disabled { opacity: 0.4; cursor: default; }
