@@ -642,7 +642,14 @@ export function MainView({
           </div>
           <div className={styles.addFixtureRow}>
             <div className={styles.addFixtureBtns}>
-              <button className={styles.addFixtureBtn} onClick={() => setAddMenuOpen(true)}>
+              <button
+                className={styles.addFixtureBtn}
+                onClick={() => {
+                  setAddMenuOpen(true)
+                  setEditMode(false)
+                  setSelection({ selected: new Set(), lastClickedId: null })
+                }}
+              >
                 +
               </button>
               <button
