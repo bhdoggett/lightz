@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { AddMenuModal } from './AddMenuModal'
 
 describe('AddMenuModal', () => {
-  it('calls onAddChannels when "Add Channels" is clicked', () => {
+  it('calls onAddChannels when "Single Channel Fixtures" is clicked', () => {
     const onAddChannels = vi.fn()
     render(
       <AddMenuModal
@@ -13,11 +13,11 @@ describe('AddMenuModal', () => {
         onClose={vi.fn()}
       />
     )
-    fireEvent.click(screen.getByText('+ Add Channels'))
+    fireEvent.click(screen.getByText('+ Single Channel Fixtures'))
     expect(onAddChannels).toHaveBeenCalled()
   })
 
-  it('calls onAddCustomFixture when "Add Custom Fixture" is clicked', () => {
+  it('calls onAddCustomFixture when "Multi-Channel Fixtures" is clicked', () => {
     const onAddCustomFixture = vi.fn()
     render(
       <AddMenuModal
@@ -27,11 +27,11 @@ describe('AddMenuModal', () => {
         onClose={vi.fn()}
       />
     )
-    fireEvent.click(screen.getByText('+ Add Custom Fixture'))
+    fireEvent.click(screen.getByText('+ Multi-Channel Fixtures'))
     expect(onAddCustomFixture).toHaveBeenCalled()
   })
 
-  it('calls onAddGroup when "Add Group" is clicked', () => {
+  it('calls onAddGroup when "Fixture Group" is clicked', () => {
     const onAddGroup = vi.fn()
     render(
       <AddMenuModal
@@ -41,7 +41,7 @@ describe('AddMenuModal', () => {
         onClose={vi.fn()}
       />
     )
-    fireEvent.click(screen.getByText('+ Add Group'))
+    fireEvent.click(screen.getByText('+ Fixture Group'))
     expect(onAddGroup).toHaveBeenCalled()
   })
 
