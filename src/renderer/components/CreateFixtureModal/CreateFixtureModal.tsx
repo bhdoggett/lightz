@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Modal } from '../Modal'
 import type { Fixture, FixtureChannel, FixtureTemplate, ChannelRole } from '../../../shared/types'
-import { getUsedChannels, isStartChannelAvailable } from '../../utils/fixtureChannels'
+import { getUsedChannels, isStartChannelAvailable } from '../../utils/fixtureChannelAvailability'
 import styles from './CreateFixtureModal.module.css'
 
 const PRESETS: Record<string, Array<{ role: ChannelRole; label: string; linked: boolean }>> = {

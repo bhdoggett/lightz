@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getUsedChannels, isStartChannelAvailable } from './fixtureChannels'
+import { getUsedChannels, isStartChannelAvailable } from './fixtureChannelAvailability'
 import type { Fixture } from '../../shared/types'
 
 const singleChannelFixture = (id: string, channel: number, universe: 0 | 1 = 0): Fixture => ({
