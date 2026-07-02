@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getUsedChannels, isStartChannelAvailable } from './fixtureChannelAvailability'
+import { getUsedChannels, isStartChannelAvailable, describeConflict } from './fixtureChannelAvailability'
 import type { Fixture } from '../../shared/types'
 
 const singleChannelFixture = (id: string, channel: number, universe: 0 | 1 = 0): Fixture => ({
@@ -55,5 +55,22 @@ describe('isStartChannelAvailable', () => {
   it('is true for a single-channel range on a free channel', () => {
     const used = new Set([1, 2, 3])
     expect(isStartChannelAvailable(4, 1, used)).toBe(true)
+  })
+})
+
+describe('describeConflict', () => {
+  it('reports the first used channel in the range', () => {
+    const used = new Set([12])
+    expect(describeConflict(10, 4, used)).toBe('Channel 12 is already taken')
+  })
+
+  it('reports overflow past channel 512', () => {
+    const used = new Set<number>()
+    expect(describeConflict(510, 4, used)).toBe('Not enough channels available before 512')
+  })
+
+  it('returns empty string when the range is fully available', () => {
+    const used = new Set([1, 2, 3])
+    expect(describeConflict(10, 4, used)).toBe('')
   })
 })
