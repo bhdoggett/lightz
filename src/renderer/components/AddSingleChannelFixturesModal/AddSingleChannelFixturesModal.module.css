@@ -98,7 +98,7 @@
   user-select: none;
 }
 
-.cell:hover:not(.taken) {
+.cell:hover:not(.unavailable) {
   border-color: var(--border-default);
   color: var(--text-secondary);
 }
@@ -110,11 +110,12 @@
   font-weight: 700;
 }
 
-.cell.removing {
-  background: color-mix(in srgb, var(--status-error) 15%, transparent);
-  border-color: var(--status-error);
-  color: var(--status-error);
-  opacity: 0.7;
+.cell.unavailable {
+  background: var(--bg-raised);
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 /* Name fields */

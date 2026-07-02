@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react'
 import { Modal } from '../Modal'
 import type { Fixture } from '../../../shared/types'
+import { getUsedChannels } from '../../utils/fixtureChannelAvailability'
 import styles from './AddSingleChannelFixturesModal.module.css'
 
 interface Props {
   existingFixtures: Fixture[]
-  onApply: (toAdd: Fixture[], toRemoveIds: string[], toUpdate: Fixture[]) => void
+  onApply: (toAdd: Fixture[]) => void
   onClose: () => void
 }
 
@@ -26,98 +27,59 @@ function parseRange(input: string): number[] {
   return [...new Set(result)].sort((a, b) => a - b)
 }
 
-function initForUniverse(fixtures: Fixture[], universe: 0 | 1) {
-  const onUniverse = fixtures.filter((f) => f.universe === universe)
-  const selected = new Set(onUniverse.map((f) => f.channel))
-  const names: Record<number, string> = {}
-  for (const f of onUniverse) names[f.channel] = f.name
-  return { selected, names }
-}
-
 export function AddSingleChannelFixturesModal({ existingFixtures, onApply, onClose }: Props) {
   const [universe, setUniverse] = useState<0 | 1>(0)
   const [rangeInput, setRangeInput] = useState('')
+  const [selected, setSelected] = useState<Set<number>>(new Set())
+  const [names, setNames] = useState<Record<number, string>>({})
 
-  const init = initForUniverse(existingFixtures, 0)
-  const [selected, setSelected] = useState<Set<number>>(init.selected)
-  const [names, setNames] = useState<Record<number, string>>(init.names)
-
-  const existingOnUniverse = existingFixtures.filter((f) => f.universe === universe)
-  const existingChannels = new Set(existingOnUniverse.map((f) => f.channel))
+  const usedChannels = getUsedChannels(existingFixtures, universe)
 
   const switchUniverse = (u: 0 | 1) => {
     setUniverse(u)
-    const next = initForUniverse(existingFixtures, u)
-    setSelected(next.selected)
-    setNames(next.names)
+    setSelected(new Set())
+    setNames({})
     setRangeInput('')
   }
 
   const toggleChannel = useCallback((ch: number) => {
+    if (usedChannels.has(ch)) return
     setSelected((prev) => {
       const next = new Set(prev)
       if (next.has(ch)) { next.delete(ch) } else { next.add(ch) }
       return next
     })
-  }, [])
+  }, [usedChannels])
 
   const applyRange = () => {
-    const channels = parseRange(rangeInput)
+    const channels = parseRange(rangeInput).filter((ch) => !usedChannels.has(ch))
     setSelected(new Set(channels))
   }
 
   const sortedSelected = [...selected].sort((a, b) => a - b)
 
   const handleApply = () => {
-    const toAdd: Fixture[] = []
-    const toRemoveIds: string[] = []
-    const toUpdate: Fixture[] = []
-
-    for (const ch of selected) {
-      if (!existingChannels.has(ch)) {
-        toAdd.push({
-          id: crypto.randomUUID(),
-          name: names[ch]?.trim() || `Ch ${String(ch).padStart(3, '0')}`,
-          channel: ch,
-          universe,
-          type: 'dimmer',
-        })
-      }
-    }
-
-    for (const f of existingOnUniverse) {
-      if (!selected.has(f.channel)) {
-        toRemoveIds.push(f.id)
-      } else {
-        const newName = names[f.channel]?.trim() || f.name
-        if (newName !== f.name) toUpdate.push({ ...f, name: newName })
-      }
-    }
-
-    onApply(toAdd, toRemoveIds, toUpdate)
-  }
-
-  const pendingAdds = sortedSelected.filter((ch) => !existingChannels.has(ch)).length
-  const pendingRemoves = existingOnUniverse.filter((f) => !selected.has(f.channel)).length
-
-  const summaryLabel = () => {
-    const parts: string[] = []
-    if (pendingAdds > 0) parts.push(`Add ${pendingAdds}`)
-    if (pendingRemoves > 0) parts.push(`Remove ${pendingRemoves}`)
-    return parts.length > 0 ? parts.join(', ') : 'Apply'
+    const toAdd: Fixture[] = sortedSelected.map((ch) => ({
+      id: crypto.randomUUID(),
+      name: names[ch]?.trim() || `Ch ${String(ch).padStart(3, '0')}`,
+      channel: ch,
+      universe,
+      type: 'dimmer',
+    }))
+    onApply(toAdd)
   }
 
   return (
     <Modal
-      title="Edit Fixtures"
+      title="Add Single-Channel Fixtures"
       onClose={onClose}
       minWidth="520px"
       maxWidth="620px"
       footer={
         <div className={styles.footer}>
           <button className={styles.cancelBtn} onClick={onClose}>Cancel</button>
-          <button className={styles.addBtn} onClick={handleApply}>
-            {summaryLabel()}
+          <button className={styles.addBtn} disabled={sortedSelected.length === 0} onClick={handleApply}>
+            {sortedSelected.length > 1 ? `Add ${sortedSelected.length} Fixtures` : 'Add Fixture'}
           </button>
         </div>
       }
@@ -143,26 +105,25 @@ export function AddSingleChannelFixturesModal({ existingFixtures, onApply, onClo
         </div>
 
         <div>
-          <div className={styles.gridLabel}>Channels — click to toggle</div>
+          <div className={styles.gridLabel}>Click a free channel to add a fixture</div>
           <div className={styles.grid}>
-            {Array.from({ length: 512 }, (_, i) => i + 1).map((ch) => (
-              <div
-                key={ch}
-                className={[
-                  styles.cell,
-                  selected.has(ch) ? styles.selected : '',
-                  existingChannels.has(ch) && !selected.has(ch) ? styles.removing : '',
-                ].filter(Boolean).join(' ')}
-                onClick={() => toggleChannel(ch)}
-                title={
-                  existingChannels.has(ch)
-                    ? selected.has(ch) ? 'Click to remove' : 'Will be removed — click to keep'
-                    : `Channel ${ch}`
-                }
-              >
-                {ch}
-              </div>
-            ))}
+            {Array.from({ length: 512 }, (_, i) => i + 1).map((ch) => {
+              const isUsed = usedChannels.has(ch)
+              return (
+                <div
+                  key={ch}
+                  className={[
+                    styles.cell,
+                    selected.has(ch) ? styles.selected : '',
+                    isUsed ? styles.unavailable : '',
+                  ].filter(Boolean).join(' ')}
+                  onClick={() => toggleChannel(ch)}
+                  title={isUsed ? `Channel ${ch} unavailable` : `Channel ${ch}`}
+                >
+                  {ch}
+                </div>
+              )
+            })}
           </div>
         </div>
 

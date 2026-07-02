@@ -436,13 +436,9 @@ export function MainView({
     onScenesChange(reordered)
   }, [api, onScenesChange])
 
-  const handleEditFixtures = useCallback(async (toAdd: Fixture[], toRemoveIds: string[], toUpdate: Fixture[]) => {
+  const handleAddSingleChannelFixtures = useCallback(async (toAdd: Fixture[]) => {
     const added = await Promise.all(toAdd.map((f) => api.updateFixture(f)))
-    await Promise.all(toRemoveIds.map((id) => api.deleteFixture(id)))
-    const updated = await Promise.all(toUpdate.map((f) => api.updateFixture(f)))
-    let next = fixtures.filter((f) => !toRemoveIds.includes(f.id))
-    next = next.map((f) => updated.find((u) => u.id === f.id) ?? f)
-    onFixturesChange([...next, ...added])
+    onFixturesChange([...fixtures, ...added])
     setAddingFixtures(false)
   }, [fixtures, api, onFixturesChange])
 
@@ -778,7 +774,7 @@ export function MainView({
       {addingFixtures && (
         <AddSingleChannelFixturesModal
           existingFixtures={fixtures}
-          onApply={handleEditFixtures}
+          onApply={handleAddSingleChannelFixtures}
           onClose={() => setAddingFixtures(false)}
         />
       )}
