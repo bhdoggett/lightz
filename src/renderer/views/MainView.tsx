@@ -8,6 +8,7 @@ import { Modal } from '../components/Modal'
 import { AddFixturesModal } from '../components/AddFixturesModal'
 import { MultiFixtureFader } from '../components/MultiFixtureFader'
 import { CreateFixtureModal } from '../components/CreateFixtureModal'
+import { AddMenuModal } from '../components/AddMenuModal'
 import { LiveView } from './LiveView'
 import { useApi } from '../api/context'
 import { useDragReorder } from '../hooks/useDragReorder'
@@ -130,6 +131,9 @@ export function MainView({
   const [editingFixture, setEditingFixture] = useState<Fixture | null>(null)
   const [fixtureTemplates, setFixtureTemplates] = useState<FixtureTemplate[]>(() => [])
   const [editingGroupId, setEditingGroupId] = useState<string | 'new' | null>(null)
+  const [addMenuOpen, setAddMenuOpen] = useState(false)
+  const [editMode, setEditMode] = useState(false)
+  const [selection, setSelection] = useState<SelectionState>({ selected: new Set(), lastClickedId: null })
 
   const [sceneSaveTrigger, setSceneSaveTrigger] = useState(0)
   const [sceneEditTrigger, setSceneEditTrigger] = useState(0)
@@ -233,6 +237,30 @@ export function MainView({
     onGroupsChange(groups.filter((g) => g.id !== id))
     setGroupStates((prev) => { const n = { ...prev }; delete n[id]; return n })
   }, [groups, api, onGroupsChange])
+
+  const toggleEditMode = useCallback(() => {
+    setEditMode((v) => !v)
+    setSelection({ selected: new Set(), lastClickedId: null })
+  }, [])
+
+  const handleUnpackGroup = useCallback((groupId: string) => {
+    handleDeleteGroup(groupId)
+    setSelection((prev) => {
+      if (!prev.selected.has(groupId)) return prev
+      const next = new Set(prev.selected)
+      next.delete(groupId)
+      return { ...prev, selected: next }
+    })
+  }, [handleDeleteGroup])
+
+  const handleRemoveSelected = useCallback(async () => {
+    const plan = computeRemovalPlan(selection.selected, fixtures, groups)
+    await Promise.all(plan.fixtureIds.map((id) => api.deleteFixture(id)))
+    await Promise.all(plan.groupIds.map((id) => api.deleteGroup(id)))
+    onFixturesChange(fixtures.filter((f) => !plan.fixtureIds.includes(f.id)))
+    onGroupsChange(groups.filter((g) => !plan.groupIds.includes(g.id)))
+    setSelection({ selected: new Set(), lastClickedId: null })
+  }, [selection, fixtures, groups, api, onFixturesChange, onGroupsChange])
 
   const handleAllOff = useCallback(() => {
     for (const u of [0, 1] as const) {
@@ -458,6 +486,13 @@ export function MainView({
     [storedOrder, fixtures, groups]
   )
 
+  const handleItemSelect = useCallback((id: string, e: React.MouseEvent) => {
+    setSelection((prev) => computeClickSelection(prev, id, sectionOrder, {
+      cmd: e.metaKey || e.ctrlKey,
+      shift: e.shiftKey,
+    }))
+  }, [sectionOrder])
+
   const sectionItems = useMemo(() => {
     return sectionOrder.map((id) => {
       const group = groups.find((g) => g.id === id)
@@ -573,15 +608,21 @@ export function MainView({
           </div>
           <div className={styles.addFixtureRow}>
             <div className={styles.addFixtureBtns}>
-              <button className={styles.addFixtureBtn} onClick={() => setAddingFixtures(true)}>
-                + Add Channels
+              <button className={styles.addFixtureBtn} onClick={() => setAddMenuOpen(true)}>
+                +
               </button>
-              <button className={styles.addFixtureBtn} onClick={() => setCreatingFixture(true)}>
-                + Add Custom Fixture
+              <button
+                className={styles.addFixtureBtn}
+                disabled={sectionItems.length === 0}
+                onClick={toggleEditMode}
+              >
+                {editMode ? 'Done' : 'Edit'}
               </button>
-              <button className={styles.addFixtureBtn} onClick={() => setEditingGroupId('new')}>
-                + Add Group
-              </button>
+              {editMode && selection.selected.size > 0 && (
+                <button className={styles.removeBtn} onClick={handleRemoveSelected}>
+                  Remove ({selection.selected.size})
+                </button>
+              )}
             </div>
             <div className={`${styles.layoutToggleGroup} ${styles.layoutToggleRight}`}>
               <button
@@ -622,7 +663,6 @@ export function MainView({
                   )}
                   <div
                     className={item.id === dragId ? styles.dragging : undefined}
-                    {...itemProps(item.id)}
                   >
                     {item.kind === 'group' ? (
                       <GroupCard
@@ -641,6 +681,11 @@ export function MainView({
                         onFixtureEdit={(fixture) => setEditingFixture(fixture)}
                         onDropFixture={(fixtureId) => handleDropFixtureOnGroup(item.group.id, fixtureId)}
                         horizontal={fixturesHorizontal}
+                        isEditing={editMode}
+                        selected={selection.selected.has(item.id)}
+                        onSelect={(e) => handleItemSelect(item.id, e)}
+                        dragHandleProps={editMode ? itemProps(item.id) : undefined}
+                        onUnpack={() => handleUnpackGroup(item.group.id)}
                       />
                     ) : item.fixture.channels ? (
                       <MultiFixtureFader
@@ -654,6 +699,10 @@ export function MainView({
                         groupColor={getFixtureGroupColor(item.fixture.id)}
                         groupMultiplier={getFixtureGroupMultiplier(item.fixture.id)}
                         hasRightNeighbor={index < sectionItems.length - 1}
+                        isEditing={editMode}
+                        selected={selection.selected.has(item.id)}
+                        onSelect={(e) => handleItemSelect(item.id, e)}
+                        dragHandleProps={editMode ? itemProps(item.id) : undefined}
                       />
                     ) : (
                       <FixtureFader
@@ -665,6 +714,10 @@ export function MainView({
                         onRename={(name) => handleFixtureRename(item.fixture, name)}
                         groupColor={getFixtureGroupColor(item.fixture.id)}
                         groupMultiplier={getFixtureGroupMultiplier(item.fixture.id)}
+                        isEditing={editMode}
+                        selected={selection.selected.has(item.id)}
+                        onSelect={(e) => handleItemSelect(item.id, e)}
+                        dragHandleProps={editMode ? itemProps(item.id) : undefined}
                       />
                     )}
                   </div>
@@ -683,6 +736,15 @@ export function MainView({
           existingFixtures={fixtures}
           onApply={handleEditFixtures}
           onClose={() => setAddingFixtures(false)}
+        />
+      )}
+
+      {addMenuOpen && (
+        <AddMenuModal
+          onAddChannels={() => { setAddMenuOpen(false); setAddingFixtures(true) }}
+          onAddCustomFixture={() => { setAddMenuOpen(false); setCreatingFixture(true) }}
+          onAddGroup={() => { setAddMenuOpen(false); setEditingGroupId('new') }}
+          onClose={() => setAddMenuOpen(false)}
         />
       )}
 
