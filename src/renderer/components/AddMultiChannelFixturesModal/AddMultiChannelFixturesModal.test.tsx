@@ -137,4 +137,35 @@ describe('AddMultiChannelFixturesModal', () => {
     fireEvent.click(screen.getByText('U2'))
     expect(screen.queryByPlaceholderText('Fixture name')).not.toBeInTheDocument()
   })
+
+  it('does not reuse a color between two concurrently open drafts after a removal', () => {
+    const { container } = render(<AddMultiChannelFixturesModal {...defaultProps} />)
+    fireEvent.click(screen.getByTitle('Channel 5'))
+    fireEvent.click(screen.getByTitle('Channel 20'))
+    fireEvent.click(screen.getByTitle('Channel 5 — click to remove'))
+    fireEvent.click(screen.getByTitle('Channel 50'))
+    const cards = container.querySelectorAll('[class*="draftCard"]')
+    expect(cards).toHaveLength(2)
+    const colors = Array.from(cards).map((el) => (el as HTMLElement).style.getPropertyValue('--draft-color'))
+    expect(colors[0]).not.toBe(colors[1])
+  })
+
+  it('does not leak internal channel-row ids into saved templates', () => {
+    const onTemplateSave = vi.fn()
+    render(<AddMultiChannelFixturesModal {...defaultProps} onTemplateSave={onTemplateSave} />)
+    fireEvent.click(screen.getByTitle('Channel 5'))
+    fireEvent.click(screen.getByText('RGB'))
+    fireEvent.change(screen.getByPlaceholderText('Save as template…'), { target: { value: 'My RGB' } })
+    fireEvent.click(screen.getByText('Save Template'))
+    expect(onTemplateSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'My RGB',
+        channels: [
+          { role: 'red', label: 'Red', linked: true, offset: 0 },
+          { role: 'green', label: 'Green', linked: true, offset: 1 },
+          { role: 'blue', label: 'Blue', linked: true, offset: 2 },
+        ],
+      })
+    )
+  })
 })

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Modal } from '../Modal'
 import { Toast } from '../Toast'
 import type { Fixture, FixtureChannel, FixtureTemplate, ChannelRole } from '../../../shared/types'
@@ -57,6 +57,7 @@ export function AddMultiChannelFixturesModal({ templates, existingFixtures, onAp
   const [universe, setUniverse] = useState<0 | 1>(0)
   const [drafts, setDrafts] = useState<FixtureDraft[]>([])
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const colorIndexRef = useRef(0)
 
   const savedUsed = getUsedChannels(existingFixtures, universe)
 
@@ -99,9 +100,10 @@ export function AddMultiChannelFixturesModal({ templates, existingFixtures, onAp
       name: '',
       startChannel: ch,
       channels: [],
-      color: GROUP_COLORS[drafts.length % GROUP_COLORS.length],
+      color: GROUP_COLORS[colorIndexRef.current % GROUP_COLORS.length],
       templateName: '',
     }
+    colorIndexRef.current += 1
     setDrafts([...drafts, draft])
   }
 
@@ -149,7 +151,7 @@ export function AddMultiChannelFixturesModal({ templates, existingFixtures, onAp
     onTemplateSave({
       id: crypto.randomUUID(),
       name: draft.templateName.trim(),
-      channels: draft.channels.map((c, i) => ({ ...c, offset: i })),
+      channels: draft.channels.map((c, i) => ({ role: c.role, label: c.label, linked: c.linked, offset: i })),
     })
     updateDraft(draft.draftId, { templateName: '' })
   }
