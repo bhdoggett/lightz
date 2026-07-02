@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { MultiFixtureFader } from './MultiFixtureFader'
 import type { Fixture } from '../../../shared/types'
 
-vi.mock('../api/context', () => ({
+vi.mock('../../api/context', () => ({
   useApi: () => ({
     updateFixture: vi.fn().mockResolvedValue({}),
   }),
@@ -53,5 +53,41 @@ describe('MultiFixtureFader', () => {
     expect(onChange).toHaveBeenLastCalledWith(
       expect.objectContaining({ 'c-r': 200, 'c-g': 100, 'c-b': 50, 'c-s': 0 })
     )
+  })
+
+  describe('edit mode', () => {
+    it('renders exactly one drag handle (the master), not one per sub-channel, when expanded', () => {
+      render(
+        <MultiFixtureFader
+          fixture={fixture}
+          values={values}
+          onChange={vi.fn()}
+          isEditing
+          onSelect={vi.fn()}
+        />
+      )
+      fireEvent.click(screen.getByRole('button', { name: /expand channels/i }))
+      expect(screen.getAllByTestId('drag-handle')).toHaveLength(1)
+    })
+
+    it('calls onSelect when the master fader area is clicked', () => {
+      const onSelect = vi.fn()
+      render(
+        <MultiFixtureFader
+          fixture={fixture}
+          values={values}
+          onChange={vi.fn()}
+          isEditing
+          onSelect={onSelect}
+        />
+      )
+      fireEvent.click(screen.getByTestId('select-overlay'))
+      expect(onSelect).toHaveBeenCalled()
+    })
+
+    it('does not render a drag handle when isEditing is false', () => {
+      render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} />)
+      expect(screen.queryByTestId('drag-handle')).not.toBeInTheDocument()
+    })
   })
 })
