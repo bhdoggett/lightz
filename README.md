@@ -27,7 +27,7 @@ Download the right file for your Mac:
 
 | Download                                                                                                      | For                         |
 | ------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| [Lightz-0.2.6-arm64.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.6/Lightz-0.2.6-arm64.dmg) | Apple Silicon (M1/M2/M3/M4) |
+| [Lightz-0.2.6-arm64.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.6/Lightz-0.2.6-arm64.dmg) | Apple Silicon (M1 and later) |
 | [Lightz-0.2.6.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.6/Lightz-0.2.6.dmg)             | Intel Mac                   |
 
 Double-click the `.dmg`, drag Lightz to Applications, then open it. macOS may prompt you in **System Settings → Privacy & Security** on first launch — click **Open Anyway**.
