@@ -1,4 +1,5 @@
 import { RawFader } from '../RawFader'
+import type { DragHandleProps } from '../../hooks/useDragReorder'
 
 interface Props {
   channel: number
@@ -9,9 +10,16 @@ interface Props {
   onRename?: (name: string) => void
   groupColor?: string
   groupMultiplier?: number
+  isEditing?: boolean
+  selected?: boolean
+  onSelect?: (e: React.MouseEvent) => void
+  dragHandleProps?: DragHandleProps
 }
 
-export function FixtureFader({ channel, universe, name, value, onChange, onRename, groupColor, groupMultiplier }: Props) {
+export function FixtureFader({
+  channel, universe, name, value, onChange, onRename, groupColor, groupMultiplier,
+  isEditing, selected, onSelect, dragHandleProps,
+}: Props) {
   return (
     <RawFader
       channel={channel}
@@ -23,6 +31,10 @@ export function FixtureFader({ channel, universe, name, value, onChange, onRenam
       fillColor={groupColor}
       groupColor={groupColor}
       groupMultiplier={groupMultiplier}
+      isEditing={isEditing}
+      selected={selected}
+      onSelect={onSelect}
+      dragHandleProps={dragHandleProps}
     />
   )
 }

@@ -34,4 +34,23 @@ describe('FixtureFader', () => {
     render(<FixtureFader channel={5} name="Spot" value={200} onChange={vi.fn()} />)
     expect(screen.queryByTestId('group-dot')).not.toBeInTheDocument()
   })
+
+  it('forwards isEditing/selected/onSelect to RawFader', async () => {
+    const onSelect = vi.fn()
+    render(
+      <FixtureFader
+        channel={5}
+        name="Chandelier L"
+        value={128}
+        onChange={vi.fn()}
+        isEditing
+        selected
+        onSelect={onSelect}
+      />
+    )
+    expect(screen.getByTestId('drag-handle')).toBeInTheDocument()
+    expect(screen.getByTestId('fader-root').className).toMatch(/selected/)
+    fireEvent.click(screen.getByTestId('select-overlay'))
+    expect(onSelect).toHaveBeenCalled()
+  })
 })

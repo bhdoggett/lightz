@@ -85,4 +85,52 @@ describe('GroupCard', () => {
     })
     expect(onDropFixture).toHaveBeenCalledWith('f99')
   })
+
+  describe('edit mode', () => {
+    it('renders a drag handle instead of the plain fader value when isEditing', () => {
+      render(<GroupCard {...defaultProps} isEditing />)
+      expect(screen.getByTestId('drag-handle')).toBeInTheDocument()
+    })
+
+    it('calls onSelect when the master panel is clicked while editing', async () => {
+      const onSelect = vi.fn()
+      render(<GroupCard {...defaultProps} isEditing onSelect={onSelect} />)
+      await userEvent.click(screen.getByTestId('select-overlay'))
+      expect(onSelect).toHaveBeenCalled()
+    })
+
+    it('does not call onFull when the full button is clicked while editing', async () => {
+      const onFull = vi.fn()
+      render(<GroupCard {...defaultProps} onFull={onFull} isEditing onSelect={vi.fn()} />)
+      await userEvent.click(screen.getByRole('button', { name: /full/i }))
+      expect(onFull).not.toHaveBeenCalled()
+    })
+
+    it('renders an Unpack button instead of Expand while editing', () => {
+      render(<GroupCard {...defaultProps} isEditing onSelect={vi.fn()} onUnpack={vi.fn()} />)
+      expect(screen.queryByRole('button', { name: /expand/i })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /unpack/i })).toBeInTheDocument()
+    })
+
+    it('calls onUnpack when Unpack is clicked, without also calling onSelect', async () => {
+      const onUnpack = vi.fn()
+      const onSelect = vi.fn()
+      render(<GroupCard {...defaultProps} isEditing onSelect={onSelect} onUnpack={onUnpack} />)
+      await userEvent.click(screen.getByRole('button', { name: /unpack/i }))
+      expect(onUnpack).toHaveBeenCalled()
+      expect(onSelect).not.toHaveBeenCalled()
+    })
+
+    it('renders the selected class on the master panel when selected', () => {
+      render(<GroupCard {...defaultProps} isEditing selected />)
+      expect(screen.getByTestId('group-drop-target').className).toMatch(/selected/)
+    })
+
+    it('does not render drag handle, overlay, or Unpack when isEditing is false', () => {
+      render(<GroupCard {...defaultProps} />)
+      expect(screen.queryByTestId('drag-handle')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('select-overlay')).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: /unpack/i })).not.toBeInTheDocument()
+    })
+  })
 })

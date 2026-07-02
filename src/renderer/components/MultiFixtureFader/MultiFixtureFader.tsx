@@ -5,6 +5,7 @@ import { computeRatios, applyRatios } from '../../utils/gangFader'
 import { RawFader } from '../RawFader'
 import { ColorPickerPopover } from '../ColorPickerPopover'
 import { useApi } from '../../api/context'
+import type { DragHandleProps } from '../../hooks/useDragReorder'
 import styles from './MultiFixtureFader.module.css'
 
 interface Props {
@@ -16,9 +17,16 @@ interface Props {
   groupColor?: string
   groupMultiplier?: number
   hasRightNeighbor?: boolean
+  isEditing?: boolean
+  selected?: boolean
+  onSelect?: (e: React.MouseEvent) => void
+  dragHandleProps?: DragHandleProps
 }
 
-export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit, groupColor, groupMultiplier, hasRightNeighbor = true }: Props) {
+export function MultiFixtureFader({
+  fixture, values, onChange, onRename, onEdit, groupColor, groupMultiplier, hasRightNeighbor = true,
+  isEditing, selected, onSelect, dragHandleProps,
+}: Props) {
   const api = useApi()
   const channels = fixture.channels!
   const [expanded, setExpanded] = useState(false)
@@ -115,6 +123,10 @@ export function MultiFixtureFader({ fixture, values, onChange, onRename, onEdit,
           fillColor={groupColor}
           groupColor={groupColor}
           groupMultiplier={groupMultiplier}
+          isEditing={isEditing}
+          selected={selected}
+          onSelect={onSelect}
+          dragHandleProps={dragHandleProps}
         />
       </div>
       <div className={styles.controlRow}>
