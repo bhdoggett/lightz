@@ -89,6 +89,9 @@ export function computeClickSelection(
     else next.add(clickedId)
     return { selected: next, lastClickedId: clickedId }
   }
+  if (state.selected.has(clickedId) && state.selected.size === 1) {
+    return { selected: new Set(), lastClickedId: clickedId }
+  }
   return { selected: new Set([clickedId]), lastClickedId: clickedId }
 }
 

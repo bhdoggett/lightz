@@ -45,6 +45,18 @@ describe('computeClickSelection', () => {
     expect(result.selected).toEqual(new Set(['b']))
   })
 
+  it('plain click on the sole selected item deselects it', () => {
+    const state: SelectionState = { selected: new Set(['b']), lastClickedId: 'b' }
+    const result = computeClickSelection(state, 'b', order, { cmd: false, shift: false })
+    expect(result.selected).toEqual(new Set())
+  })
+
+  it('plain click on one of several selected items narrows the selection to just that item', () => {
+    const state: SelectionState = { selected: new Set(['a', 'b', 'c']), lastClickedId: 'c' }
+    const result = computeClickSelection(state, 'b', order, { cmd: false, shift: false })
+    expect(result.selected).toEqual(new Set(['b']))
+  })
+
   it('cmd click adds to the selection without clearing others', () => {
     const state: SelectionState = { selected: new Set(['a']), lastClickedId: 'a' }
     const result = computeClickSelection(state, 'c', order, { cmd: true, shift: false })
