@@ -9,6 +9,7 @@ import { AddSingleChannelFixturesModal } from '../components/AddSingleChannelFix
 import { MultiFixtureFader } from '../components/MultiFixtureFader'
 import { CreateFixtureModal } from '../components/CreateFixtureModal'
 import { AddMenuModal } from '../components/AddMenuModal'
+import { AddMultiChannelFixturesModal } from '../components/AddMultiChannelFixturesModal'
 import { LiveView } from './LiveView'
 import { useApi } from '../api/context'
 import { useDragReorder } from '../hooks/useDragReorder'
@@ -137,7 +138,7 @@ export function MainView({
   const [tab, setTab] = useState<Tab>('custom')
   const [groupStates, setGroupStates] = useState<Record<string, GroupState>>({})
   const [addingFixtures, setAddingFixtures] = useState(false)
-  const [creatingFixture, setCreatingFixture] = useState(false)
+  const [addingMultiChannelFixtures, setAddingMultiChannelFixtures] = useState(false)
   const [editingFixture, setEditingFixture] = useState<Fixture | null>(null)
   const [fixtureTemplates, setFixtureTemplates] = useState<FixtureTemplate[]>(() => [])
   const [editingGroupId, setEditingGroupId] = useState<string | 'new' | null>(null)
@@ -164,7 +165,7 @@ export function MainView({
     api.onMenuViewFull(() => setTab('full'))
     api.onMenuViewCustom(() => setTab('custom'))
     api.onMenuAddChannels(() => { setTab('custom'); setAddingFixtures(true) })
-    api.onMenuAddFixture(() => { setTab('custom'); setCreatingFixture(true) })
+    api.onMenuAddFixture(() => { setTab('custom'); setAddingMultiChannelFixtures(true) })
     api.onMenuAddScene(() => {
       setTab('custom')
       setSectionsCollapsed((prev) => ({ ...prev, scenes: false }))
@@ -330,15 +331,16 @@ export function MainView({
     }
   }, [api, setLocal])
 
-  const handleCreateFixture = useCallback(async (fixture: Fixture) => {
+  const handleEditFixture = useCallback(async (fixture: Fixture) => {
     const saved = await api.updateFixture(fixture)
-    const exists = fixtures.some((f) => f.id === saved.id)
-    onFixturesChange(exists
-      ? fixtures.map((f) => f.id === saved.id ? saved : f)
-      : [...fixtures, saved]
-    )
-    setCreatingFixture(false)
+    onFixturesChange(fixtures.map((f) => f.id === saved.id ? saved : f))
     setEditingFixture(null)
+  }, [fixtures, api, onFixturesChange])
+
+  const handleCreateFixtures = useCallback(async (newFixtures: Fixture[]) => {
+    const saved = await Promise.all(newFixtures.map((f) => api.updateFixture(f)))
+    onFixturesChange([...fixtures, ...saved])
+    setAddingMultiChannelFixtures(false)
   }, [fixtures, api, onFixturesChange])
 
   const handleSaveTemplate = useCallback(async (template: FixtureTemplate) => {
@@ -784,20 +786,20 @@ export function MainView({
       {addMenuOpen && (
         <AddMenuModal
           onAddChannels={() => { setAddMenuOpen(false); setAddingFixtures(true) }}
-          onAddCustomFixture={() => { setAddMenuOpen(false); setCreatingFixture(true) }}
+          onAddCustomFixture={() => { setAddMenuOpen(false); setAddingMultiChannelFixtures(true) }}
           onAddGroup={() => { setAddMenuOpen(false); setEditingGroupId('new') }}
           onClose={() => setAddMenuOpen(false)}
         />
       )}
 
-      {creatingFixture && (
-        <CreateFixtureModal
+      {addingMultiChannelFixtures && (
+        <AddMultiChannelFixturesModal
           templates={fixtureTemplates}
           existingFixtures={fixtures}
-          onApply={handleCreateFixture}
+          onApply={handleCreateFixtures}
           onTemplateSave={handleSaveTemplate}
           onTemplateDelete={handleDeleteTemplate}
-          onClose={() => setCreatingFixture(false)}
+          onClose={() => setAddingMultiChannelFixtures(false)}
         />
       )}
 
@@ -806,7 +808,7 @@ export function MainView({
           templates={fixtureTemplates}
           existingFixtures={fixtures}
           initialFixture={editingFixture}
-          onApply={handleCreateFixture}
+          onApply={handleEditFixture}
           onTemplateSave={handleSaveTemplate}
           onTemplateDelete={handleDeleteTemplate}
           onClose={() => setEditingFixture(null)}
