@@ -101,7 +101,7 @@ export function MultiFixtureFader({
   const expandBtn = (
     <button
       className={styles.expandBtn}
-      onClick={isEditing ? undefined : (e) => { e.stopPropagation(); setExpanded((prev) => !prev) }}
+      onClick={(e) => { e.stopPropagation(); setExpanded((prev) => !prev) }}
       title={expanded ? 'Collapse channels' : 'Expand channels'}
     >
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -123,7 +123,6 @@ export function MultiFixtureFader({
           fillColor={groupColor}
           groupMultiplier={groupMultiplier}
           isEditing={isEditing}
-          selected={selected}
           onSelect={onSelect}
           dragHandleProps={dragHandleProps}
         />
@@ -140,7 +139,10 @@ export function MultiFixtureFader({
   )
 
   return (
-    <div ref={cardRef} className={styles.card}>
+    <div
+      ref={cardRef}
+      className={[styles.card, selected ? styles.selected : ''].filter(Boolean).join(' ')}
+    >
       {expanded ? (
         <div className={[
           styles.expandedPanel,
@@ -163,6 +165,7 @@ export function MultiFixtureFader({
                       onChange={(v) => handleChannelChange(ch, v)}
                       fillColor={roleToFillColor(ch.role)}
                       groupMultiplier={isLinked ? groupMultiplier : undefined}
+                      isEditing={isEditing}
                     />
                     <button
                       className={`${styles.linkBtn}${isLinked ? ` ${styles.linked}` : ''}`}

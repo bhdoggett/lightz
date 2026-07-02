@@ -143,7 +143,7 @@ describe('MultiFixtureFader', () => {
       expect(screen.queryByTitle('Pick color')).not.toBeInTheDocument()
     })
 
-    it('does not expand when the expand button is clicked while editing', () => {
+    it('expands when the expand button is clicked while editing, like a group can be toggled open', () => {
       render(
         <MultiFixtureFader
           fixture={fixture}
@@ -154,7 +154,44 @@ describe('MultiFixtureFader', () => {
         />
       )
       fireEvent.click(screen.getByTitle('Expand channels'))
-      expect(screen.queryByText('Red')).not.toBeInTheDocument()
+      expect(screen.getByText('Red')).toBeInTheDocument()
+    })
+
+    it('does not call onSelect when the expand button is clicked while editing', () => {
+      const onSelect = vi.fn()
+      render(
+        <MultiFixtureFader
+          fixture={fixture}
+          values={values}
+          onChange={vi.fn()}
+          isEditing
+          onSelect={onSelect}
+        />
+      )
+      fireEvent.click(screen.getByTitle('Expand channels'))
+      expect(onSelect).not.toHaveBeenCalled()
+    })
+
+    it('disables sub-channel faders once editing starts, even if the fixture was already expanded', () => {
+      const { rerender, container } = render(
+        <MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} />
+      )
+      fireEvent.click(screen.getByTitle('Expand channels'))
+      expect(screen.getByText('Red')).toBeTruthy()
+
+      rerender(
+        <MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} isEditing onSelect={vi.fn()} />
+      )
+      const overlays = container.querySelectorAll('[data-testid="select-overlay"]')
+      expect(overlays.length).toBe(1 + fixture.channels!.length)
+    })
+
+    it('applies the selected outline to the whole card, not just the master fader', () => {
+      const { container } = render(
+        <MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} isEditing selected onSelect={vi.fn()} />
+      )
+      const card = container.querySelector('[class*="card"]')
+      expect(card?.className).toMatch(/selected/)
     })
   })
 })
