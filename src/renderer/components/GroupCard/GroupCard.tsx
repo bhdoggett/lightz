@@ -3,6 +3,7 @@ import { Slider } from '../Slider'
 import { FixtureFader } from '../FixtureFader'
 import { MultiFixtureFader } from '../MultiFixtureFader'
 import type { Group, Fixture } from '../../../shared/types'
+import type { DragHandleProps } from '../../hooks/useDragReorder'
 import styles from './GroupCard.module.css'
 
 interface Props {
@@ -21,6 +22,11 @@ interface Props {
   onFixtureEdit?: (fixture: Fixture) => void
   onDropFixture?: (fixtureId: string) => void
   horizontal?: boolean
+  isEditing?: boolean
+  selected?: boolean
+  onSelect?: (e: React.MouseEvent) => void
+  dragHandleProps?: DragHandleProps
+  onUnpack?: () => void
 }
 
 export function GroupCard({
@@ -29,6 +35,7 @@ export function GroupCard({
   onFixtureChange, onMultiFixtureChange,
   onFixtureRename, onFixtureEdit, onDropFixture,
   horizontal = false,
+  isEditing = false, selected = false, onSelect, dragHandleProps, onUnpack,
 }: Props) {
   const [expanded, setExpanded] = useState(false)
   const [fullFlash, setFullFlash] = useState(false)
@@ -74,7 +81,7 @@ export function GroupCard({
 
   const masterPanel = (
     <div
-      className={`${styles.masterPanel}${dropTarget ? ` ${styles.dropTarget}` : ''}`}
+      className={`${styles.masterPanel}${dropTarget ? ` ${styles.dropTarget}` : ''}${selected ? ` ${styles.selected}` : ''}`}
       data-testid="group-drop-target"
       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDropTarget(true) }}
       onDragLeave={() => setDropTarget(false)}
@@ -85,12 +92,24 @@ export function GroupCard({
         const fixtureId = e.dataTransfer.getData('text/plain')
         if (fixtureId && onDropFixture) onDropFixture(fixtureId)
       }}
+      onClick={isEditing ? onSelect : undefined}
     >
       <div className={styles.valueRow}>
-        <span className={styles.faderValue}>{fader}%</span>
+        {isEditing ? (
+          <span
+            className={`${styles.faderValue} ${styles.dragHandle}`}
+            data-testid="drag-handle"
+            onClick={(e) => e.stopPropagation()}
+            {...dragHandleProps}
+          >
+            {fader}%
+          </span>
+        ) : (
+          <span className={styles.faderValue}>{fader}%</span>
+        )}
         <span className={styles.groupDot} style={{ background: group.color }} />
       </div>
-      <div className={styles.sliderWrap}>
+      <div className={styles.sliderGuard}>
         <Slider
           value={fader}
           min={0}
@@ -99,26 +118,27 @@ export function GroupCard({
           fillColor={group.color}
           onChange={onFaderChange}
         />
+        {isEditing && <div className={styles.selectOverlay} data-testid="select-overlay" />}
       </div>
       <div className={styles.controls}>
         <button
           className={`${styles.overrideBtn} ${styles.fullBtn}${fullFlash ? ` ${styles.flash}` : ''}`}
           aria-label="full"
           title="Set all to full"
-          onClick={handleFull}
+          onClick={isEditing ? undefined : handleFull}
           onAnimationEnd={() => setFullFlash(false)}
         >○</button>
         <button
           className={`${styles.overrideBtn} ${styles.muteBtn}${muteFlash ? ` ${styles.flash}` : ''}`}
           aria-label="mute"
           title="Set all to off"
-          onClick={handleMute}
+          onClick={isEditing ? undefined : handleMute}
           onAnimationEnd={() => setMuteFlash(false)}
         >✕</button>
       </div>
       <div
         className={`${styles.nameArea}${onRename ? ` ${styles.renameable}` : ''}`}
-        onClick={startNameEdit}
+        onClick={isEditing ? undefined : startNameEdit}
       >
         {editingName ? (
           <input
@@ -141,25 +161,36 @@ export function GroupCard({
           className={styles.gearBtn}
           aria-label="Edit group"
           title="Edit group"
-          onClick={onEdit}
+          onClick={isEditing ? undefined : onEdit}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/>
             <path d="M19.622 10.395l-1.097-2.65L20 6l-2-2-1.735 1.483-2.707-1.113L12.935 2h-1.954l-.632 2.401-2.645 1.115L6 4 4 6l1.453 1.789-1.08 2.657L2 11v2l2.401.655L5.516 16.3 4 18l2 2 1.791-1.46 2.606 1.072L11 22h2l.604-2.387 2.651-1.098C16.697 19.187 18 20 18 20l2-2-1.484-1.752 1.098-2.652 2.386-.62V11l-2.378-.605Z"/>
           </svg>
         </button>
-        <button
-          className={styles.expandBtn}
-          aria-label={expanded ? 'Collapse' : 'Expand'}
-          title={expanded ? 'Collapse group' : 'Expand group'}
-          onClick={() => setExpanded((v) => !v)}
-        >
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            {expanded
-              ? <path d="M15 18l-6-6 6-6"/>
-              : <path d="M9 18l6-6-6-6"/>}
-          </svg>
-        </button>
+        {isEditing ? (
+          <button
+            className={styles.unpackBtn}
+            aria-label="Unpack group"
+            title="Remove group, keep fixtures"
+            onClick={(e) => { e.stopPropagation(); onUnpack?.() }}
+          >
+            Unpack
+          </button>
+        ) : (
+          <button
+            className={styles.expandBtn}
+            aria-label={expanded ? 'Collapse' : 'Expand'}
+            title={expanded ? 'Collapse group' : 'Expand group'}
+            onClick={() => setExpanded((v) => !v)}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              {expanded
+                ? <path d="M15 18l-6-6 6-6"/>
+                : <path d="M9 18l6-6-6-6"/>}
+            </svg>
+          </button>
+        )}
       </div>
     </div>
   )

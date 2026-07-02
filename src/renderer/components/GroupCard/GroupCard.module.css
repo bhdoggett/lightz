@@ -191,3 +191,37 @@
   padding: var(--space-2);
   white-space: nowrap;
 }
+
+.selected {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.dragHandle {
+  cursor: grab;
+}
+
+.sliderGuard {
+  position: relative;
+  width: 100%;
+}
+
+.selectOverlay {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+.unpackBtn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 9px;
+  padding: 2px 4px;
+  white-space: nowrap;
+}
+
+.unpackBtn:hover {
+  color: var(--accent);
+}
