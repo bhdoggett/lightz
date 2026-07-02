@@ -1,6 +1,14 @@
 import { useRef, useState } from 'react'
 import type React from 'react'
 
+export interface DragHandleProps {
+  draggable: true
+  'data-drag-id': string
+  onMouseDown: (e: React.MouseEvent<HTMLElement>) => void
+  onDragStart: (e: React.DragEvent<HTMLElement>) => void
+  onDragEnd: () => void
+}
+
 export function useDragReorder<T extends { id: string }>(
   items: T[],
   onReorder: (reordered: T[]) => void
@@ -43,7 +51,7 @@ export function useDragReorder<T extends { id: string }>(
     },
   }
 
-  const itemProps = (id: string) => ({
+  const itemProps = (id: string): DragHandleProps => ({
     draggable: true as const,
     'data-drag-id': id,
     onMouseDown: (e: React.MouseEvent<HTMLElement>) => {
