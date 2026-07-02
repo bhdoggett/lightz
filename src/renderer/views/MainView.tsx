@@ -550,7 +550,7 @@ export function MainView({
           </div>
           <div className={`${styles.fixturesSection}${fixturesHorizontal ? ` ${styles.fixturesSectionHorizontal}` : ''}`}>
             {sectionItems.length === 0 && (
-              <p className={styles.empty}>No fixtures yet — click &quot;+ Add Channels&quot; to get started.</p>
+              <p className={styles.empty}>No fixtures yet — add some to get started.</p>
             )}
             <div
               className={`${styles.fixtures}${fixturesHorizontal ? ` ${styles.fixturesHorizontal}` : ''}`}
