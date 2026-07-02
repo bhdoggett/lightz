@@ -23,6 +23,17 @@ describe('RawFader', () => {
     expect(screen.queryByTestId('raw-fader-label')).not.toBeInTheDocument()
   })
 
+  it('shows channelLabel instead of a computed channel number when provided', () => {
+    render(<RawFader channelLabel="MULTI" value={0} onChange={vi.fn()} />)
+    expect(screen.getByText('MULTI')).toBeInTheDocument()
+  })
+
+  it('prefers channelLabel over the numeric channel when both are given', () => {
+    render(<RawFader channel={5} universe={0} channelLabel="MULTI" value={0} onChange={vi.fn()} />)
+    expect(screen.getByText('MULTI')).toBeInTheDocument()
+    expect(screen.queryByText('1-005')).not.toBeInTheDocument()
+  })
+
   it('calls onChange when slider moves', () => {
     const onChange = vi.fn()
     render(<RawFader channel={1} value={0} onChange={onChange} />)

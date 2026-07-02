@@ -27,6 +27,11 @@ describe('MultiFixtureFader', () => {
     expect(screen.getByText('Stage Left Q6')).toBeTruthy()
   })
 
+  it('shows MULTI under the fixture name on the master fader instead of a channel number', () => {
+    render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} />)
+    expect(screen.getByText('MULTI')).toBeTruthy()
+  })
+
   it('expands on click to show channel labels', async () => {
     render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} />)
     fireEvent.click(screen.getByText('Stage Left Q6'))

@@ -6,6 +6,7 @@ import type { DragHandleProps } from '../../hooks/useDragReorder'
 interface Props {
   channel?: number
   universe?: 0 | 1
+  channelLabel?: string
   value: number
   label?: string
   onChange: (value: number) => void
@@ -19,7 +20,7 @@ interface Props {
 }
 
 export function RawFader({
-  channel, universe, value, label, onChange, onRename, fillColor, groupMultiplier,
+  channel, universe, channelLabel, value, label, onChange, onRename, fillColor, groupMultiplier,
   isEditing = false, selected = false, onSelect, dragHandleProps,
 }: Props) {
   const [editing, setEditing] = useState(false)
@@ -171,11 +172,11 @@ export function RawFader({
           />
         ) : (
           <>
-            {channel !== undefined && (
+            {(channelLabel !== undefined || channel !== undefined) && (
               <span className={styles.channel}>
-                {universe !== undefined
+                {channelLabel ?? (universe !== undefined
                   ? `${universe + 1}-${String(channel).padStart(3, '0')}`
-                  : String(channel).padStart(3, '0')}
+                  : String(channel).padStart(3, '0'))}
               </span>
             )}
             {label && (

@@ -118,6 +118,7 @@ export function MultiFixtureFader({
         <RawFader
           value={masterDisplay}
           label={fixture.name}
+          channelLabel="MULTI"
           onChange={handleMasterChange}
           onRename={onRename}
           fillColor={groupColor}
