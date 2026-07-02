@@ -29,7 +29,6 @@ export function FixtureFader({
       onChange={onChange}
       onRename={onRename}
       fillColor={groupColor}
-      groupColor={groupColor}
       groupMultiplier={groupMultiplier}
       isEditing={isEditing}
       selected={selected}

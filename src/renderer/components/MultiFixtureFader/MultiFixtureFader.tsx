@@ -121,7 +121,6 @@ export function MultiFixtureFader({
           onChange={handleMasterChange}
           onRename={onRename}
           fillColor={groupColor}
-          groupColor={groupColor}
           groupMultiplier={groupMultiplier}
           isEditing={isEditing}
           selected={selected}
@@ -163,7 +162,6 @@ export function MultiFixtureFader({
                       label={ch.label}
                       onChange={(v) => handleChannelChange(ch, v)}
                       fillColor={roleToFillColor(ch.role)}
-                      groupColor={isLinked ? groupColor : undefined}
                       groupMultiplier={isLinked ? groupMultiplier : undefined}
                     />
                     <button

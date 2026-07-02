@@ -11,7 +11,6 @@ interface Props {
   onChange: (value: number) => void
   onRename?: (name: string) => void
   fillColor?: string
-  groupColor?: string
   groupMultiplier?: number
   isEditing?: boolean
   selected?: boolean
@@ -20,7 +19,7 @@ interface Props {
 }
 
 export function RawFader({
-  channel, universe, value, label, onChange, onRename, fillColor, groupColor, groupMultiplier,
+  channel, universe, value, label, onChange, onRename, fillColor, groupMultiplier,
   isEditing = false, selected = false, onSelect, dragHandleProps,
 }: Props) {
   const [editing, setEditing] = useState(false)
@@ -91,10 +90,8 @@ export function RawFader({
       data-testid="fader-root"
       className={[
         styles.fader,
-        groupColor ? styles.grouped : '',
         selected ? styles.selected : '',
       ].filter(Boolean).join(' ')}
-      style={groupColor ? { '--group-color': groupColor } as React.CSSProperties : undefined}
       onClick={isEditing ? onSelect : undefined}
     >
       <div className={styles.valueRow}>
@@ -137,14 +134,6 @@ export function RawFader({
           >
             {displayedValue}
           </span>
-        )}
-        {groupColor && (
-          <span
-            className={styles.groupDot}
-            style={{ background: groupColor }}
-            data-testid="group-dot"
-            title="Group active"
-          />
         )}
       </div>
       {groupLocked && (

@@ -81,7 +81,7 @@ export function GroupCard({
 
   const masterPanel = (
     <div
-      className={`${styles.masterPanel}${dropTarget ? ` ${styles.dropTarget}` : ''}${selected ? ` ${styles.selected}` : ''}`}
+      className={`${styles.masterPanel}${dropTarget ? ` ${styles.dropTarget}` : ''}`}
       data-testid="group-drop-target"
       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDropTarget(true) }}
       onDragLeave={() => setDropTarget(false)}
@@ -112,7 +112,6 @@ export function GroupCard({
         ) : (
           <span className={styles.faderValue}>{fader}%</span>
         )}
-        <span className={styles.groupDot} style={{ background: group.color }} />
       </div>
       <div className={styles.sliderGuard}>
         <Slider
@@ -202,7 +201,8 @@ export function GroupCard({
 
   return (
     <div
-      className={`${styles.card}${expanded ? ` ${styles.expanded}` : ''}`}
+      data-testid="group-card"
+      className={`${styles.card}${expanded ? ` ${styles.expanded}` : ''}${selected ? ` ${styles.selected}` : ''}`}
       style={{ '--group-color': group.color } as React.CSSProperties}
     >
       {masterPanel}

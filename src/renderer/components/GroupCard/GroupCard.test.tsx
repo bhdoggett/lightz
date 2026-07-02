@@ -121,9 +121,17 @@ describe('GroupCard', () => {
       expect(onSelect).not.toHaveBeenCalled()
     })
 
-    it('renders the selected class on the master panel when selected', () => {
+    it('renders the selected class on the whole card when selected', () => {
       render(<GroupCard {...defaultProps} isEditing selected />)
-      expect(screen.getByTestId('group-drop-target').className).toMatch(/selected/)
+      expect(screen.getByTestId('group-card').className).toMatch(/selected/)
+    })
+
+    it('keeps the selected outline on the whole card, not just the master panel, when the group is expanded', async () => {
+      const { rerender } = render(<GroupCard {...defaultProps} />)
+      await userEvent.click(screen.getByRole('button', { name: /expand/i }))
+      rerender(<GroupCard {...defaultProps} isEditing selected />)
+      expect(screen.getByTestId('group-card').className).toMatch(/selected/)
+      expect(screen.getAllByTestId('value-display').length).toBeGreaterThan(0)
     })
 
     it('does not render drag handle, overlay, or Unpack when isEditing is false', () => {
