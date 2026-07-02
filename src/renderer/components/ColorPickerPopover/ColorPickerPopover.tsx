@@ -8,13 +8,14 @@ interface Props {
   anchorRef?: React.RefObject<HTMLElement | null> // element to position popover above
   onChange: (hex: string) => void
   onClick?: (e: React.MouseEvent) => void
+  disabled?: boolean
 }
 
 const PICKER_WIDTH = 200
 const PICKER_HEIGHT = 220
 const GAP = 6
 
-export function ColorPickerPopover({ color, swatchColor, anchorRef, onChange, onClick }: Props) {
+export function ColorPickerPopover({ color, swatchColor, anchorRef, onChange, onClick, disabled = false }: Props) {
   const [open, setOpen] = useState(false)
   const [pos, setPos] = useState({ top: 0, left: 0 })
   const [pickerColor, setPickerColor] = useState(color)
@@ -61,9 +62,9 @@ export function ColorPickerPopover({ color, swatchColor, anchorRef, onChange, on
     <>
       <button
         ref={btnRef}
-        className={styles.swatch}
+        className={`${styles.swatch}${disabled ? ` ${styles.disabled}` : ''}`}
         style={{ background: swatchColor || color || '#000000' }}
-        onClick={handleToggle}
+        onClick={disabled ? undefined : handleToggle}
         title="Pick color"
         aria-expanded={open}
       />

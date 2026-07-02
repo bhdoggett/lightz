@@ -95,6 +95,7 @@ export function MultiFixtureFader({
       anchorRef={cardRef}
       onChange={handleColorPick}
       onClick={(e) => e.stopPropagation()}
+      disabled={isEditing}
     />
   ) : null
 
@@ -133,7 +134,7 @@ export function MultiFixtureFader({
         onClick={isEditing ? onSelect : undefined}
       >
         {gearBtn}
-        {isEditing ? null : colorPicker}
+        {colorPicker}
         {expandBtn}
       </div>
     </>

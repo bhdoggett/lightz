@@ -135,7 +135,7 @@ describe('MultiFixtureFader', () => {
       expect(onSelect).toHaveBeenCalled()
     })
 
-    it('does not render the color picker swatch while editing', () => {
+    it('keeps the color picker swatch visible while editing', () => {
       render(
         <MultiFixtureFader
           fixture={fixture}
@@ -145,7 +145,24 @@ describe('MultiFixtureFader', () => {
           onSelect={vi.fn()}
         />
       )
-      expect(screen.queryByTitle('Pick color')).not.toBeInTheDocument()
+      expect(screen.getByTitle('Pick color')).toBeInTheDocument()
+    })
+
+    it('clicking the swatch while editing selects the fixture instead of opening the picker', () => {
+      const onSelect = vi.fn()
+      render(
+        <MultiFixtureFader
+          fixture={fixture}
+          values={values}
+          onChange={vi.fn()}
+          isEditing
+          onSelect={onSelect}
+        />
+      )
+      const swatch = screen.getByTitle('Pick color')
+      fireEvent.click(swatch)
+      expect(onSelect).toHaveBeenCalled()
+      expect(swatch).toHaveAttribute('aria-expanded', 'false')
     })
 
     it('expands when the expand button is clicked while editing, like a group can be toggled open', () => {
