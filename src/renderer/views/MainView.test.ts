@@ -1,4 +1,4 @@
-import { deriveSectionOrder, computeClickSelection, computeRemovalPlan } from './MainView'
+import { deriveSectionOrder, computeClickSelection, computeRemovalPlan, insertAt } from './MainView'
 import type { Fixture, Group } from '../../shared/types'
 import type { SelectionState } from './MainView'
 
@@ -117,5 +117,35 @@ describe('computeRemovalPlan', () => {
   it('does not duplicate a fixture id that is both in a selected group and individually selected', () => {
     const plan = computeRemovalPlan(new Set(['g1', 'f1']), fixtures, groups)
     expect(plan.fixtureIds.slice().sort()).toEqual(['f1', 'f2'])
+  })
+})
+
+describe('insertAt', () => {
+  it('appends to the end when index is omitted', () => {
+    expect(insertAt(['a', 'b'], 'c')).toEqual(['a', 'b', 'c'])
+  })
+
+  it('inserts at the given index', () => {
+    expect(insertAt(['a', 'b', 'c'], 'x', 1)).toEqual(['a', 'x', 'b', 'c'])
+  })
+
+  it('inserts at index 0', () => {
+    expect(insertAt(['a', 'b'], 'x', 0)).toEqual(['x', 'a', 'b'])
+  })
+
+  it('removes a prior occurrence before reinserting, so an existing id moves rather than duplicates', () => {
+    expect(insertAt(['a', 'b', 'c'], 'a', 2)).toEqual(['b', 'c', 'a'])
+  })
+
+  it('clamps an out-of-range index to the end', () => {
+    expect(insertAt(['a', 'b'], 'x', 99)).toEqual(['a', 'b', 'x'])
+  })
+
+  it('clamps a negative index to the start', () => {
+    expect(insertAt(['a', 'b'], 'x', -5)).toEqual(['x', 'a', 'b'])
+  })
+
+  it('inserting an id not already present at the end index appends it', () => {
+    expect(insertAt(['a', 'b'], 'c', 2)).toEqual(['a', 'b', 'c'])
   })
 })

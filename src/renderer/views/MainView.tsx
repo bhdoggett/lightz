@@ -115,6 +115,16 @@ export function computeRemovalPlan(
   return { fixtureIds: [...fixtureIds], groupIds }
 }
 
+// Places id at the given index within ids, removing any prior occurrence
+// first. Omitting index appends to the end. Used for both positioning a
+// fixture within a group's fixtureIds and inserting one into the top-level
+// section order.
+export function insertAt(ids: string[], id: string, index?: number): string[] {
+  const without = ids.filter((existing) => existing !== id)
+  const at = index === undefined ? without.length : Math.min(Math.max(index, 0), without.length)
+  return [...without.slice(0, at), id, ...without.slice(at)]
+}
+
 export function MainView({
   fixtures, scenes, groups,
   onScenesChange, onFixturesChange, onGroupsChange,
@@ -509,17 +519,40 @@ export function MainView({
     await api.reorderFixtureSection(ids)
   }, [api, onSectionReorder])
 
-  const handleDropFixtureOnGroup = useCallback(async (groupId: string, fixtureId: string) => {
+  const handleDropFixtureOnGroup = useCallback(async (groupId: string, fixtureId: string, index?: number) => {
     const targetGroup = groups.find((g) => g.id === groupId)
     if (!targetGroup) return
-    const updatedGroup = {
-      ...targetGroup,
-      fixtureIds: [...targetGroup.fixtureIds.filter((id) => id !== fixtureId), fixtureId],
-    }
-    await handleSaveGroup(updatedGroup)
+    // api.saveGroup already strips fixtureId from any other group's fixtureIds,
+    // so this only needs to place it correctly within the target group.
+    const fixtureIds = insertAt(targetGroup.fixtureIds, fixtureId, index)
+    await handleSaveGroup({ ...targetGroup, fixtureIds })
+  }, [groups, handleSaveGroup])
+
+  const handleReorderGroupFixtures = useCallback(async (groupId: string, fixtureIds: string[]) => {
+    const group = groups.find((g) => g.id === groupId)
+    if (!group) return
+    await handleSaveGroup({ ...group, fixtureIds })
   }, [groups, handleSaveGroup])
 
   const { dragId, insertIndex, containerProps, itemProps } = useDragReorder(sectionItems, handleSectionReorder)
+
+  // A fixture dragged out of an expanded group and dropped directly on the
+  // fixtures container (not onto another group) isn't part of sectionItems,
+  // so the hook's own onDrop no-ops for it — handle that case by ungrouping
+  // the fixture and inserting it into the top-level order at the drop spot.
+  const handleContainerDrop = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    const sourceId = e.dataTransfer.getData('text/plain')
+    const dropIndex = insertIndex
+    const isTopLevel = sectionItems.some((item) => item.id === sourceId)
+    containerProps.onDrop(e)
+    if (!sourceId || isTopLevel || dropIndex === null) return
+    const sourceGroup = groups.find((g) => g.fixtureIds.includes(sourceId))
+    if (!sourceGroup) return
+    handleSaveGroup({ ...sourceGroup, fixtureIds: sourceGroup.fixtureIds.filter((id) => id !== sourceId) })
+    const newOrder = insertAt(sectionItems.map((item) => item.id), sourceId, dropIndex)
+    onSectionReorder(newOrder)
+    api.reorderFixtureSection(newOrder)
+  }, [sectionItems, insertIndex, containerProps, groups, handleSaveGroup, onSectionReorder, api])
 
   return (
     <div className={styles.view}>
@@ -656,6 +689,7 @@ export function MainView({
             <div
               className={`${styles.fixtures}${fixturesHorizontal ? ` ${styles.fixturesHorizontal}` : ''}`}
               {...containerProps}
+              onDrop={handleContainerDrop}
             >
               {sectionItems.map((item, index) => {
                 const { 'data-drag-id': _unused, ...dragHandleProps } = itemProps(item.id)
@@ -672,7 +706,9 @@ export function MainView({
                       <GroupCard
                         group={item.group}
                         fader={groupStates[item.group.id]?.fader ?? 100}
-                        fixtures={fixtures.filter((f) => item.group.fixtureIds.includes(f.id))}
+                        fixtures={item.group.fixtureIds
+                          .map((id) => fixtures.find((f) => f.id === id))
+                          .filter((f): f is Fixture => f !== undefined)}
                         getChannel={getChannel}
                         onFaderChange={(fader) => handleStateChange(item.group.id, { fader })}
                         onFull={() => setGroupChannels(item.group.id, 255)}
@@ -683,7 +719,8 @@ export function MainView({
                         onMultiFixtureChange={handleMultiFixtureChange}
                         onFixtureRename={(fixture, name) => handleFixtureRename(fixture, name)}
                         onFixtureEdit={(fixture) => setEditingFixture(fixture)}
-                        onDropFixture={(fixtureId) => handleDropFixtureOnGroup(item.group.id, fixtureId)}
+                        onDropFixture={(fixtureId, dropIndex) => handleDropFixtureOnGroup(item.group.id, fixtureId, dropIndex)}
+                        onReorderFixtures={(fixtureIds) => handleReorderGroupFixtures(item.group.id, fixtureIds)}
                         horizontal={fixturesHorizontal}
                         isEditing={editMode}
                         selected={selection.selected.has(item.id)}
