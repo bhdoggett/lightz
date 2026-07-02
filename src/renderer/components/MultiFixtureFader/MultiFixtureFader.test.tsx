@@ -56,6 +56,14 @@ describe('MultiFixtureFader', () => {
   })
 
   describe('edit mode', () => {
+    const dragHandleProps = {
+      draggable: true as const,
+      'data-drag-id': 'f1',
+      onMouseDown: vi.fn(),
+      onDragStart: vi.fn(),
+      onDragEnd: vi.fn(),
+    }
+
     it('renders exactly one drag handle (the master), not one per sub-channel, when expanded', () => {
       render(
         <MultiFixtureFader
@@ -64,6 +72,7 @@ describe('MultiFixtureFader', () => {
           onChange={vi.fn()}
           isEditing
           onSelect={vi.fn()}
+          dragHandleProps={dragHandleProps}
         />
       )
       fireEvent.click(screen.getByRole('button', { name: /expand channels/i }))

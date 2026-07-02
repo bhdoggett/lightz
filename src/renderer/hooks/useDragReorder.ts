@@ -33,16 +33,17 @@ export function useDragReorder<T extends { id: string }>(
     onDrop: (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault()
       const sourceId = e.dataTransfer.getData('text/plain')
-      if (!sourceId || insertIndex === null) return
+      const dropIndex = insertIndex
+      setDragId(null)
+      setInsertIndex(null)
+      if (!sourceId || dropIndex === null) return
       const sourceIndex = items.findIndex((item) => item.id === sourceId)
       if (sourceIndex === -1) return
       const reordered = [...items]
       const [moved] = reordered.splice(sourceIndex, 1)
-      const adjusted = insertIndex > sourceIndex ? insertIndex - 1 : insertIndex
+      const adjusted = dropIndex > sourceIndex ? dropIndex - 1 : dropIndex
       reordered.splice(adjusted, 0, moved)
       onReorder(reordered)
-      setDragId(null)
-      setInsertIndex(null)
     },
     onDragLeave: (e: React.DragEvent<HTMLDivElement>) => {
       if (!e.currentTarget.contains(e.relatedTarget as Node)) {

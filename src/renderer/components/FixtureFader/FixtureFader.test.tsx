@@ -25,7 +25,7 @@ describe('FixtureFader', () => {
     expect(onChange).toHaveBeenCalledWith(128)
   })
 
-  it('forwards isEditing/selected/onSelect to RawFader', async () => {
+  it('forwards isEditing/selected/onSelect/dragHandleProps to RawFader', async () => {
     const onSelect = vi.fn()
     render(
       <FixtureFader
@@ -36,6 +36,13 @@ describe('FixtureFader', () => {
         isEditing
         selected
         onSelect={onSelect}
+        dragHandleProps={{
+          draggable: true,
+          'data-drag-id': 'f1',
+          onMouseDown: vi.fn(),
+          onDragStart: vi.fn(),
+          onDragEnd: vi.fn(),
+        }}
       />
     )
     expect(screen.getByTestId('drag-handle')).toBeInTheDocument()

@@ -155,11 +155,44 @@ describe('RawFader', () => {
 
   })
 
+  const dragHandleProps = {
+    draggable: true as const,
+    'data-drag-id': 'f1',
+    onMouseDown: vi.fn(),
+    onDragStart: vi.fn(),
+    onDragEnd: vi.fn(),
+  }
+
   describe('edit mode', () => {
     it('renders a drag handle instead of the editable value display when isEditing', () => {
-      render(<RawFader channel={1} value={128} onChange={vi.fn()} isEditing />)
+      render(<RawFader channel={1} value={128} onChange={vi.fn()} isEditing dragHandleProps={dragHandleProps} />)
       expect(screen.getByTestId('drag-handle')).toBeInTheDocument()
       expect(screen.queryByTestId('value-display')).not.toBeInTheDocument()
+    })
+
+    it('renders a drag handle whenever dragHandleProps is provided, even without isEditing', () => {
+      render(<RawFader channel={1} value={128} onChange={vi.fn()} dragHandleProps={dragHandleProps} />)
+      expect(screen.getByTestId('drag-handle')).toBeInTheDocument()
+    })
+
+    it('does not block the slider, toggle, or rename when dragHandleProps is provided without isEditing', async () => {
+      const onChange = vi.fn()
+      const onRename = vi.fn()
+      render(
+        <RawFader
+          channel={1}
+          value={0}
+          label="Old Name"
+          onChange={onChange}
+          onRename={onRename}
+          dragHandleProps={dragHandleProps}
+        />
+      )
+      expect(screen.queryByTestId('select-overlay')).not.toBeInTheDocument()
+      await userEvent.click(screen.getByRole('button', { name: /toggle/i }))
+      expect(onChange).toHaveBeenCalledWith(255)
+      await userEvent.click(screen.getByText('Old Name'))
+      expect(screen.getByTestId('rename-input')).toBeInTheDocument()
     })
 
     it('does not render drag handle or select overlay when isEditing is false', () => {
@@ -191,7 +224,7 @@ describe('RawFader', () => {
 
     it('does not call onSelect when clicking the drag handle itself', async () => {
       const onSelect = vi.fn()
-      render(<RawFader channel={1} value={0} onChange={vi.fn()} isEditing onSelect={onSelect} />)
+      render(<RawFader channel={1} value={0} onChange={vi.fn()} isEditing onSelect={onSelect} dragHandleProps={dragHandleProps} />)
       await userEvent.click(screen.getByTestId('drag-handle'))
       expect(onSelect).not.toHaveBeenCalled()
     })

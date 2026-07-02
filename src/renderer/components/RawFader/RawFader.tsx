@@ -95,7 +95,7 @@ export function RawFader({
       onClick={isEditing ? onSelect : undefined}
     >
       <div className={styles.valueRow}>
-        {isEditing ? (
+        {dragHandleProps ? (
           <span
             className={`${styles.value} ${styles.dragHandle}`}
             data-testid="drag-handle"
