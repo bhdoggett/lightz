@@ -48,12 +48,6 @@
   flex-shrink: 0;
 }
 
-.sliderWrap {
-  height: 120px;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
 
 .controls {
   display: flex;
@@ -203,6 +197,8 @@
 
 .sliderGuard {
   position: relative;
+  display: flex;
+  justify-content: center;
   width: 100%;
 }
 
