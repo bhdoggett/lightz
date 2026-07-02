@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import { Modal } from '../Modal'
 import type { Fixture } from '../../../shared/types'
-import styles from './AddFixturesModal.module.css'
+import styles from './AddSingleChannelFixturesModal.module.css'
 
 interface Props {
   existingFixtures: Fixture[]
@@ -34,7 +34,7 @@ function initForUniverse(fixtures: Fixture[], universe: 0 | 1) {
   return { selected, names }
 }
 
-export function AddFixturesModal({ existingFixtures, onApply, onClose }: Props) {
+export function AddSingleChannelFixturesModal({ existingFixtures, onApply, onClose }: Props) {
   const [universe, setUniverse] = useState<0 | 1>(0)
   const [rangeInput, setRangeInput] = useState('')
 

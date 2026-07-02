@@ -1,0 +1,1 @@
+export { AddSingleChannelFixturesModal } from './AddSingleChannelFixturesModal'

@@ -5,7 +5,7 @@ import { GroupStrip } from '../components/GroupStrip'
 import { GroupCard } from '../components/GroupCard'
 import { GroupEditor } from '../components/GroupEditor'
 import { Modal } from '../components/Modal'
-import { AddFixturesModal } from '../components/AddFixturesModal'
+import { AddSingleChannelFixturesModal } from '../components/AddSingleChannelFixturesModal'
 import { MultiFixtureFader } from '../components/MultiFixtureFader'
 import { CreateFixtureModal } from '../components/CreateFixtureModal'
 import { AddMenuModal } from '../components/AddMenuModal'
@@ -774,7 +774,7 @@ export function MainView({
       )}
 
       {addingFixtures && (
-        <AddFixturesModal
+        <AddSingleChannelFixturesModal
           existingFixtures={fixtures}
           onApply={handleEditFixtures}
           onClose={() => setAddingFixtures(false)}
