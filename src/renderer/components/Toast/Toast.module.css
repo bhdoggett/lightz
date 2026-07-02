@@ -1,0 +1,10 @@
+.toast {
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--status-error) 20%, var(--bg-overlay));
+  border: 1px solid var(--status-error);
+  color: var(--status-error);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
