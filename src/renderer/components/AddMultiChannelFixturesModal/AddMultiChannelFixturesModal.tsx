@@ -57,7 +57,13 @@ export function AddMultiChannelFixturesModal({ templates, existingFixtures, onAp
   const [universe, setUniverse] = useState<0 | 1>(0)
   const [drafts, setDrafts] = useState<FixtureDraft[]>([])
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [toastDraftId, setToastDraftId] = useState<string | null>(null)
   const colorIndexRef = useRef(0)
+
+  const showToast = (draftId: string, message: string) => {
+    setToastDraftId(draftId)
+    setToastMessage(message)
+  }
 
   const savedUsed = getUsedChannels(existingFixtures, universe)
 
@@ -99,7 +105,7 @@ export function AddMultiChannelFixturesModal({ templates, existingFixtures, onAp
       draftId: crypto.randomUUID(),
       name: '',
       startChannel: ch,
-      channels: [],
+      channels: [{ role: 'other', label: `Ch ${ch}`, linked: false, draftId: crypto.randomUUID() }],
       color: GROUP_COLORS[colorIndexRef.current % GROUP_COLORS.length],
       templateName: '',
     }
@@ -117,7 +123,7 @@ export function AddMultiChannelFixturesModal({ templates, existingFixtures, onAp
     const preset = PRESETS[key]
     const used = usedChannelsExcluding(draft.draftId)
     if (!isStartChannelAvailable(draft.startChannel, preset.length, used)) {
-      setToastMessage(describeConflict(draft.startChannel, preset.length, used))
+      showToast(draft.draftId, describeConflict(draft.startChannel, preset.length, used))
       return
     }
     updateDraft(draft.draftId, { channels: preset.map((c) => ({ ...c, draftId: crypto.randomUUID() })) })
@@ -126,7 +132,7 @@ export function AddMultiChannelFixturesModal({ templates, existingFixtures, onAp
   const applyTemplate = (draft: FixtureDraft, t: FixtureTemplate) => {
     const used = usedChannelsExcluding(draft.draftId)
     if (!isStartChannelAvailable(draft.startChannel, t.channels.length, used)) {
-      setToastMessage(describeConflict(draft.startChannel, t.channels.length, used))
+      showToast(draft.draftId, describeConflict(draft.startChannel, t.channels.length, used))
       return
     }
     updateDraft(draft.draftId, {
@@ -138,11 +144,11 @@ export function AddMultiChannelFixturesModal({ templates, existingFixtures, onAp
     const nextChannel = draft.startChannel + draft.channels.length
     const used = usedChannelsExcluding(draft.draftId)
     if (!isStartChannelAvailable(nextChannel, 1, used)) {
-      setToastMessage(describeConflict(nextChannel, 1, used))
+      showToast(draft.draftId, describeConflict(nextChannel, 1, used))
       return
     }
     updateDraft(draft.draftId, {
-      channels: [...draft.channels, { role: 'other', label: 'Ch', linked: false, draftId: crypto.randomUUID() }],
+      channels: [...draft.channels, { role: 'other', label: `Ch ${nextChannel}`, linked: false, draftId: crypto.randomUUID() }],
     })
   }
 
@@ -236,10 +242,6 @@ export function AddMultiChannelFixturesModal({ templates, existingFixtures, onAp
           </div>
         </div>
 
-        <div className={styles.toastRow}>
-          <Toast message={toastMessage} onDismiss={() => setToastMessage(null)} />
-        </div>
-
         <div className={styles.draftList}>
           {drafts.map((draft) => (
             <div key={draft.draftId} className={styles.draftCard} style={{ '--draft-color': draft.color } as React.CSSProperties}>
@@ -260,6 +262,10 @@ export function AddMultiChannelFixturesModal({ templates, existingFixtures, onAp
                 ))}
                 <button className={styles.presetBtn} onClick={() => updateDraft(draft.draftId, { channels: [] })}>Custom</button>
               </div>
+
+              {toastDraftId === draft.draftId && (
+                <Toast message={toastMessage} onDismiss={() => { setToastMessage(null); setToastDraftId(null) }} />
+              )}
 
               {templates.length > 0 && (
                 <div className={styles.templateRow}>

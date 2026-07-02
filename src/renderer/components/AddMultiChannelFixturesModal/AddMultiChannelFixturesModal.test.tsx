@@ -65,21 +65,42 @@ describe('AddMultiChannelFixturesModal', () => {
     render(<AddMultiChannelFixturesModal {...defaultProps} existingFixtures={existingFixtures} />)
     fireEvent.click(screen.getByTitle('Channel 5'))
     fireEvent.click(screen.getByText('RGB'))
-    expect(screen.getByText('Channel 7 is already taken')).toBeInTheDocument()
+    expect(screen.getByText('Channel 7 is already in use.')).toBeInTheDocument()
     expect(screen.queryByDisplayValue('Red')).not.toBeInTheDocument()
   })
 
   it('rejects + Add Channel when the next channel is already taken and shows a toast', () => {
     const existingFixtures: Fixture[] = [{
-      id: 'f1', name: 'Existing', channel: 6, universe: 0, type: 'dimmer',
-      channels: [{ id: 'c1', role: 'red', label: 'Red', channel: 6, universe: 0, linked: true }],
+      id: 'f1', name: 'Existing', channel: 7, universe: 0, type: 'dimmer',
+      channels: [{ id: 'c1', role: 'red', label: 'Red', channel: 7, universe: 0, linked: true }],
     }]
     render(<AddMultiChannelFixturesModal {...defaultProps} existingFixtures={existingFixtures} />)
     fireEvent.click(screen.getByTitle('Channel 5'))
     fireEvent.click(screen.getByText('+ Add channel'))
-    expect(screen.queryByText(/already taken/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/already in use/)).not.toBeInTheDocument()
     fireEvent.click(screen.getByText('+ Add channel'))
-    expect(screen.getByText('Channel 6 is already taken')).toBeInTheDocument()
+    expect(screen.getByText('Channel 7 is already in use.')).toBeInTheDocument()
+  })
+
+  it('a new draft starts with its first channel row already present, numbered at the start channel', () => {
+    const { container } = render(<AddMultiChannelFixturesModal {...defaultProps} />)
+    fireEvent.click(screen.getByTitle('Channel 5'))
+    const channelNum = container.querySelector('[class*="channelNum"]')
+    expect(channelNum).toHaveTextContent('5')
+    expect(screen.getByDisplayValue('other')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Ch 5')).toBeInTheDocument()
+  })
+
+  it('shows the conflict toast inside the affected draft card, not a shared banner above the drafts', () => {
+    const existingFixtures: Fixture[] = [{
+      id: 'f1', name: 'Existing', channel: 7, universe: 0, type: 'dimmer',
+      channels: [{ id: 'c1', role: 'red', label: 'Red', channel: 7, universe: 0, linked: true }],
+    }]
+    render(<AddMultiChannelFixturesModal {...defaultProps} existingFixtures={existingFixtures} />)
+    fireEvent.click(screen.getByTitle('Channel 5'))
+    fireEvent.click(screen.getByText('RGB'))
+    const card = screen.getByText('Channel 7 is already in use.').closest('[class*="draftCard"]')
+    expect(card).not.toBeNull()
   })
 
   it('a second draft cannot start on a channel claimed by an earlier draft', () => {

@@ -108,10 +108,6 @@
   cursor: pointer;
 }
 
-.toastRow {
-  min-height: 28px;
-}
-
 .draftList {
   display: flex;
   flex-direction: column;

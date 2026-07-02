@@ -61,7 +61,7 @@ describe('isStartChannelAvailable', () => {
 describe('describeConflict', () => {
   it('reports the first used channel in the range', () => {
     const used = new Set([12])
-    expect(describeConflict(10, 4, used)).toBe('Channel 12 is already taken')
+    expect(describeConflict(10, 4, used)).toBe('Channel 12 is already in use.')
   })
 
   it('reports overflow past channel 512', () => {

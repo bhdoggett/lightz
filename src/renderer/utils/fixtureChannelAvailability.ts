@@ -26,7 +26,7 @@ export function isStartChannelAvailable(start: number, count: number, used: Set<
 export function describeConflict(start: number, count: number, used: Set<number>): string {
   if (start + count - 1 > 512) return 'Not enough channels available before 512'
   for (let c = start; c < start + count; c++) {
-    if (used.has(c)) return `Channel ${c} is already taken`
+    if (used.has(c)) return `Channel ${c} is already in use.`
   }
   return ''
 }
