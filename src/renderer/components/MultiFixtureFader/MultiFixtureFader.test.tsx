@@ -89,5 +89,63 @@ describe('MultiFixtureFader', () => {
       render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} />)
       expect(screen.queryByTestId('drag-handle')).not.toBeInTheDocument()
     })
+
+    it('does not call onEdit when the gear button is clicked while editing', () => {
+      const onEdit = vi.fn()
+      render(
+        <MultiFixtureFader
+          fixture={fixture}
+          values={values}
+          onChange={vi.fn()}
+          onEdit={onEdit}
+          isEditing
+          onSelect={vi.fn()}
+        />
+      )
+      fireEvent.click(screen.getByTitle('Edit fixture'))
+      expect(onEdit).not.toHaveBeenCalled()
+    })
+
+    it('calls onSelect (via bubbling) when the gear button is clicked while editing', () => {
+      const onSelect = vi.fn()
+      render(
+        <MultiFixtureFader
+          fixture={fixture}
+          values={values}
+          onChange={vi.fn()}
+          isEditing
+          onSelect={onSelect}
+        />
+      )
+      fireEvent.click(screen.getByTitle('Edit fixture'))
+      expect(onSelect).toHaveBeenCalled()
+    })
+
+    it('does not render the color picker swatch while editing', () => {
+      render(
+        <MultiFixtureFader
+          fixture={fixture}
+          values={values}
+          onChange={vi.fn()}
+          isEditing
+          onSelect={vi.fn()}
+        />
+      )
+      expect(screen.queryByTitle('Pick color')).not.toBeInTheDocument()
+    })
+
+    it('does not expand when the expand button is clicked while editing', () => {
+      render(
+        <MultiFixtureFader
+          fixture={fixture}
+          values={values}
+          onChange={vi.fn()}
+          isEditing
+          onSelect={vi.fn()}
+        />
+      )
+      fireEvent.click(screen.getByTitle('Expand channels'))
+      expect(screen.queryByText('Red')).not.toBeInTheDocument()
+    })
   })
 })

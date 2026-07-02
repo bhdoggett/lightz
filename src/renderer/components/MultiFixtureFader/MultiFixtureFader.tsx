@@ -78,7 +78,7 @@ export function MultiFixtureFader({
   const gearBtn = (
     <button
       className={styles.gearBtn}
-      onClick={(e) => { e.stopPropagation(); onEdit?.() }}
+      onClick={isEditing ? undefined : (e) => { e.stopPropagation(); onEdit?.() }}
       title="Edit fixture"
     >
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -101,7 +101,7 @@ export function MultiFixtureFader({
   const expandBtn = (
     <button
       className={styles.expandBtn}
-      onClick={(e) => { e.stopPropagation(); setExpanded((prev) => !prev) }}
+      onClick={isEditing ? undefined : (e) => { e.stopPropagation(); setExpanded((prev) => !prev) }}
       title={expanded ? 'Collapse channels' : 'Expand channels'}
     >
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -129,9 +129,12 @@ export function MultiFixtureFader({
           dragHandleProps={dragHandleProps}
         />
       </div>
-      <div className={styles.controlRow}>
+      <div
+        className={styles.controlRow}
+        onClick={isEditing ? onSelect : undefined}
+      >
         {gearBtn}
-        {colorPicker}
+        {isEditing ? null : colorPicker}
         {expandBtn}
       </div>
     </>
