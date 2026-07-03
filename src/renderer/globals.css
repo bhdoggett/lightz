@@ -48,7 +48,7 @@
   --fader-gap: 0.5rem;    /* 8px — consistent gap in both Scenes and Live grids */
   --drag-indicator-width: 2px;
   --drag-indicator-glow: var(--space-1); /* 4px blur radius */
-  --fader-footer-height: 1.75rem; /* 28px — fits gear icon, expand arrow, and 26px color swatch */
+  --fader-footer-height: 2.25rem; /* 36px — fits gear icon, expand arrow, and 26px color swatch with breathing room */
 
   /* Typography */
   --font-sans: 'Barlow', system-ui, -apple-system, sans-serif;
