@@ -4,6 +4,7 @@ import { channelValuesToDisplayHex, pickerHexToChannelValues, isColorRole, roleT
 import { computeRatios, applyRatios } from '../../utils/gangFader'
 import { RawFader } from '../RawFader'
 import { ColorPickerPopover } from '../ColorPickerPopover'
+import { FaderFooter } from '../FaderFooter'
 import { useApi } from '../../api/context'
 import type { DragHandleProps } from '../../hooks/useDragReorder'
 import styles from './MultiFixtureFader.module.css'
@@ -129,14 +130,16 @@ export function MultiFixtureFader({
           dragHandleProps={dragHandleProps}
         />
       </div>
-      <div
-        className={styles.controlRow}
-        onClick={isEditing ? onSelect : undefined}
-      >
-        {gearBtn}
-        {colorPicker}
-        {expandBtn}
-      </div>
+      <FaderFooter variant="controls">
+        <div
+          className={styles.controlRow}
+          onClick={isEditing ? onSelect : undefined}
+        >
+          {gearBtn}
+          {colorPicker}
+          {expandBtn}
+        </div>
+      </FaderFooter>
     </>
   )
 

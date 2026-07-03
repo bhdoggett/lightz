@@ -60,6 +60,13 @@ describe('MultiFixtureFader', () => {
     )
   })
 
+  it('renders its gear/swatch/expand controls inside a shared FaderFooter', () => {
+    render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} />)
+    const footer = screen.getByTestId('fader-footer')
+    expect(footer).toContainElement(screen.getByTitle('Edit fixture'))
+    expect(footer).toContainElement(screen.getByTitle('Expand channels'))
+  })
+
   describe('edit mode', () => {
     const dragHandleProps = {
       draggable: true as const,
