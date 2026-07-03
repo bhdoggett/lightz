@@ -258,7 +258,10 @@ export function GroupCard({
                 )}
                 <div
                   data-drag-id={isEditing ? fixture.id : undefined}
-                  className={fixture.id === fixtureDragId ? styles.dragging : undefined}
+                  className={[
+                    fixtureIndex > 0 ? styles.channelDivider : '',
+                    fixture.id === fixtureDragId ? styles.dragging : '',
+                  ].filter(Boolean).join(' ') || undefined}
                 >
                   {fixture.channels ? (
                     <MultiFixtureFader

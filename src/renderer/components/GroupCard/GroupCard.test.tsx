@@ -40,6 +40,15 @@ describe('GroupCard', () => {
     expect(screen.getAllByTestId('value-display').length).toBeGreaterThan(0)
   })
 
+  it('shows a thin divider between channels when expanded, but not before the first', async () => {
+    render(<GroupCard {...defaultProps} />)
+    await userEvent.click(screen.getByRole('button', { name: /expand/i }))
+    const panel = screen.getByTestId('fixture-panel')
+    const [first, second] = [...panel.children]
+    expect(first.className).not.toMatch(/channelDivider/)
+    expect(second.className).toMatch(/channelDivider/)
+  })
+
   it('collapses again on second click', async () => {
     render(<GroupCard {...defaultProps} />)
     await userEvent.click(screen.getByRole('button', { name: /expand/i }))

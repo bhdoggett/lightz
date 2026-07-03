@@ -15,7 +15,7 @@
   flex-direction: column;
   align-items: center;
   gap: var(--space-1);
-  padding: var(--space-2);
+  padding: var(--space-2) var(--space-2) 0 var(--space-2);
   width: 5rem;
   flex-shrink: 0;
   border-radius: var(--radius-md);
@@ -201,6 +201,10 @@
 
 .dragging {
   opacity: 0.4;
+}
+
+.channelDivider {
+  border-left: 1px solid var(--border-subtle);
 }
 
 .selected {
