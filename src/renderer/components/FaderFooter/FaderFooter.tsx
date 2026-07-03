@@ -1,11 +1,11 @@
 import styles from './FaderFooter.module.css'
 
-interface Props {
+export interface FaderFooterProps {
   variant: 'controls' | 'filler'
   children?: React.ReactNode
 }
 
-export function FaderFooter({ variant, children }: Props) {
+export function FaderFooter({ variant, children }: FaderFooterProps) {
   return (
     <div className={styles.faderFooter} data-testid="fader-footer">
       <div className={styles.divider} />
