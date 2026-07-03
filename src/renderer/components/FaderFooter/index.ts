@@ -1,0 +1,1 @@
+export { FaderFooter } from './FaderFooter'

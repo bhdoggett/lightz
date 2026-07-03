@@ -1,0 +1,32 @@
+.faderFooter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.content {
+  width: 100%;
+  height: var(--fader-footer-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filler {
+  width: 100%;
+  height: 100%;
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--border-subtle) 0,
+    var(--border-subtle) 1px,
+    transparent 1px,
+    transparent 5px
+  );
+}
