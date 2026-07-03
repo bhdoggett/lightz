@@ -45,8 +45,8 @@ describe('GroupCard', () => {
     await userEvent.click(screen.getByRole('button', { name: /expand/i }))
     const panel = screen.getByTestId('fixture-panel')
     const [first, second] = [...panel.children]
-    expect(first.className).not.toMatch(/channelDivider/)
-    expect(second.className).toMatch(/channelDivider/)
+    expect(first.className).not.toMatch(/divider/)
+    expect(second.className).toMatch(/divider/)
   })
 
   it('collapses again on second click', async () => {

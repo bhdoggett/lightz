@@ -5,6 +5,7 @@ import { computeRatios, applyRatios } from '../../utils/gangFader'
 import { RawFader } from '../RawFader'
 import { ColorPickerPopover } from '../ColorPickerPopover'
 import { FaderFooter } from '../FaderFooter'
+import { FaderCard } from '../FaderCard'
 import { useApi } from '../../api/context'
 import type { DragHandleProps } from '../../hooks/useDragReorder'
 import styles from './MultiFixtureFader.module.css'
@@ -145,14 +146,11 @@ export function MultiFixtureFader({
   )
 
   return (
-    <div
+    <FaderCard
       ref={cardRef}
+      variant={standalone ? 'bordered' : 'none'}
       data-testid="multi-fixture-card"
-      className={[
-        styles.card,
-        standalone ? styles.standaloneBorder : '',
-        selected ? styles.selected : '',
-      ].filter(Boolean).join(' ')}
+      className={[styles.card, selected ? styles.selected : ''].filter(Boolean).join(' ')}
     >
       {expanded ? (
         <div className={[
@@ -167,9 +165,10 @@ export function MultiFixtureFader({
               {channels.map((ch, chIndex) => {
                 const isLinked = channelLinks[ch.id] ?? ch.linked
                 return (
-                  <div
+                  <FaderCard
                     key={ch.id}
-                    className={[styles.subFaderWrap, chIndex > 0 ? styles.channelDivider : ''].filter(Boolean).join(' ')}
+                    variant={chIndex > 0 ? 'divider' : 'none'}
+                    className={styles.subFaderWrap}
                   >
                     <RawFader
                       channel={ch.channel}
@@ -196,7 +195,7 @@ export function MultiFixtureFader({
                         </button>
                       </div>
                     </div>
-                  </div>
+                  </FaderCard>
                 )
               })}
             </div>
@@ -207,6 +206,6 @@ export function MultiFixtureFader({
           {masterPanel}
         </div>
       )}
-    </div>
+    </FaderCard>
   )
 }

@@ -2,9 +2,6 @@
   display: inline-flex;
   flex-direction: row;
   align-items: stretch;
-  border: 1px solid var(--border-default);
-  border-bottom: 3px solid var(--group-color, var(--border-default));
-  border-radius: var(--radius-md);
   background: var(--bg-surface);
   overflow: visible;
   flex-shrink: 0;
@@ -201,10 +198,6 @@
 
 .dragging {
   opacity: 0.4;
-}
-
-.channelDivider {
-  border-left: 1px solid var(--border-subtle);
 }
 
 .selected {

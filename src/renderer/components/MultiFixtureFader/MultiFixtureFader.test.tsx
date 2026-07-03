@@ -34,12 +34,12 @@ describe('MultiFixtureFader', () => {
 
   it('shows a standalone border by default', () => {
     render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} />)
-    expect(screen.getByTestId('multi-fixture-card').className).toMatch(/standaloneBorder/)
+    expect(screen.getByTestId('multi-fixture-card').className).toMatch(/bordered/)
   })
 
   it('omits the standalone border when nested inside a group', () => {
     render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} standalone={false} />)
-    expect(screen.getByTestId('multi-fixture-card').className).not.toMatch(/standaloneBorder/)
+    expect(screen.getByTestId('multi-fixture-card').className).not.toMatch(/bordered/)
   })
 
   it('does not double up the right-neighbor divider with its own standalone border when expanded', () => {

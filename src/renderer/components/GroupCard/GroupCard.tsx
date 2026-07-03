@@ -3,6 +3,7 @@ import { Slider } from '../Slider'
 import { FixtureFader } from '../FixtureFader'
 import { MultiFixtureFader } from '../MultiFixtureFader'
 import { FaderFooter } from '../FaderFooter'
+import { FaderCard } from '../FaderCard'
 import type { Group, Fixture } from '../../../shared/types'
 import { useDragReorder, type DragHandleProps } from '../../hooks/useDragReorder'
 import styles from './GroupCard.module.css'
@@ -221,7 +222,9 @@ export function GroupCard({
   )
 
   return (
-    <div
+    <FaderCard
+      variant="bordered"
+      accentColor={group.color}
       data-testid="group-card"
       className={[
         styles.card,
@@ -229,7 +232,6 @@ export function GroupCard({
         selected ? styles.selected : '',
         dropTarget ? styles.dropTarget : '',
       ].filter(Boolean).join(' ')}
-      style={{ '--group-color': group.color } as React.CSSProperties}
       onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setDropTarget(true) }}
       onDragLeave={() => setDropTarget(false)}
       onDrop={(e) => {
@@ -256,12 +258,10 @@ export function GroupCard({
                 {isEditing && fixtureInsertIndex === fixtureIndex && (
                   <div className={styles.insertIndicator} aria-hidden="true" />
                 )}
-                <div
+                <FaderCard
+                  variant={fixtureIndex > 0 ? 'divider' : 'none'}
                   data-drag-id={isEditing ? fixture.id : undefined}
-                  className={[
-                    fixtureIndex > 0 ? styles.channelDivider : '',
-                    fixture.id === fixtureDragId ? styles.dragging : '',
-                  ].filter(Boolean).join(' ') || undefined}
+                  className={fixture.id === fixtureDragId ? styles.dragging : undefined}
                 >
                   {fixture.channels ? (
                     <MultiFixtureFader
@@ -294,7 +294,7 @@ export function GroupCard({
                       dragHandleProps={isEditing ? handleProps : undefined}
                     />
                   )}
-                </div>
+                </FaderCard>
               </React.Fragment>
             )
           })}
@@ -306,6 +306,6 @@ export function GroupCard({
           )}
         </div>
       )}
-    </div>
+    </FaderCard>
   )
 }

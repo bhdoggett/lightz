@@ -1,0 +1,13 @@
+.bordered {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
+.accentBottom {
+  border-bottom-width: 3px;
+  border-bottom-color: var(--fader-card-accent, var(--border-default));
+}
+
+.divider {
+  border-left: 1px solid var(--border-subtle);
+}

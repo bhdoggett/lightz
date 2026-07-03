@@ -1,5 +1,6 @@
 import { RawFader } from '../RawFader'
 import { FaderFooter } from '../FaderFooter'
+import { FaderCard } from '../FaderCard'
 import type { DragHandleProps } from '../../hooks/useDragReorder'
 import styles from './FixtureFader.module.css'
 
@@ -24,7 +25,7 @@ export function FixtureFader({
   standalone = true, isEditing, selected, onSelect, dragHandleProps,
 }: Props) {
   return (
-    <div className={[styles.wrapper, standalone ? styles.standaloneBorder : ''].filter(Boolean).join(' ')}>
+    <FaderCard variant={standalone ? 'bordered' : 'none'} className={styles.wrapper}>
       <RawFader
         channel={channel}
         universe={universe}
@@ -40,6 +41,6 @@ export function FixtureFader({
         dragHandleProps={dragHandleProps}
       />
       <FaderFooter variant="filler" />
-    </div>
+    </FaderCard>
   )
 }

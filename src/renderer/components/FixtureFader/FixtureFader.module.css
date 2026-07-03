@@ -4,8 +4,3 @@
   align-items: center;
   width: var(--fader-width);
 }
-
-.standaloneBorder {
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-}
