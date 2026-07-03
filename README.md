@@ -17,7 +17,7 @@ npm install
 npm run build:mac
 ```
 
-Open `dist-electron/Lightz-0.2.6-arm64.dmg` (Apple Silicon) or `Lightz-0.2.6.dmg` (Intel) from Finder. Drag **Lightz** to Applications.
+Open `dist-electron/Lightz-0.2.7-arm64.dmg` (Apple Silicon) or `Lightz-0.2.7.dmg` (Intel) from Finder. Drag **Lightz** to Applications.
 
 ### Option B — Download pre-built .dmg
 
@@ -27,8 +27,8 @@ Download the right file for your Mac:
 
 | Download                                                                                                      | For                         |
 | ------------------------------------------------------------------------------------------------------------- | --------------------------- |
-| [Lightz-0.2.6-arm64.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.6/Lightz-0.2.6-arm64.dmg) | Apple Silicon (M1 and later) |
-| [Lightz-0.2.6.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.6/Lightz-0.2.6.dmg)             | Intel Mac                   |
+| [Lightz-0.2.7-arm64.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.7/Lightz-0.2.7-arm64.dmg) | Apple Silicon (M1 and later) |
+| [Lightz-0.2.7.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.7/Lightz-0.2.7.dmg)             | Intel Mac                   |
 
 Double-click the `.dmg`, drag Lightz to Applications, then open it. macOS may prompt you in **System Settings → Privacy & Security** on first launch — click **Open Anyway**.
 
