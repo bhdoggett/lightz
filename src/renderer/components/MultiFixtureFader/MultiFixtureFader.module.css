@@ -4,6 +4,11 @@
   align-items: flex-start;
 }
 
+.standaloneBorder {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+}
+
 .card.selected {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -81,15 +86,43 @@
 .subFaders {
   display: flex;
   flex-direction: row;
+  align-items: stretch;
+  flex: 1;
   gap: 0;
-  padding-bottom: var(--space-2);
 }
 
 .subFaderWrap {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+}
+
+.subFaderWrap.channelDivider {
+  border-left: 1px solid var(--border-subtle);
+}
+
+.subFaderFooter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  flex: 1;
+}
+
+.subFaderDivider {
+  width: 100%;
+  height: 1px;
+  background: var(--border-subtle);
+  flex-shrink: 0;
+}
+
+.subFaderLinkRow {
+  width: 100%;
+  min-height: 1.5rem; /* 24px floor — sized for one small link icon, not the shared fader-footer-height */
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .linkBtn {

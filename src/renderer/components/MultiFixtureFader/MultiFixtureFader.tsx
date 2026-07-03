@@ -18,6 +18,7 @@ interface Props {
   groupColor?: string
   groupMultiplier?: number
   hasRightNeighbor?: boolean
+  standalone?: boolean
   isEditing?: boolean
   selected?: boolean
   onSelect?: (e: React.MouseEvent) => void
@@ -26,7 +27,7 @@ interface Props {
 
 export function MultiFixtureFader({
   fixture, values, onChange, onRename, onEdit, groupColor, groupMultiplier, hasRightNeighbor = true,
-  isEditing, selected, onSelect, dragHandleProps,
+  standalone = true, isEditing, selected, onSelect, dragHandleProps,
 }: Props) {
   const api = useApi()
   const channels = fixture.channels!
@@ -146,22 +147,30 @@ export function MultiFixtureFader({
   return (
     <div
       ref={cardRef}
-      className={[styles.card, selected ? styles.selected : ''].filter(Boolean).join(' ')}
+      data-testid="multi-fixture-card"
+      className={[
+        styles.card,
+        standalone ? styles.standaloneBorder : '',
+        selected ? styles.selected : '',
+      ].filter(Boolean).join(' ')}
     >
       {expanded ? (
         <div className={[
           styles.expandedPanel,
-          hasRightNeighbor ? styles.borderRight : '',
+          hasRightNeighbor && !standalone ? styles.borderRight : '',
         ].filter(Boolean).join(' ')}>
           <div className={styles.masterPanel}>
             {masterPanel}
           </div>
           <div className={styles.rightPanel}>
             <div className={styles.subFaders}>
-              {channels.map((ch) => {
+              {channels.map((ch, chIndex) => {
                 const isLinked = channelLinks[ch.id] ?? ch.linked
                 return (
-                  <div key={ch.id} className={styles.subFaderWrap}>
+                  <div
+                    key={ch.id}
+                    className={[styles.subFaderWrap, chIndex > 0 ? styles.channelDivider : ''].filter(Boolean).join(' ')}
+                  >
                     <RawFader
                       channel={ch.channel}
                       universe={ch.universe}
@@ -172,16 +181,21 @@ export function MultiFixtureFader({
                       groupMultiplier={isLinked ? groupMultiplier : undefined}
                       isEditing={isEditing}
                     />
-                    <button
-                      className={`${styles.linkBtn}${isLinked ? ` ${styles.linked}` : ''}`}
-                      title={isLinked ? 'Unlink from master' : 'Link to master'}
-                      onClick={(e) => { e.stopPropagation(); handleLinkToggle(ch.id) }}
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
-                        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
-                      </svg>
-                    </button>
+                    <div className={styles.subFaderFooter}>
+                      <div className={styles.subFaderDivider} />
+                      <div className={styles.subFaderLinkRow}>
+                        <button
+                          className={`${styles.linkBtn}${isLinked ? ` ${styles.linked}` : ''}`}
+                          title={isLinked ? 'Unlink from master' : 'Link to master'}
+                          onClick={(e) => { e.stopPropagation(); handleLinkToggle(ch.id) }}
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )
               })}

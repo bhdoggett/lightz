@@ -12,6 +12,7 @@ interface Props {
   onRename?: (name: string) => void
   groupColor?: string
   groupMultiplier?: number
+  standalone?: boolean
   isEditing?: boolean
   selected?: boolean
   onSelect?: (e: React.MouseEvent) => void
@@ -20,10 +21,10 @@ interface Props {
 
 export function FixtureFader({
   channel, universe, name, value, onChange, onRename, groupColor, groupMultiplier,
-  isEditing, selected, onSelect, dragHandleProps,
+  standalone = true, isEditing, selected, onSelect, dragHandleProps,
 }: Props) {
   return (
-    <div className={styles.wrapper}>
+    <div className={[styles.wrapper, standalone ? styles.standaloneBorder : ''].filter(Boolean).join(' ')}>
       <RawFader
         channel={channel}
         universe={universe}

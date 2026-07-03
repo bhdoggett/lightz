@@ -55,4 +55,14 @@ describe('FixtureFader', () => {
     render(<FixtureFader channel={5} name="Chandelier L" value={0} onChange={vi.fn()} />)
     expect(screen.getByTestId('fader-footer-filler')).toBeInTheDocument()
   })
+
+  it('shows a standalone border by default', () => {
+    render(<FixtureFader channel={5} name="Chandelier L" value={0} onChange={vi.fn()} />)
+    expect(screen.getByTestId('fader-root').parentElement?.className).toMatch(/standaloneBorder/)
+  })
+
+  it('omits the standalone border when nested inside a group', () => {
+    render(<FixtureFader channel={5} name="Chandelier L" value={0} onChange={vi.fn()} standalone={false} />)
+    expect(screen.getByTestId('fader-root').parentElement?.className).not.toMatch(/standaloneBorder/)
+  })
 })

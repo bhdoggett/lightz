@@ -32,6 +32,30 @@ describe('MultiFixtureFader', () => {
     expect(screen.getByText('MULTI')).toBeTruthy()
   })
 
+  it('shows a standalone border by default', () => {
+    render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} />)
+    expect(screen.getByTestId('multi-fixture-card').className).toMatch(/standaloneBorder/)
+  })
+
+  it('omits the standalone border when nested inside a group', () => {
+    render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} standalone={false} />)
+    expect(screen.getByTestId('multi-fixture-card').className).not.toMatch(/standaloneBorder/)
+  })
+
+  it('does not double up the right-neighbor divider with its own standalone border when expanded', () => {
+    render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} hasRightNeighbor />)
+    fireEvent.click(screen.getByTitle('Expand channels'))
+    const expandedPanel = screen.getByTestId('multi-fixture-card').firstElementChild
+    expect(expandedPanel?.className).not.toMatch(/borderRight/)
+  })
+
+  it('keeps the right-neighbor divider when nested inside a group and expanded', () => {
+    render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} standalone={false} hasRightNeighbor />)
+    fireEvent.click(screen.getByTitle('Expand channels'))
+    const expandedPanel = screen.getByTestId('multi-fixture-card').firstElementChild
+    expect(expandedPanel?.className).toMatch(/borderRight/)
+  })
+
   it('expands on click to show channel labels', async () => {
     render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} />)
     fireEvent.click(screen.getByText('Stage Left Q6'))

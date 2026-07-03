@@ -275,6 +275,7 @@ export function GroupCard({
                       groupColor={group.color}
                       groupMultiplier={multiplier}
                       hasRightNeighbor={fixtureIndex < fixtures.length - 1}
+                      standalone={false}
                       isEditing={isEditing}
                       dragHandleProps={isEditing ? handleProps : undefined}
                     />
@@ -288,6 +289,7 @@ export function GroupCard({
                       onRename={onFixtureRename ? (name) => onFixtureRename(fixture, name) : undefined}
                       groupColor={group.color}
                       groupMultiplier={multiplier}
+                      standalone={false}
                       isEditing={isEditing}
                       dragHandleProps={isEditing ? handleProps : undefined}
                     />
