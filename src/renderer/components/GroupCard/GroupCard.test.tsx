@@ -216,4 +216,16 @@ describe('GroupCard', () => {
       expect(onDropFixture).not.toHaveBeenCalled()
     })
   })
+
+  it('shows a GROUP label above the group name', () => {
+    render(<GroupCard {...defaultProps} />)
+    expect(screen.getByText('GROUP')).toBeInTheDocument()
+  })
+
+  it('renders its gear/expand controls inside a shared FaderFooter', () => {
+    render(<GroupCard {...defaultProps} />)
+    const footer = screen.getByTestId('fader-footer')
+    expect(footer).toContainElement(screen.getByRole('button', { name: /edit group/i }))
+    expect(footer).toContainElement(screen.getByRole('button', { name: /expand/i }))
+  })
 })

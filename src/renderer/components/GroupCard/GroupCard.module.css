@@ -53,6 +53,12 @@
   padding: 2px 0;
 }
 
+.groupLabel {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+
 .name {
   font-size: 10px;
   font-weight: 600;
@@ -132,12 +138,8 @@
   color: var(--text-muted);
 }
 
-.footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.footerWrap {
   width: 100%;
-  gap: var(--space-4);
   margin-top: auto;
 }
 
