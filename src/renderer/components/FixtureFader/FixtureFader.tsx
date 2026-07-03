@@ -1,5 +1,7 @@
 import { RawFader } from '../RawFader'
+import { FaderFooter } from '../FaderFooter'
 import type { DragHandleProps } from '../../hooks/useDragReorder'
+import styles from './FixtureFader.module.css'
 
 interface Props {
   channel: number
@@ -21,19 +23,22 @@ export function FixtureFader({
   isEditing, selected, onSelect, dragHandleProps,
 }: Props) {
   return (
-    <RawFader
-      channel={channel}
-      universe={universe}
-      value={value}
-      label={name}
-      onChange={onChange}
-      onRename={onRename}
-      fillColor={groupColor}
-      groupMultiplier={groupMultiplier}
-      isEditing={isEditing}
-      selected={selected}
-      onSelect={onSelect}
-      dragHandleProps={dragHandleProps}
-    />
+    <div className={styles.wrapper}>
+      <RawFader
+        channel={channel}
+        universe={universe}
+        value={value}
+        label={name}
+        onChange={onChange}
+        onRename={onRename}
+        fillColor={groupColor}
+        groupMultiplier={groupMultiplier}
+        isEditing={isEditing}
+        selected={selected}
+        onSelect={onSelect}
+        dragHandleProps={dragHandleProps}
+      />
+      <FaderFooter variant="filler" />
+    </div>
   )
 }

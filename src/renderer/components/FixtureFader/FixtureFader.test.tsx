@@ -50,4 +50,9 @@ describe('FixtureFader', () => {
     fireEvent.click(screen.getByTestId('select-overlay'))
     expect(onSelect).toHaveBeenCalled()
   })
+
+  it('renders a filler footer below the fader, matching group/multi fader footers', () => {
+    render(<FixtureFader channel={5} name="Chandelier L" value={0} onChange={vi.fn()} />)
+    expect(screen.getByTestId('fader-footer-filler')).toBeInTheDocument()
+  })
 })
