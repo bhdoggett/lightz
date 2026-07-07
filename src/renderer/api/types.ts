@@ -35,13 +35,14 @@ export interface LightzApi {
   setGroupOverrides(map: Record<string, GroupChannelOverride>): Promise<void>
 
   // Shows
+  activateShow(config: Config): Promise<void>
   resetShow(): Promise<Config>
   listShows(): Promise<ShowInfo[]>
   saveNamedShow(name: string): Promise<ShowInfo[]>
   loadNamedShow(name: string): Promise<Config>
   deleteNamedShow(name: string): Promise<ShowInfo[]>
   exportShow(): Promise<void>
-  importShow(): Promise<Config | null>
+  importShow(): Promise<{ config: Config; name: string } | null>
 
   // Platform
   listPorts(): Promise<string[]>

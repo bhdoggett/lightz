@@ -47,6 +47,7 @@ const api = {
   exportShow: () => ipcRenderer.invoke('show:export'),
   importShow: () => ipcRenderer.invoke('show:import'),
 
+  activateShow: (config: unknown) => ipcRenderer.invoke('show:activate', config),
   resetShow: () => ipcRenderer.invoke('show:reset'),
   listShows: () => ipcRenderer.invoke('show:list'),
   saveNamedShow: (name: string) => ipcRenderer.invoke('show:saveNamed', { name }),

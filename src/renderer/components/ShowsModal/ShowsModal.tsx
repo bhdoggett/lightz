@@ -45,6 +45,7 @@ type PendingAction =
   | { type: 'load'; name: string }
   | { type: 'new' }
   | { type: 'drop'; config: Config; name: string }
+  | { type: 'importFile' }
 
 export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, currentShowName }: Props) {
   const api = useApi()
@@ -106,12 +107,36 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, cur
     executeLoad(name)
   }
 
+  const executeDrop = async (config: Config, name: string) => {
+    await api.activateShow(config)
+    onLoad(config, name)
+    onClose()
+  }
+
+  const executeImportFile = async () => {
+    setError(null)
+    try {
+      const result = await api.importShow()
+      if (!result) return
+      onLoad(result.config, result.name)
+      onClose()
+    } catch (e) {
+      setError(`Could not load file: ${String(e)}`)
+    }
+  }
+
   const confirmPending = () => {
     if (!pendingAction) return
     setPendingAction(null)
     if (pendingAction.type === 'new') executeNew()
     else if (pendingAction.type === 'load') executeLoad(pendingAction.name)
-    else { onLoad(pendingAction.config, pendingAction.name); onClose() }
+    else if (pendingAction.type === 'importFile') executeImportFile()
+    else executeDrop(pendingAction.config, pendingAction.name)
+  }
+
+  const handleImportFile = () => {
+    if (dirty) { setPendingAction({ type: 'importFile' }); return }
+    executeImportFile()
   }
 
   const handleDelete = async (name: string) => {
@@ -169,8 +194,7 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, cur
     try {
       const { config, name } = await parseShowFile(file)
       if (dirty) { setPendingAction({ type: 'drop', config, name }); return }
-      onLoad(config, name)
-      onClose()
+      await executeDrop(config, name)
     } catch (err) {
       setError(String(err))
     }
@@ -201,13 +225,18 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, cur
           {error}
         </p>
       )}
-      <button
-        className={styles.newBtn}
-        onClick={handleNew}
-        disabled={resetting}
-      >
-        {resetting ? 'Clearing…' : '+ New Show'}
-      </button>
+      <div className={styles.topActions}>
+        <button
+          className={styles.newBtn}
+          onClick={handleNew}
+          disabled={resetting}
+        >
+          {resetting ? 'Clearing…' : '+ New Show'}
+        </button>
+        <button className={styles.importBtn} onClick={handleImportFile}>
+          Load from file…
+        </button>
+      </div>
       <div
         className={`${styles.showList}${dragging ? ` ${styles.dropTarget}` : ''}`}
         onDragEnter={handleDragEnter}

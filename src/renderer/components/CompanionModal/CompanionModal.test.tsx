@@ -31,6 +31,7 @@ function makeMockApi(overrides?: Partial<LightzApi>): LightzApi {
     deleteGroup: async () => {},
     reorderGroups: async () => {},
     setGroupOverrides: async () => {},
+    activateShow: async () => {},
     resetShow: async () => ({
       fixtures: [], scenes: [], groups: [], fixtureTemplates: [],
       companionPort: 5551, devicePath: '', dmxOutputPort: 0,
@@ -75,10 +76,8 @@ const defaultProps = {
   port: 3000,
   devicePath: '',
   ports: [],
-  dmxOutputPort: 0 as const,
   onPortChange: vi.fn(),
   onDevicePathChange: vi.fn(),
-  onDmxOutputPortChange: vi.fn(),
   onClose: vi.fn(),
 }
 

@@ -6,7 +6,7 @@ import { exportShow, importShow } from './show'
 import { listShows, saveNamedShow, loadNamedShow, deleteNamedShow } from './shows-library'
 import { listSerialPorts } from './ports'
 import type { DmxManager } from './dmx'
-import type { Fixture, SaveSceneArgs, SetChannelArgs, UpdateSceneArgs, Group, GroupChannelOverride, FixtureTemplate, Scene } from '../src/shared/types'
+import type { Config, Fixture, SaveSceneArgs, SetChannelArgs, UpdateSceneArgs, Group, GroupChannelOverride, FixtureTemplate, Scene } from '../src/shared/types'
 
 export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: string) => void): void {
   ipcMain.handle('config:get', () => getConfig())
@@ -93,10 +93,10 @@ export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: 
   })
 
   ipcMain.handle('show:import', async () => {
-    const config = await importShow()
-    if (!config) return null
-    replaceConfig(config)
-    return config
+    const result = await importShow()
+    if (!result) return null
+    replaceConfig(result.config)
+    return result
   })
 
   ipcMain.handle('device:listPorts', () => listSerialPorts())
@@ -132,6 +132,10 @@ export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: 
 
   ipcMain.handle('fixture:deleteTemplate', (_e, { id }: { id: string }) => {
     return deleteFixtureTemplate(id)
+  })
+
+  ipcMain.handle('show:activate', (_e, config: Config) => {
+    replaceConfig(config)
   })
 
   ipcMain.handle('show:reset', () => {

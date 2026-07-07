@@ -6,8 +6,8 @@ const START = 0x7e
 const END = 0xe7
 const DMX_START_CODE = 0x00
 
-// MK2 output port labels (match QLC+ outputs 1/2/3)
-const PORT_LABELS = [0x06, 0xa9, 0xca] as const
+// MK2 port labels per QLC+ source (enttecdmxusbpro.cpp): port 1 = 0x06, port 2 = 0xa9
+const UNIVERSE_PORT_LABELS: [number, number] = [0x06, 0xa9]
 
 type UniverseState = Record<number, number>
 
@@ -15,16 +15,16 @@ export class DmxManager {
   private port: SerialPort | null = null
   private universes: [UniverseState, UniverseState] = [{}, {}]
   private buffers: [Buffer, Buffer] = [Buffer.alloc(513, 0), Buffer.alloc(513, 0)]
-  private outputPort: 0 | 1 | 2 = 0
   private fadeInterval: ReturnType<typeof setInterval> | null = null
   private sendInterval: ReturnType<typeof setInterval> | null = null
+  private sendInterval2: ReturnType<typeof setInterval> | null = null
+  private sendTimeout: ReturnType<typeof setTimeout> | null = null
   private status: DmxStatus = 'disconnected'
   private onStatusChange?: (status: DmxStatus) => void
   private groupOverrides: Record<string, GroupChannelOverride> = {}
 
-  connect(devicePath: string, outputPort: 0 | 1 | 2, onStatus: (s: DmxStatus) => void): void {
+  connect(devicePath: string, onStatus: (s: DmxStatus) => void): void {
     this.onStatusChange = onStatus
-    this.outputPort = outputPort
 
     this.stopSending()
     if (this.port?.isOpen) {
@@ -39,6 +39,7 @@ export class DmxManager {
           if (err) {
             this.setStatus('error')
           } else {
+            this.initMk2()
             this.startSending()
             this.setStatus('connected')
           }
@@ -60,11 +61,17 @@ export class DmxManager {
     }
   }
 
+  private initMk2(): void {
+    // Enable API2 — unlocks MK2 dual-port mode (magic key per QLC+ source)
+    this.port?.write(Buffer.from([0x7e, 0x0d, 0x04, 0x00, 0xad, 0x88, 0xd0, 0xc8, 0xe7]))
+    // Port assignment — both ports active as DMX output
+    this.port?.write(Buffer.from([0x7e, 0xcb, 0x02, 0x00, 0x01, 0x01, 0xe7]))
+  }
+
   private stopSending(): void {
-    if (this.sendInterval) {
-      clearInterval(this.sendInterval)
-      this.sendInterval = null
-    }
+    if (this.sendTimeout) { clearTimeout(this.sendTimeout); this.sendTimeout = null }
+    if (this.sendInterval) { clearInterval(this.sendInterval); this.sendInterval = null }
+    if (this.sendInterval2) { clearInterval(this.sendInterval2); this.sendInterval2 = null }
   }
 
   private applyOverride(universe: 0 | 1, channel: number): number {
@@ -76,27 +83,33 @@ export class DmxManager {
     return clampValue(Math.round((this.universes[universe][channel] ?? 0) * o.multiplier))
   }
 
-  private buildPacket(): Buffer {
-    const label = PORT_LABELS[this.outputPort]
-    const merged = Buffer.alloc(513, 0)
+  private buildUniversePacket(universe: 0 | 1): Buffer {
+    const label = UNIVERSE_PORT_LABELS[universe]
+    const data = Buffer.alloc(513, 0)
     for (let i = 1; i <= 512; i++) {
-      merged[i] = Math.max(this.applyOverride(0, i), this.applyOverride(1, i))
+      data[i] = this.applyOverride(universe, i)
     }
     const hdr = Buffer.from([
       START,
       label,
-      merged.length & 0xff,
-      (merged.length >> 8) & 0xff,
+      data.length & 0xff,
+      (data.length >> 8) & 0xff,
       DMX_START_CODE,
     ])
-    return Buffer.concat([hdr, merged.slice(1), Buffer.from([END])])
+    return Buffer.concat([hdr, data.slice(1), Buffer.from([END])])
   }
 
   private startSending(): void {
-    // 30ms interval > 22.8ms packet transmission time at 250kbaud, so no buffer overlap
+    // Two independent loops, staggered 15ms apart — each universe sends to its
+    // own dedicated port every 30ms without ever colliding in the write buffer.
     this.sendInterval = setInterval(() => {
-      if (this.port?.writable) this.port.write(this.buildPacket())
+      if (this.port?.writable) this.port.write(this.buildUniversePacket(0))
     }, 30)
+    this.sendTimeout = setTimeout(() => {
+      this.sendInterval2 = setInterval(() => {
+        if (this.port?.writable) this.port.write(this.buildUniversePacket(1))
+      }, 30)
+    }, 15)
   }
 
   setChannel(universe: 0 | 1, channel: number, value: number): void {

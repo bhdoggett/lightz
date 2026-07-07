@@ -53,8 +53,7 @@ function createWindow(): void {
 
 function tryConnect(devicePath: string): void {
   if (!devicePath) return
-  const cfg = getConfig()
-  dmxManager.connect(devicePath, cfg.dmxOutputPort, sendDmxStatus)
+  dmxManager.connect(devicePath, sendDmxStatus)
 }
 
 app.whenReady().then(() => {

@@ -24,15 +24,23 @@ interface Props {
   selected?: boolean
   onSelect?: (e: React.MouseEvent) => void
   dragHandleProps?: DragHandleProps
+  expanded?: boolean
+  onExpandChange?: (v: boolean) => void
 }
 
 export function MultiFixtureFader({
   fixture, values, onChange, onRename, onEdit, groupColor, groupMultiplier, hasRightNeighbor = true,
   standalone = true, isEditing, selected, onSelect, dragHandleProps,
+  expanded: expandedProp, onExpandChange,
 }: Props) {
   const api = useApi()
   const channels = fixture.channels!
-  const [expanded, setExpanded] = useState(false)
+  const [localExpanded, setLocalExpanded] = useState(true)
+  const expanded = expandedProp !== undefined ? expandedProp : localExpanded
+  const toggleExpanded = () => {
+    if (onExpandChange) onExpandChange(!expanded)
+    else setLocalExpanded((v) => !v)
+  }
   const ratiosRef = useRef<Record<string, number>>({})
   const cardRef = useRef<HTMLDivElement>(null)
   const [channelLinks, setChannelLinks] = useState<Record<string, boolean>>(
@@ -105,7 +113,7 @@ export function MultiFixtureFader({
   const expandBtn = (
     <button
       className={styles.expandBtn}
-      onClick={(e) => { e.stopPropagation(); setExpanded((prev) => !prev) }}
+      onClick={(e) => { e.stopPropagation(); toggleExpanded() }}
       title={expanded ? 'Collapse channels' : 'Expand channels'}
     >
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

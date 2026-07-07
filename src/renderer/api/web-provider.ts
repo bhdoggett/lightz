@@ -188,6 +188,10 @@ export function createWebApi(callbacks: WebApiCallbacks): LightzApi {
 
     setGroupOverrides: async () => {},
 
+    activateShow: async (incoming) => {
+      config = structuredClone(incoming)
+    },
+
     resetShow: async () => {
       config = structuredClone(demoConfig)
       return structuredClone(config)

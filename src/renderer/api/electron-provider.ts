@@ -26,6 +26,7 @@ export const electronApi: LightzApi = {
   setShowGroupStrip: (show) => window.electronAPI.setShowGroupStrip(show),
   setGroupOverrides: (map) => window.electronAPI.setGroupOverrides(map),
 
+  activateShow: (config) => window.electronAPI.activateShow(config),
   resetShow: () => window.electronAPI.resetShow(),
   listShows: () => window.electronAPI.listShows(),
   saveNamedShow: (name) => window.electronAPI.saveNamedShow(name),

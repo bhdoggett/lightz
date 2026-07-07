@@ -134,6 +134,35 @@
   flex-shrink: 0;
 }
 
+.expandCollapseGroup {
+  display: flex;
+  flex-direction: row;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.expandCollapseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 26px;
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+
+.expandCollapseBtn + .expandCollapseBtn {
+  border-left: 1px solid var(--border-default);
+}
+
+.expandCollapseBtn:hover {
+  color: var(--text-secondary);
+  background: var(--bg-raised);
+}
+
 .addFixtureBtns {
   position: absolute;
   left: 50%;

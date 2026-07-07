@@ -489,6 +489,8 @@ export function MainView({
 
   const [fixturesHorizontal, setFixturesHorizontal] = useState(false)
   const [sectionsCollapsed, setSectionsCollapsed] = useState<Record<string, boolean>>({ scenes: false, groups: false })
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
+  const [collapsedMultiFixtures, setCollapsedMultiFixtures] = useState<Set<string>>(new Set())
   const toggleSection = (key: string) => setSectionsCollapsed((prev) => ({ ...prev, [key]: !prev[key] }))
 
   // Derived unified section order (groups + ungrouped fixtures)
@@ -513,6 +515,38 @@ export function MainView({
       return null
     }).filter((item): item is NonNullable<typeof item> => item !== null)
   }, [sectionOrder, groups, fixtures])
+
+  const handleExpandAll = useCallback(() => {
+    setCollapsedGroups(new Set())
+    setCollapsedMultiFixtures(new Set())
+  }, [])
+
+  const handleCollapseAll = useCallback(() => {
+    const groupIds = new Set<string>()
+    const multiFixtureIds = new Set<string>()
+    for (const item of sectionItems) {
+      if (item.kind === 'group') {
+        groupIds.add(item.group.id)
+        for (const fixtureId of item.group.fixtureIds) {
+          const fixture = fixtures.find((f) => f.id === fixtureId)
+          if (fixture?.channels) multiFixtureIds.add(fixture.id)
+        }
+      } else if (item.kind === 'fixture' && item.fixture.channels) {
+        multiFixtureIds.add(item.fixture.id)
+      }
+    }
+    setCollapsedGroups(groupIds)
+    setCollapsedMultiFixtures(multiFixtureIds)
+  }, [sectionItems, fixtures])
+
+  const toggleMultiFixtureExpand = useCallback((fixtureId: string, isExpanded: boolean) => {
+    setCollapsedMultiFixtures((prev) => {
+      const next = new Set(prev)
+      if (isExpanded) next.delete(fixtureId)
+      else next.add(fixtureId)
+      return next
+    })
+  }, [])
 
   const handleSectionReorder = useCallback(async (reordered: typeof sectionItems) => {
     const ids = reordered.map((item) => item.id)
@@ -641,6 +675,26 @@ export function MainView({
             )}
           </div>
           <div className={styles.addFixtureRow}>
+            <div className={styles.expandCollapseGroup}>
+              <button
+                className={styles.expandCollapseBtn}
+                onClick={handleExpandAll}
+                title="Expand all groups and multi-channel fixtures"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>
+                </svg>
+              </button>
+              <button
+                className={styles.expandCollapseBtn}
+                onClick={handleCollapseAll}
+                title="Collapse all groups and multi-channel fixtures"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7"/>
+                </svg>
+              </button>
+            </div>
             <div className={styles.addFixtureBtns}>
               <button
                 className={styles.addFixtureBtn}
@@ -735,6 +789,16 @@ export function MainView({
                         onSelect={(e) => handleItemSelect(item.id, e)}
                         dragHandleProps={editMode ? dragHandleProps : undefined}
                         onUnpack={() => handleUnpackGroup(item.group.id)}
+                        expanded={!collapsedGroups.has(item.group.id)}
+                        onExpandChange={(v) => setCollapsedGroups((prev) => {
+                          const next = new Set(prev)
+                          if (v) next.delete(item.group.id); else next.add(item.group.id)
+                          return next
+                        })}
+                        expandedFixtureIds={new Set(
+                          item.group.fixtureIds.filter((id) => !collapsedMultiFixtures.has(id))
+                        )}
+                        onFixtureExpandChange={toggleMultiFixtureExpand}
                       />
                     ) : item.fixture.channels ? (
                       <MultiFixtureFader
@@ -752,6 +816,8 @@ export function MainView({
                         selected={selection.selected.has(item.id)}
                         onSelect={(e) => handleItemSelect(item.id, e)}
                         dragHandleProps={editMode ? dragHandleProps : undefined}
+                        expanded={!collapsedMultiFixtures.has(item.fixture.id)}
+                        onExpandChange={(v) => toggleMultiFixtureExpand(item.fixture.id, v)}
                       />
                     ) : (
                       <FixtureFader

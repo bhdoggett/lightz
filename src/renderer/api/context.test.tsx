@@ -24,6 +24,7 @@ function makeMockApi(): LightzApi {
     deleteGroup: async () => {},
     reorderGroups: async () => {},
     setGroupOverrides: async () => {},
+    activateShow: async () => {},
     resetShow: async () => ({
       fixtures: [], scenes: [], groups: [], fixtureTemplates: [],
       companionPort: 5551, devicePath: '', dmxOutputPort: 0,

@@ -23,12 +23,14 @@ export async function exportShow(config: Config): Promise<boolean> {
   return true
 }
 
-export async function importShow(): Promise<Config | null> {
+export async function importShow(): Promise<{ config: Config; name: string } | null> {
   const { canceled, filePaths } = await dialog.showOpenDialog({
     title: 'Open Show File',
     filters: FILTERS,
     properties: ['openFile'],
   })
   if (canceled || filePaths.length === 0) return null
-  return parseShowFile(filePaths[0])
+  const filePath = filePaths[0]
+  const name = filePath.split('/').pop()?.replace(/\.json$/i, '') ?? 'Imported Show'
+  return { config: parseShowFile(filePath), name }
 }

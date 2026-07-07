@@ -9,14 +9,12 @@ interface Props {
   port: number
   devicePath: string
   ports: string[]
-  dmxOutputPort: 0 | 1 | 2
   onPortChange: (port: number) => void
   onDevicePathChange: (path: string) => void
-  onDmxOutputPortChange: (port: 0 | 1 | 2) => void
   onClose: () => void
 }
 
-export function CompanionModal({ scenes, port, devicePath, ports, dmxOutputPort, onPortChange, onDevicePathChange, onDmxOutputPortChange, onClose }: Props) {
+export function CompanionModal({ scenes, port, devicePath, ports, onPortChange, onDevicePathChange, onClose }: Props) {
   const api = useApi()
   const [draftPort, setDraftPort] = useState(String(port))
   const [draftPath, setDraftPath] = useState(devicePath)
@@ -79,20 +77,6 @@ export function CompanionModal({ scenes, port, devicePath, ports, dmxOutputPort,
               Connect
             </button>
           </div>
-        </section>
-
-        <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>Output Port</h3>
-          <select
-            className={styles.routingSelect}
-            value={dmxOutputPort}
-            onChange={(e) => onDmxOutputPortChange(Number(e.target.value) as 0 | 1 | 2)}
-          >
-            <option value={0}>Output 1</option>
-            <option value={1}>Output 2</option>
-            <option value={2}>Output 3</option>
-          </select>
-          <p className={styles.portHint}>Match this to the output selected in QLC+.</p>
         </section>
 
         <section className={styles.section}>

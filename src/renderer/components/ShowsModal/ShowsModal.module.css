@@ -62,8 +62,14 @@
   border-color: var(--text-secondary);
 }
 
+.topActions {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
 .newBtn {
-  width: 100%;
+  flex: 1;
   padding: 7px;
   border-radius: var(--radius-md);
   border: 1px dashed var(--border-default);
@@ -72,10 +78,26 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  margin-bottom: var(--space-3);
 }
 
 .newBtn:hover {
+  border-color: var(--text-secondary);
+  color: var(--text-primary);
+}
+
+.importBtn {
+  padding: 7px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.importBtn:hover {
   border-color: var(--text-secondary);
   color: var(--text-primary);
 }

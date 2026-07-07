@@ -80,8 +80,8 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
     api.onMenuImportShow(async () => {
       const imported = await api.importShow()
       if (imported) {
-        setConfig(imported)
-        setCurrentShowName(null)
+        setConfig(imported.config)
+        setCurrentShowName(imported.name)
         setDirty(false)
       }
     })
@@ -146,12 +146,6 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
   const handleDevicePathChange = async (path: string) => {
     await api.setDevicePath(path)
     setConfig((c) => c ? { ...c, devicePath: path } : c)
-    setDirty(true)
-  }
-
-  const handleDmxOutputPortChange = async (port: 0 | 1 | 2) => {
-    await api.setDmxOutputPort(port)
-    setConfig((c) => c ? { ...c, dmxOutputPort: port } : c)
     setDirty(true)
   }
 
@@ -355,10 +349,8 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
           port={config.companionPort}
           devicePath={config.devicePath}
           ports={[]}
-          dmxOutputPort={config.dmxOutputPort}
           onPortChange={handlePortChange}
           onDevicePathChange={handleDevicePathChange}
-          onDmxOutputPortChange={handleDmxOutputPortChange}
           onClose={() => setCompanionOpen(false)}
         />
       )}

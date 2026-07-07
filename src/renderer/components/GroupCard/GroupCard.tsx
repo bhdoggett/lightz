@@ -30,6 +30,10 @@ interface Props {
   onSelect?: (e: React.MouseEvent) => void
   dragHandleProps?: DragHandleProps
   onUnpack?: () => void
+  expanded?: boolean
+  onExpandChange?: (v: boolean) => void
+  expandedFixtureIds?: Set<string>
+  onFixtureExpandChange?: (fixtureId: string, expanded: boolean) => void
 }
 
 export function GroupCard({
@@ -39,8 +43,15 @@ export function GroupCard({
   onFixtureRename, onFixtureEdit, onDropFixture, onReorderFixtures,
   horizontal = false,
   isEditing = false, selected = false, onSelect, dragHandleProps, onUnpack,
+  expanded: expandedProp, onExpandChange,
+  expandedFixtureIds, onFixtureExpandChange,
 }: Props) {
-  const [expanded, setExpanded] = useState(false)
+  const [localExpanded, setLocalExpanded] = useState(true)
+  const expanded = expandedProp !== undefined ? expandedProp : localExpanded
+  const toggleExpanded = () => {
+    if (onExpandChange) onExpandChange(!expanded)
+    else setLocalExpanded((v) => !v)
+  }
   const [fullFlash, setFullFlash] = useState(false)
   const [muteFlash, setMuteFlash] = useState(false)
   const [dropTarget, setDropTarget] = useState(false)
@@ -207,7 +218,7 @@ export function GroupCard({
               className={styles.expandBtn}
               aria-label={expanded ? 'Collapse' : 'Expand'}
               title={expanded ? 'Collapse group' : 'Expand group'}
-              onClick={(e) => { e.stopPropagation(); setExpanded((v) => !v) }}
+              onClick={(e) => { e.stopPropagation(); toggleExpanded() }}
             >
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 {expanded
@@ -278,6 +289,8 @@ export function GroupCard({
                       standalone={false}
                       isEditing={isEditing}
                       dragHandleProps={isEditing ? handleProps : undefined}
+                      expanded={expandedFixtureIds !== undefined ? expandedFixtureIds.has(fixture.id) : undefined}
+                      onExpandChange={onFixtureExpandChange ? (v) => onFixtureExpandChange(fixture.id, v) : undefined}
                     />
                   ) : (
                     <FixtureFader

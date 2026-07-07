@@ -27,8 +27,9 @@ declare global {
       reorderFixtureSection(ids: string[]): Promise<void>
       setShowGroupStrip(show: boolean): Promise<void>
       setGroupOverrides: (map: Record<string, GroupChannelOverride>) => Promise<void>
+      activateShow: (config: Config) => Promise<void>
       exportShow: () => Promise<boolean>
-      importShow: () => Promise<Config | null>
+      importShow: () => Promise<{ config: Config; name: string } | null>
       resetShow: () => Promise<Config>
       listShows: () => Promise<ShowInfo[]>
       saveNamedShow: (name: string) => Promise<ShowInfo[]>

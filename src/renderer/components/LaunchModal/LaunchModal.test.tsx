@@ -22,6 +22,7 @@ function makeApi(overrides: Partial<LightzApi> = {}): LightzApi {
     saveFixtureTemplate: vi.fn(), deleteFixtureTemplate: vi.fn(),
     saveGroup: vi.fn(), deleteGroup: vi.fn(), reorderGroups: vi.fn(),
     setGroupOverrides: vi.fn(),
+    activateShow: vi.fn(),
     resetShow: vi.fn().mockResolvedValue(baseConfig),
     listShows: vi.fn().mockResolvedValue([]),
     saveNamedShow: vi.fn(), loadNamedShow: vi.fn(),
