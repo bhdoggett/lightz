@@ -30,7 +30,15 @@ Download the right file for your Mac:
 | [Lightz-0.2.8-arm64.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.8/Lightz-0.2.8-arm64.dmg) | Apple Silicon (M1 and later) |
 | [Lightz-0.2.8.dmg](https://github.com/bhdoggett/lightz/releases/download/v0.2.8/Lightz-0.2.8.dmg)             | Intel Mac                   |
 
-Double-click the `.dmg`, drag Lightz to Applications, then open it. macOS may prompt you in **System Settings → Privacy & Security** on first launch — click **Open Anyway**.
+Double-click the `.dmg`, drag Lightz to Applications, then open it.
+
+> **macOS Gatekeeper:** Because Lightz is not notarized, macOS may block it on first launch.
+>
+> - If you see **"Open Anyway"** in System Settings → Privacy & Security, click it.
+> - If you see **"Lightz is damaged and can't be opened"**, run this in Terminal, then try again:
+>   ```bash
+>   xattr -cr /Applications/Lightz.app
+>   ```
 
 ---
 
