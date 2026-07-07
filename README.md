@@ -158,7 +158,6 @@ Multi-channel fixtures appear in the Custom tab as a fader card with:
 | Setting                 | Description                                                                     |
 | ----------------------- | ------------------------------------------------------------------------------- |
 | **DMX Device**          | Auto-detects USB serial devices. Click Refresh, then select your Enttec path.   |
-| **Output Port**         | Which physical output port on the Mk2 (matches QLC+ outputs 1/2/3).             |
 | **Companion HTTP Port** | Default: 5551. Change only if another service uses that port. Restart required. |
 
 ---
@@ -203,6 +202,32 @@ Lightz runs a local HTTP server that Companion can call to fire scenes.
 | Unplace selected lights       | Press Delete or Backspace with lights selected                           |
 | Multi-select unplaced         | Shift-click (range) or Cmd-click (toggle) in unplaced sidebar            |
 | Place vertically              | Hold Shift while dragging unplaced fixtures onto the grid                |
+
+---
+
+## Technical Notes
+
+### Enttec USB DMX Pro Mk2 — Dual-Port Initialization
+
+The Mk2 exposes two independent DMX output ports. Universe 1 is routed to Port 1 and Universe 2 to Port 2 automatically — no configuration needed.
+
+The Mk2 uses an undocumented binary protocol on top of standard serial (250000 baud, 8N2). Two initialization packets must be sent immediately after the serial port opens, or Port 2 will silently ignore all writes:
+
+| Purpose              | Packet (hex)                          |
+| -------------------- | ------------------------------------- |
+| Enable API2 mode     | `7E 0D 04 00 AD 88 D0 C8 E7`          |
+| Assign both ports as DMX outputs | `7E CB 02 00 01 01 E7`  |
+
+These packets are not in the official Enttec documentation. They were sourced from the QLC+ open-source codebase (`enttecdmxusbpro.cpp`).
+
+Once initialized, each universe is sent as a standard Pro API packet on a dedicated interval:
+
+| Universe | Port label | Interval |
+| -------- | ---------- | -------- |
+| U1       | `0x06`     | every 30ms, starting immediately |
+| U2       | `0xa9`     | every 30ms, starting 15ms after U1 |
+
+The 15ms stagger prevents the two ~518-byte packets from colliding in the serial write buffer. At 250kbaud each packet takes ~20.7ms to clock out, so back-to-back sends in the same tick cause the second packet to be silently dropped.
 
 ---
 
