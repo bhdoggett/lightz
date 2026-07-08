@@ -14,7 +14,7 @@ export interface LightzApi {
   setChannel(args: SetChannelArgs): Promise<void>
 
   // Scenes
-  saveScene(args: SaveSceneArgs): Promise<Scene>
+  saveScene(args: SaveSceneArgs): Promise<Scene | null>
   loadScene(id: string): Promise<void>
   deleteScene(id: string): Promise<void>
   updateScene(args: UpdateSceneArgs): Promise<Scene | null>

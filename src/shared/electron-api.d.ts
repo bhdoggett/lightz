@@ -6,7 +6,7 @@ declare global {
       getConfig: () => Promise<Config>
       setPort: (port: number) => Promise<void>
       setChannel: (args: SetChannelArgs) => Promise<void>
-      saveScene: (args: SaveSceneArgs) => Promise<Scene>
+      saveScene: (args: SaveSceneArgs) => Promise<Scene | null>
       loadScene: (id: string) => Promise<void>
       deleteScene: (id: string) => Promise<void>
       updateScene: (args: UpdateSceneArgs) => Promise<Scene | null>
