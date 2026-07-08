@@ -1,0 +1,5 @@
+blockExoticSubdeps: false
+allowBuilds:
+  '@serialport/bindings-cpp': true
+  electron: true
+  esbuild: true
