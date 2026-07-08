@@ -1,12 +1,11 @@
 import { ipcMain, shell } from 'electron'
 import { v4 as uuid } from 'uuid'
-import { makeSceneId } from './slug'
 import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, setDevicePath, setDmxOutputPort, replaceConfig, updateScene, reorderScenes, saveGroup, deleteGroup, reorderGroups, saveFixtureTemplate, deleteFixtureTemplate, saveFixtureSectionOrder, saveShowGroupStrip } from './store'
 import { exportShow, importShow } from './show'
 import { listShows, saveNamedShow, loadNamedShow, deleteNamedShow } from './shows-library'
 import { listSerialPorts } from './ports'
 import type { DmxManager } from './dmx'
-import type { Config, Fixture, SaveSceneArgs, SetChannelArgs, UpdateSceneArgs, Group, GroupChannelOverride, FixtureTemplate, Scene } from '../src/shared/types'
+import type { Config, Fixture, SaveSceneArgs, SetChannelArgs, UpdateSceneArgs, Group, GroupChannelOverride, FixtureTemplate } from '../src/shared/types'
 
 export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: string) => void): void {
   ipcMain.handle('config:get', () => getConfig())
@@ -30,18 +29,7 @@ export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: 
   })
 
   ipcMain.handle('scene:save', (_e, args: SaveSceneArgs) => {
-    const config = getConfig()
-    const existingIds = config.scenes.map((s) => s.id)
-    const id = makeSceneId(args.name, existingIds)
-    const scene: Scene = {
-      id,
-      name: args.name,
-      fadeDuration: args.fadeDuration,
-      values: args.values,
-      ...(args.groupStates !== undefined && { groupStates: args.groupStates }),
-    }
-    saveScene(scene)
-    return scene
+    return saveScene(args.name, args.fadeDuration, args.values, args.groupStates)
   })
 
   ipcMain.handle('scene:load', (_e, { id }: { id: string }) => {

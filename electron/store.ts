@@ -1,6 +1,6 @@
 import Store from 'electron-store'
 import type { Config, Fixture, Scene, Group, FixtureTemplate, GroupState } from '../src/shared/types'
-import { makeSceneId } from './slug'
+import { makeSceneId, sceneNameTaken } from '../src/shared/slug'
 
 const store = new Store<Config>({
   defaults: {
@@ -49,15 +49,18 @@ export function deleteFixture(id: string): void {
   store.set('fixtures', fixtures)
 }
 
-export function saveScene(scene: Scene): void {
+export function saveScene(name: string, fadeDuration: number, values: Record<string, number>, groupStates?: Record<string, GroupState>): Scene | null {
   const scenes = store.get('scenes', [])
-  const idx = scenes.findIndex((s) => s.id === scene.id)
-  if (idx >= 0) {
-    scenes[idx] = scene
-  } else {
-    scenes.push(scene)
+  if (sceneNameTaken(name, scenes)) return null
+  const scene: Scene = {
+    id: makeSceneId(name),
+    name,
+    fadeDuration,
+    values,
+    ...(groupStates !== undefined && { groupStates }),
   }
-  store.set('scenes', scenes)
+  store.set('scenes', [...scenes, scene])
+  return scene
 }
 
 export function deleteScene(id: string): void {
@@ -103,11 +106,11 @@ export function updateScene(id: string, name: string, fadeDuration: number, valu
   const scenes = store.get('scenes', [])
   const idx = scenes.findIndex((s) => s.id === id)
   if (idx < 0) return null
-  const otherIds = scenes.filter((s) => s.id !== id).map((s) => s.id)
-  const newId = makeSceneId(name, otherIds)
+  const otherScenes = scenes.filter((s) => s.id !== id)
+  if (sceneNameTaken(name, otherScenes)) return null
   scenes[idx] = {
     ...scenes[idx],
-    id: newId,
+    id: makeSceneId(name),
     name,
     fadeDuration,
     ...(values !== undefined && { values }),

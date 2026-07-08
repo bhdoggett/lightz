@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest'
 import Store from 'electron-store'
 
 import { getConfig, saveFixture, deleteFixture, saveScene, deleteScene, setCompanionPort, updateScene, reorderScenes, saveGroup, deleteGroup, saveFixtureTemplate, deleteFixtureTemplate, saveFixtureSectionOrder, saveShowGroupStrip } from '../store'
-import type { Fixture, Scene, Group, FixtureTemplate } from '../../src/shared/types'
+import type { Fixture, Group, FixtureTemplate } from '../../src/shared/types'
 
 vi.mock('electron-store', () => {
   return {
@@ -22,11 +22,6 @@ const fixture: Fixture = {
   id: 'f1', name: 'Chandelier L', channel: 1, universe: 0, type: 'dimmer',
 }
 
-const scene: Scene = {
-  id: 'worship-mode', name: 'Worship Mode', fadeDuration: 1000,
-  values: { f1: 200 },
-}
-
 describe('config store', () => {
   it('getConfig returns defaults when store is empty', () => {
     const config = getConfig()
@@ -37,12 +32,6 @@ describe('config store', () => {
 
   it('saveFixture adds a new fixture', () => {
     saveFixture(fixture)
-    const config = getConfig()
-    expect(config).toBeDefined()
-  })
-
-  it('saveScene adds a new scene', () => {
-    saveScene(scene)
     const config = getConfig()
     expect(config).toBeDefined()
   })
@@ -79,6 +68,32 @@ function mockScenes(scenes: unknown[]) {
   inst().set.mockClear()
 }
 
+describe('saveScene', () => {
+  it('adds a new scene with a slugified id', () => {
+    mockScenes([])
+    const result = saveScene('Worship Mode', 1000, { f1: 200 })
+    expect(result).toEqual({ id: 'worship-mode', name: 'Worship Mode', fadeDuration: 1000, values: { f1: 200 } })
+    expect(inst().set).toHaveBeenCalledWith('scenes', [
+      { id: 'worship-mode', name: 'Worship Mode', fadeDuration: 1000, values: { f1: 200 } },
+    ])
+  })
+
+  it('returns null and does not save when the name collides with an existing scene', () => {
+    mockScenes([{ id: 'worship-mode', name: 'Worship Mode', fadeDuration: 0, values: {} }])
+    inst().set.mockClear()
+    const result = saveScene('Worship Mode', 500, {})
+    expect(result).toBeNull()
+    expect(inst().set).not.toHaveBeenCalled()
+  })
+
+  it('treats a differently-punctuated name that collides on slug as taken', () => {
+    mockScenes([{ id: 'worship-mode', name: 'Worship Mode', fadeDuration: 0, values: {} }])
+    inst().set.mockClear()
+    const result = saveScene('worship mode!!', 500, {})
+    expect(result).toBeNull()
+  })
+})
+
 describe('updateScene', () => {
   it('regenerates the id from the new name, preserving values', () => {
     mockScenes([
@@ -99,13 +114,15 @@ describe('updateScene', () => {
     expect(result).toEqual({ id: 'worship-mode', name: 'Worship Mode', fadeDuration: 1500, values: {} })
   })
 
-  it('appends a suffix when the new name collides with another scene id', () => {
+  it('returns null and does not save when the new name collides with another scene', () => {
     mockScenes([
       { id: 's1', name: 'Old Name', fadeDuration: 0, values: {} },
       { id: 'bright', name: 'Bright', fadeDuration: 0, values: {} },
     ])
+    inst().set.mockClear()
     const result = updateScene('s1', 'Bright', 0)
-    expect(result?.id).toBe('bright-2')
+    expect(result).toBeNull()
+    expect(inst().set).not.toHaveBeenCalled()
   })
 
   it('returns null when id not found', () => {
