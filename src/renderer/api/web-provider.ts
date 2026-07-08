@@ -1,6 +1,7 @@
 import type { LightzApi } from './types'
 import type { Config, Scene, Fixture, Group, FixtureTemplate, GroupChannelOverride, ShowInfo } from '../../shared/types'
 import { interpolate, clampValue } from '../../shared/dmx-utils'
+import { makeSceneId, sceneNameTaken } from '../../shared/slug'
 import { demoConfig } from './demo-config'
 
 const SHOWS_KEY = 'lightz-shows'
@@ -58,9 +59,9 @@ export function createWebApi(callbacks: WebApiCallbacks): LightzApi {
     },
 
     saveScene: async (args) => {
-      const id = args.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      if (sceneNameTaken(args.name, config.scenes)) return null
       const scene: Scene = {
-        id, name: args.name, fadeDuration: args.fadeDuration, values: args.values,
+        id: makeSceneId(args.name), name: args.name, fadeDuration: args.fadeDuration, values: args.values,
         ...(args.groupStates !== undefined && { groupStates: args.groupStates }),
       }
       config.scenes.push(scene)
@@ -119,10 +120,11 @@ export function createWebApi(callbacks: WebApiCallbacks): LightzApi {
     updateScene: async (args) => {
       const idx = config.scenes.findIndex((s) => s.id === args.id)
       if (idx < 0) return null
-      const newId = args.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      const otherScenes = config.scenes.filter((s) => s.id !== args.id)
+      if (sceneNameTaken(args.name, otherScenes)) return null
       config.scenes[idx] = {
         ...config.scenes[idx],
-        id: newId, name: args.name, fadeDuration: args.fadeDuration,
+        id: makeSceneId(args.name), name: args.name, fadeDuration: args.fadeDuration,
         ...(args.values !== undefined && { values: args.values }),
         ...(args.groupStates !== undefined && { groupStates: args.groupStates }),
       }

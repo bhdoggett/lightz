@@ -27,10 +27,27 @@ describe('createWebApi', () => {
   it('saveScene adds a scene and returns it', async () => {
     const api = createWebApi(makeCallbacks())
     const scene = await api.saveScene({ name: 'Test', fadeDuration: 1000, values: { 'a': 100 } })
+    if (!scene) throw new Error('expected scene to be saved')
     expect(scene.name).toBe('Test')
     expect(scene.id).toBeTruthy()
     const config = await api.getConfig()
     expect(config.scenes.find(s => s.name === 'Test')).toBeTruthy()
+  })
+
+  it('saveScene returns null when the name collides with an existing scene', async () => {
+    const api = createWebApi(makeCallbacks())
+    const config = await api.getConfig()
+    const existingName = config.scenes[0].name
+    const result = await api.saveScene({ name: existingName, fadeDuration: 0, values: {} })
+    expect(result).toBeNull()
+  })
+
+  it('updateScene returns null when the new name collides with another scene', async () => {
+    const api = createWebApi(makeCallbacks())
+    const config = await api.getConfig()
+    const [first, second] = config.scenes
+    const result = await api.updateScene({ id: second.id, name: first.name, fadeDuration: second.fadeDuration })
+    expect(result).toBeNull()
   })
 
   it('deleteScene removes a scene', async () => {
