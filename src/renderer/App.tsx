@@ -279,6 +279,7 @@ export function App({ dmxState: externalDmxState, isDemo = false }: AppProps) {
           onOverrideMapChange={setOverrideMap}
           fixtureSectionOrder={config.fixtureSectionOrder}
           onSectionReorder={handleSectionReorder}
+          companionPort={config.companionPort}
         />
       </div>
       {vizPopped ? (

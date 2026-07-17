@@ -13,6 +13,7 @@ const defaultProps = {
   activeSceneId: null as string | null,
   groups: [] as Group[],
   currentGroupStates: {} as Record<string, { fader: number }>,
+  companionPort: 5551,
   onActivate: vi.fn(),
   onSave: vi.fn(),
   onUpdate: vi.fn(),
@@ -51,12 +52,44 @@ describe('ScenesStrip', () => {
     expect(screen.getByDisplayValue('1000')).toBeInTheDocument()
   })
 
-  it('calls onUpdate when Update clicked in edit dialog', async () => {
+  it('saves immediately without a warning when the rename does not change the id', async () => {
+    const onUpdate = vi.fn()
+    render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" onUpdate={onUpdate} editTrigger={1} />)
+    fireEvent.change(screen.getByDisplayValue('Worship Mode'), { target: { value: 'WORSHIP MODE' } })
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    expect(onUpdate).toHaveBeenCalledWith('worship-mode', 'WORSHIP MODE', 1000, {})
+    expect(screen.queryByText(/Companion Endpoint/i)).not.toBeInTheDocument()
+  })
+
+  it('shows a rename warning instead of saving when the rename would change the id', async () => {
     const onUpdate = vi.fn()
     render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" onUpdate={onUpdate} editTrigger={1} />)
     fireEvent.change(screen.getByDisplayValue('Worship Mode'), { target: { value: 'New Name' } })
     await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    expect(onUpdate).not.toHaveBeenCalled()
+    expect(screen.getByText('⚠ Companion Endpoint Will Change')).toBeInTheDocument()
+    expect(screen.getByText('POST http://localhost:5551/scenes/worship-mode/activate')).toBeInTheDocument()
+    expect(screen.getByText('POST http://localhost:5551/scenes/new-name/activate')).toBeInTheDocument()
+  })
+
+  it('calls onUpdate with the pending rename when Accept is clicked', async () => {
+    const onUpdate = vi.fn()
+    render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" onUpdate={onUpdate} editTrigger={1} />)
+    fireEvent.change(screen.getByDisplayValue('Worship Mode'), { target: { value: 'New Name' } })
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    await userEvent.click(screen.getByRole('button', { name: /^accept$/i }))
     expect(onUpdate).toHaveBeenCalledWith('worship-mode', 'New Name', 1000, {})
+  })
+
+  it('does not call onUpdate and keeps the edit dialog open when the rename warning is cancelled', async () => {
+    const onUpdate = vi.fn()
+    render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" onUpdate={onUpdate} editTrigger={1} />)
+    fireEvent.change(screen.getByDisplayValue('Worship Mode'), { target: { value: 'New Name' } })
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    const cancelButtons = screen.getAllByRole('button', { name: /^cancel$/i })
+    await userEvent.click(cancelButtons[cancelButtons.length - 1])
+    expect(onUpdate).not.toHaveBeenCalled()
+    expect(screen.getByDisplayValue('New Name')).toBeInTheDocument()
   })
 
   it('calls onDelete when Delete clicked in edit dialog', async () => {
@@ -71,6 +104,26 @@ describe('ScenesStrip', () => {
     expect(screen.getByDisplayValue('Worship Mode')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
     expect(screen.queryByDisplayValue('Worship Mode')).not.toBeInTheDocument()
+  })
+
+  it('shows an error and disables Save when the name is already taken', async () => {
+    render(<ScenesStrip {...defaultProps} saveTrigger={1} />)
+    fireEvent.change(screen.getByPlaceholderText('Scene name'), { target: { value: 'Worship Mode' } })
+    expect(screen.getByText('A scene with this name already exists')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^save$/i })).toBeDisabled()
+  })
+
+  it('flags a name as taken when it collides on slug with another scene', () => {
+    render(<ScenesStrip {...defaultProps} activeSceneId="full-bright" editTrigger={1} />)
+    fireEvent.change(screen.getByDisplayValue('Full Bright'), { target: { value: 'Worship Mode' } })
+    expect(screen.getByText('A scene with this name already exists')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^save$/i })).toBeDisabled()
+  })
+
+  it('does not treat a scene’s own current name as taken while editing it', () => {
+    render(<ScenesStrip {...defaultProps} activeSceneId="worship-mode" editTrigger={1} />)
+    expect(screen.queryByText('A scene with this name already exists')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^save$/i })).not.toBeDisabled()
   })
 })
 

@@ -215,3 +215,13 @@
   box-shadow: 0 0 var(--drag-indicator-glow) var(--accent-glow);
   margin: 0 calc(var(--drag-indicator-width) / 2);
 }
+
+.nameError {
+  color: var(--status-error);
+  font-size: 12px;
+}
+
+.renameWarningLayer {
+  position: relative;
+  z-index: 300;
+}

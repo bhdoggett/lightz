@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import type { Scene, Group, GroupState } from '../../../shared/types'
 import { useDragReorder } from '../../hooks/useDragReorder'
+import { makeSceneId, sceneNameTaken } from '../../../shared/slug'
+import { RenameWarningModal } from '../RenameWarningModal'
 import styles from './ScenesStrip.module.css'
 
 interface SceneDialogProps {
@@ -9,12 +11,13 @@ interface SceneDialogProps {
   initialGroupStates?: Record<string, GroupState>
   groups: Group[]
   currentGroupStates: Record<string, GroupState>
+  otherScenes: Scene[]
   onConfirm: (name: string, fadeDuration: number, groupStates: Record<string, GroupState>) => void
   onDelete?: () => void
   onCancel: () => void
 }
 
-function SceneDialog({ initialName = '', initialFade = 0, initialGroupStates, groups, currentGroupStates, onConfirm, onDelete, onCancel }: SceneDialogProps) {
+function SceneDialog({ initialName = '', initialFade = 0, initialGroupStates, groups, currentGroupStates, otherScenes, onConfirm, onDelete, onCancel }: SceneDialogProps) {
   const [name, setName] = useState(initialName)
   const [fade, setFade] = useState(initialFade)
   const [checkedGroupIds, setCheckedGroupIds] = useState<Set<string>>(
@@ -23,6 +26,9 @@ function SceneDialog({ initialName = '', initialFade = 0, initialGroupStates, gr
   const nameRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { nameRef.current?.focus() }, [])
+
+  const trimmedName = name.trim()
+  const nameTaken = trimmedName.length > 0 && sceneNameTaken(trimmedName, otherScenes)
 
   const toggleGroup = (id: string) => {
     setCheckedGroupIds((prev) => {
@@ -34,12 +40,12 @@ function SceneDialog({ initialName = '', initialFade = 0, initialGroupStates, gr
   }
 
   const handleConfirm = () => {
-    if (!name.trim()) return
+    if (!trimmedName || nameTaken) return
     const groupStates: Record<string, GroupState> = {}
     for (const id of checkedGroupIds) {
       groupStates[id] = currentGroupStates[id] ?? initialGroupStates?.[id] ?? { fader: 100 }
     }
-    onConfirm(name.trim(), fade, groupStates)
+    onConfirm(trimmedName, fade, groupStates)
   }
 
   return (
@@ -65,12 +71,15 @@ function SceneDialog({ initialName = '', initialFade = 0, initialGroupStates, gr
             onChange={(e) => setFade(Number(e.target.value))}
           />
         </label>
-        <button className={styles.confirmBtn} onClick={handleConfirm}>
+        <button className={styles.confirmBtn} onClick={handleConfirm} disabled={!trimmedName || nameTaken}>
           Save
         </button>
         {onDelete && <button className={styles.deleteBtn} onClick={onDelete}>Delete</button>}
         <button className={styles.cancelBtn} onClick={onCancel}>Cancel</button>
       </div>
+      {nameTaken && (
+        <span className={styles.nameError}>A scene with this name already exists</span>
+      )}
       {groups.length > 0 && (
         <div className={styles.groupSection}>
           <span className={styles.groupSectionLabel}>Include Group Settings</span>
@@ -97,6 +106,7 @@ interface Props {
   activeSceneId: string | null
   groups: Group[]
   currentGroupStates: Record<string, GroupState>
+  companionPort: number
   onActivate: (id: string) => void
   onSave: (name: string, fadeDuration: number, groupStates: Record<string, GroupState>) => void
   onUpdate: (id: string, name: string, fadeDuration: number, groupStates: Record<string, GroupState>) => void
@@ -106,9 +116,17 @@ interface Props {
   editTrigger?: number
 }
 
-export function ScenesStrip({ scenes, activeSceneId, groups, currentGroupStates, onActivate, onSave, onUpdate, onDelete, onReorder, saveTrigger = 0, editTrigger = 0 }: Props) {
+export function ScenesStrip({ scenes, activeSceneId, groups, currentGroupStates, companionPort, onActivate, onSave, onUpdate, onDelete, onReorder, saveTrigger = 0, editTrigger = 0 }: Props) {
   const [saving, setSaving] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [pendingRename, setPendingRename] = useState<{
+    id: string
+    name: string
+    fadeDuration: number
+    groupStates: Record<string, GroupState>
+    oldId: string
+    newId: string
+  } | null>(null)
   const stripRef = useRef<HTMLDivElement>(null)
   const { dragId, insertIndex, containerProps, itemProps } = useDragReorder(scenes, onReorder)
 
@@ -129,6 +147,7 @@ export function ScenesStrip({ scenes, activeSceneId, groups, currentGroupStates,
       if (stripRef.current && !stripRef.current.contains(e.target as Node)) {
         setSaving(false)
         setEditing(false)
+        setPendingRename(null)
       }
     }
     document.addEventListener('mousedown', handleOutside)
@@ -172,7 +191,16 @@ export function ScenesStrip({ scenes, activeSceneId, groups, currentGroupStates,
               initialGroupStates={activeScene.groupStates}
               groups={groups}
               currentGroupStates={currentGroupStates}
-              onConfirm={(name, fade, groupStates) => { onUpdate(activeScene.id, name, fade, groupStates); setEditing(false) }}
+              otherScenes={scenes.filter((s) => s.id !== activeScene.id)}
+              onConfirm={(name, fade, groupStates) => {
+                const newId = makeSceneId(name)
+                if (newId !== activeScene.id) {
+                  setPendingRename({ id: activeScene.id, name, fadeDuration: fade, groupStates, oldId: activeScene.id, newId })
+                } else {
+                  onUpdate(activeScene.id, name, fade, groupStates)
+                  setEditing(false)
+                }
+              }}
               onDelete={() => { onDelete(activeScene.id); setEditing(false) }}
               onCancel={() => setEditing(false)}
             />
@@ -180,10 +208,26 @@ export function ScenesStrip({ scenes, activeSceneId, groups, currentGroupStates,
             <SceneDialog
               groups={groups}
               currentGroupStates={currentGroupStates}
+              otherScenes={scenes}
               onConfirm={(name, fade, groupStates) => { onSave(name, fade, groupStates); setSaving(false) }}
               onCancel={() => setSaving(false)}
             />
           ) : null}
+        </div>
+      )}
+
+      {pendingRename && (
+        <div className={styles.renameWarningLayer}>
+          <RenameWarningModal
+            oldUrl={`http://localhost:${companionPort}/scenes/${pendingRename.oldId}/activate`}
+            newUrl={`http://localhost:${companionPort}/scenes/${pendingRename.newId}/activate`}
+            onAccept={() => {
+              onUpdate(pendingRename.id, pendingRename.name, pendingRename.fadeDuration, pendingRename.groupStates)
+              setPendingRename(null)
+              setEditing(false)
+            }}
+            onCancel={() => setPendingRename(null)}
+          />
         </div>
       )}
     </div>

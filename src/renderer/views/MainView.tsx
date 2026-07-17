@@ -33,6 +33,7 @@ interface Props {
   onOverrideMapChange?: (map: Record<string, GroupChannelOverride>) => void
   fixtureSectionOrder?: string[]
   onSectionReorder: (ids: string[]) => void
+  companionPort: number
 }
 
 export function deriveSectionOrder(
@@ -135,6 +136,7 @@ export function MainView({
   currentShowName = null, onSave, getChannel, setChannel: setLocal, applyScene, onOverrideMapChange,
   fixtureSectionOrder: storedOrder,
   onSectionReorder,
+  companionPort,
 }: Props) {
   const api = useApi()
   const [activeSceneId, setActiveSceneId] = useState<string | null>(null)
@@ -639,6 +641,7 @@ export function MainView({
             activeSceneId={activeSceneId}
             groups={groups}
             currentGroupStates={groupStates}
+            companionPort={companionPort}
             onActivate={handleActivate}
             onSave={handleSave}
             onUpdate={handleSceneUpdate}
