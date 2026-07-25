@@ -50,6 +50,21 @@ describe('createWebApi', () => {
     expect(result).toBeNull()
   })
 
+  it('updateScene updates values without a uniqueness check when the name is unchanged, even if another legacy scene shares that name', async () => {
+    const api = createWebApi(makeCallbacks())
+    // Simulates a show saved under the old suffix-based id logic, where two
+    // scenes could share the same `name` disambiguated only by a suffixed id.
+    await api.activateShow({
+      ...demoConfig,
+      scenes: [
+        { id: 'bright', name: 'Bright', fadeDuration: 0, values: {} },
+        { id: 'bright-2', name: 'Bright', fadeDuration: 500, values: { a: 1 } },
+      ],
+    })
+    const result = await api.updateScene({ id: 'bright-2', name: 'Bright', fadeDuration: 500, values: { a: 200 } })
+    expect(result).toEqual({ id: 'bright-2', name: 'Bright', fadeDuration: 500, values: { a: 200 } })
+  })
+
   it('deleteScene removes a scene', async () => {
     const api = createWebApi(makeCallbacks())
     const config = await api.getConfig()

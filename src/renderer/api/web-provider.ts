@@ -120,11 +120,14 @@ export function createWebApi(callbacks: WebApiCallbacks): LightzApi {
     updateScene: async (args) => {
       const idx = config.scenes.findIndex((s) => s.id === args.id)
       if (idx < 0) return null
-      const otherScenes = config.scenes.filter((s) => s.id !== args.id)
-      if (sceneNameTaken(args.name, otherScenes)) return null
+      const isRename = args.name !== config.scenes[idx].name
+      if (isRename) {
+        const otherScenes = config.scenes.filter((s) => s.id !== args.id)
+        if (sceneNameTaken(args.name, otherScenes)) return null
+      }
       config.scenes[idx] = {
         ...config.scenes[idx],
-        id: makeSceneId(args.name), name: args.name, fadeDuration: args.fadeDuration,
+        id: isRename ? makeSceneId(args.name) : config.scenes[idx].id, name: args.name, fadeDuration: args.fadeDuration,
         ...(args.values !== undefined && { values: args.values }),
         ...(args.groupStates !== undefined && { groupStates: args.groupStates }),
       }

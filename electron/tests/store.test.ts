@@ -114,6 +114,17 @@ describe('updateScene', () => {
     expect(result).toEqual({ id: 'worship-mode', name: 'Worship Mode', fadeDuration: 1500, values: {} })
   })
 
+  it('updates values without a uniqueness check when the name is unchanged, even if another legacy scene shares that name', () => {
+    // Simulates a show saved under the old suffix-based id logic, where two
+    // scenes could share the same `name` disambiguated only by a suffixed id.
+    mockScenes([
+      { id: 'bright', name: 'Bright', fadeDuration: 0, values: {} },
+      { id: 'bright-2', name: 'Bright', fadeDuration: 500, values: { f1: 1 } },
+    ])
+    const result = updateScene('bright-2', 'Bright', 500, { f1: 200 })
+    expect(result).toEqual({ id: 'bright-2', name: 'Bright', fadeDuration: 500, values: { f1: 200 } })
+  })
+
   it('returns null and does not save when the new name collides with another scene', () => {
     mockScenes([
       { id: 's1', name: 'Old Name', fadeDuration: 0, values: {} },

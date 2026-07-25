@@ -125,6 +125,22 @@ describe('ScenesStrip', () => {
     expect(screen.queryByText('A scene with this name already exists')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^save$/i })).not.toBeDisabled()
   })
+
+  it('does not block editing a legacy scene whose name collides with another scene created under the old suffix-id logic', async () => {
+    // Simulates a show saved before unique names were enforced, where two
+    // scenes share the same `name`, disambiguated only by a suffixed id.
+    const legacyScenes: Scene[] = [
+      { id: 'bright', name: 'Bright', fadeDuration: 0, values: {} },
+      { id: 'bright-2', name: 'Bright', fadeDuration: 500, values: {} },
+    ]
+    const onUpdate = vi.fn()
+    render(<ScenesStrip {...defaultProps} scenes={legacyScenes} activeSceneId="bright-2" onUpdate={onUpdate} editTrigger={1} />)
+    expect(screen.queryByText('A scene with this name already exists')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^save$/i })).not.toBeDisabled()
+    await userEvent.click(screen.getByRole('button', { name: /^save$/i }))
+    expect(onUpdate).toHaveBeenCalledWith('bright-2', 'Bright', 500, {})
+    expect(screen.queryByText(/Companion Endpoint/i)).not.toBeInTheDocument()
+  })
 })
 
 const groups: Group[] = [

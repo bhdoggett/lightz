@@ -28,7 +28,7 @@ function SceneDialog({ initialName = '', initialFade = 0, initialGroupStates, gr
   useEffect(() => { nameRef.current?.focus() }, [])
 
   const trimmedName = name.trim()
-  const nameTaken = trimmedName.length > 0 && sceneNameTaken(trimmedName, otherScenes)
+  const nameTaken = trimmedName.length > 0 && trimmedName !== initialName && sceneNameTaken(trimmedName, otherScenes)
 
   const toggleGroup = (id: string) => {
     setCheckedGroupIds((prev) => {
@@ -193,7 +193,7 @@ export function ScenesStrip({ scenes, activeSceneId, groups, currentGroupStates,
               currentGroupStates={currentGroupStates}
               otherScenes={scenes.filter((s) => s.id !== activeScene.id)}
               onConfirm={(name, fade, groupStates) => {
-                const newId = makeSceneId(name)
+                const newId = name === activeScene.name ? activeScene.id : makeSceneId(name)
                 if (newId !== activeScene.id) {
                   setPendingRename({ id: activeScene.id, name, fadeDuration: fade, groupStates, oldId: activeScene.id, newId })
                 } else {

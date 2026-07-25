@@ -106,11 +106,14 @@ export function updateScene(id: string, name: string, fadeDuration: number, valu
   const scenes = store.get('scenes', [])
   const idx = scenes.findIndex((s) => s.id === id)
   if (idx < 0) return null
-  const otherScenes = scenes.filter((s) => s.id !== id)
-  if (sceneNameTaken(name, otherScenes)) return null
+  const isRename = name !== scenes[idx].name
+  if (isRename) {
+    const otherScenes = scenes.filter((s) => s.id !== id)
+    if (sceneNameTaken(name, otherScenes)) return null
+  }
   scenes[idx] = {
     ...scenes[idx],
-    id: makeSceneId(name),
+    id: isRename ? makeSceneId(name) : scenes[idx].id,
     name,
     fadeDuration,
     ...(values !== undefined && { values }),
