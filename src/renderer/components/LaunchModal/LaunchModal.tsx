@@ -44,14 +44,30 @@ export function LaunchModal({ onNew, onLoad }: Props) {
     }
   }
 
+  const handleImportFile = async () => {
+    setError(null)
+    try {
+      const result = await api.importShow()
+      if (!result) return
+      onLoad(result.config, result.name)
+    } catch {
+      setError('Invalid show file format')
+    }
+  }
+
   return (
     <div className={styles.overlay}>
       <div className={styles.card}>
         <div className={styles.title}><AppName /></div>
         {error && <p className={styles.error}>{error}</p>}
-        <button className={styles.newBtn} onClick={handleNew} disabled={resetting || loadingName !== null}>
-          {resetting ? 'Creating…' : '+ New Show'}
-        </button>
+        <div className={styles.topActions}>
+          <button className={styles.newBtn} onClick={handleNew} disabled={resetting || loadingName !== null}>
+            {resetting ? 'Creating…' : '+ New Show'}
+          </button>
+          <button className={styles.importBtn} onClick={handleImportFile} disabled={resetting || loadingName !== null}>
+            Load from file…
+          </button>
+        </div>
         <div className={styles.showList}>
           {shows.length === 0 ? (
             <p className={styles.empty}>No saved shows yet.</p>

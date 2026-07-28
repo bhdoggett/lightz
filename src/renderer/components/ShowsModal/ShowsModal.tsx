@@ -120,8 +120,8 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, cur
       if (!result) return
       onLoad(result.config, result.name)
       onClose()
-    } catch (e) {
-      setError(`Could not load file: ${String(e)}`)
+    } catch {
+      setError('Invalid show file format')
     }
   }
 
