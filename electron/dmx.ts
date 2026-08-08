@@ -146,14 +146,19 @@ export class DmxManager {
       cleanup()
       onFailed()
     }, 500)
-    port.write(Buffer.from([START, GET_WIDGET_PARAMS_LABEL, 0x00, 0x00, END]))
+    // Per the Enttec DMX USB Pro API (1.44), the label-3 *request* carries a
+    // 2-byte payload: user_config_size (LSB, MSB). Zero means "don't send back
+    // any user-defined config data". A zero-length payload is malformed and a
+    // healthy widget will simply discard it — see OLA's
+    // plugins/usbpro/EnttecUsbProWidget.cpp (EnttecPortImpl::GetParameters).
+    port.write(Buffer.from([START, GET_WIDGET_PARAMS_LABEL, 0x02, 0x00, 0x00, 0x00, END]))
   }
 
   private initMk2(): void {
     // Enable API2 — unlocks MK2 dual-port mode (magic key per QLC+ source)
-    this.port?.write(Buffer.from([0x7e, 0x0d, 0x04, 0x00, 0xad, 0x88, 0xd0, 0xc8, 0xe7]))
+    this.port?.write(Buffer.from([START, 0x0d, 0x04, 0x00, 0xad, 0x88, 0xd0, 0xc8, END]))
     // Port assignment — both ports active as DMX output
-    this.port?.write(Buffer.from([0x7e, 0xcb, 0x02, 0x00, 0x01, 0x01, 0xe7]))
+    this.port?.write(Buffer.from([START, 0xcb, 0x02, 0x00, 0x01, 0x01, END]))
   }
 
   private stopSending(): void {

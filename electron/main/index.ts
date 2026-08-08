@@ -205,9 +205,15 @@ app.whenReady().then(() => {
     const port = findEnttecPort()
     if (!port || port === lastAutoConnectAttempt) return
     lastAutoConnectAttempt = port
-    setDevicePath(port)
+    // A widget that enumerates but fails the handshake reports 'error', which
+    // clears lastAutoConnectAttempt and puts us right back here every 3s. Keep
+    // retrying the connection, but only persist the path / notify the renderer
+    // when the device is genuinely new — otherwise each retry writes config and
+    // force-dirties the document, so the user could never reach a clean state.
+    const isNewDevice = getConfig().devicePath !== port
+    if (isNewDevice) setDevicePath(port)
     tryConnect(port)
-    mainWindow?.webContents.send('device:autoConnected', port)
+    if (isNewDevice) mainWindow?.webContents.send('device:autoConnected', port)
   }, 3000)
 
   app.on('activate', () => {

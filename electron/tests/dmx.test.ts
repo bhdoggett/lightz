@@ -38,6 +38,14 @@ const FakeSerialPort = SerialPort as unknown as {
   last: (EventEmitter & { isOpen: boolean; writable: boolean; written: Buffer[]; close: ReturnType<typeof vi.fn>; write: ReturnType<typeof vi.fn> }) | null
 }
 
+// The Get Widget Parameters *request*: label 3 with a 2-byte user_config_size
+// payload of 0 (Enttec DMX USB Pro API 1.44).
+const PARAMS_REQUEST = Buffer.from([0x7e, 0x03, 0x02, 0x00, 0x00, 0x00, 0xe7])
+
+// A realistic label-3 *reply* from live firmware: 5-byte payload of
+// firmware LSB/MSB, DMX break time, mark-after-break time, refresh rate.
+const PARAMS_REPLY = Buffer.from([0x7e, 0x03, 0x05, 0x00, 0x01, 0x00, 0x09, 0x01, 0x28, 0xe7])
+
 describe('DmxManager', () => {
   let manager: DmxManager
 
@@ -108,11 +116,70 @@ describe('DmxManager', () => {
 
       const port = FakeSerialPort.last!
       expect(statuses).not.toContain('connected')
-      expect(port.write).toHaveBeenCalledWith(Buffer.from([0x7e, 0x03, 0x00, 0x00, 0xe7]))
+      expect(port.write).toHaveBeenCalledWith(PARAMS_REQUEST)
 
-      port.emit('data', Buffer.from([0x7e, 0x03, 0x00, 0x00, 0xe7]))
+      port.emit('data', PARAMS_REPLY)
 
       expect(statuses).toEqual(['connected'])
+    })
+
+    it('accepts a realistic 5-byte-payload label-3 reply from live firmware', async () => {
+      const statuses: DmxStatus[] = []
+      manager.connect('/dev/fake', (s) => statuses.push(s))
+
+      await Promise.resolve()
+      await Promise.resolve()
+
+      const port = FakeSerialPort.last!
+      // Exactly the frame an Enttec DMX USB Pro sends back: firmware 1.0,
+      // break time 9, mark-after-break 1, refresh rate 40Hz.
+      port.emit('data', PARAMS_REPLY)
+      expect(PARAMS_REPLY.length).toBe(10) // 4-byte header + 5-byte payload + END
+
+      expect(statuses).toEqual(['connected'])
+    })
+
+    it('accepts a realistic reply delivered split across two data chunks', async () => {
+      const statuses: DmxStatus[] = []
+      manager.connect('/dev/fake', (s) => statuses.push(s))
+
+      await Promise.resolve()
+      await Promise.resolve()
+
+      const port = FakeSerialPort.last!
+
+      // Serial data arrives in arbitrary chunks; the split lands mid-payload so
+      // the first chunk is a complete header promising 5 bytes it doesn't have.
+      port.emit('data', PARAMS_REPLY.subarray(0, 6))
+      expect(statuses).not.toContain('connected')
+
+      port.emit('data', PARAMS_REPLY.subarray(6))
+      expect(statuses).toEqual(['connected'])
+    })
+
+    it('writes only the handshake request — no initMk2 or DMX frames — until the widget replies', async () => {
+      vi.useFakeTimers()
+      const statuses: DmxStatus[] = []
+      manager.connect('/dev/fake', (s) => statuses.push(s))
+
+      await vi.advanceTimersByTimeAsync(0)
+      const port = FakeSerialPort.last!
+
+      // Sit inside the verification window with the DMX send loops' 30ms
+      // interval well past due — nothing but the handshake may go out.
+      await vi.advanceTimersByTimeAsync(200)
+      expect(statuses).not.toContain('connected')
+      expect(port.written).toEqual([PARAMS_REQUEST])
+
+      port.emit('data', PARAMS_REPLY)
+      expect(statuses).toEqual(['connected'])
+
+      // Verification passed — now initMk2()'s two frames are written.
+      expect(port.written.length).toBe(3)
+      expect(port.written[1]![1]).toBe(0x0d) // API2 enable
+      expect(port.written[2]![1]).toBe(0xcb) // port assignment
+
+      vi.useRealTimers()
     })
 
     it('reports error and closes the port if the widget never replies', async () => {
@@ -125,6 +192,27 @@ describe('DmxManager', () => {
 
       await vi.advanceTimersByTimeAsync(500)
       await vi.advanceTimersByTimeAsync(0) // flush the close()'s queued 'close' event
+
+      expect(statuses).toEqual(['error'])
+      expect(port.close).toHaveBeenCalled()
+
+      vi.useRealTimers()
+    })
+
+    it('pins the handshake deadline at exactly 500ms — silent at 499ms, error at 500ms', async () => {
+      vi.useFakeTimers()
+      const statuses: DmxStatus[] = []
+      manager.connect('/dev/fake', (s) => statuses.push(s))
+
+      await vi.advanceTimersByTimeAsync(0)
+      const port = FakeSerialPort.last!
+
+      await vi.advanceTimersByTimeAsync(499)
+      expect(statuses).toEqual([]) // still mid-handshake: no status emitted at all
+      expect(port.close).not.toHaveBeenCalled()
+
+      await vi.advanceTimersByTimeAsync(1)
+      await vi.advanceTimersByTimeAsync(0)
 
       expect(statuses).toEqual(['error'])
       expect(port.close).toHaveBeenCalled()
@@ -166,7 +254,7 @@ describe('DmxManager', () => {
 
       // Now the real reply arrives — proves the parser was live the whole time
       // and only the label check was gating the wrong-label frame above.
-      port.emit('data', Buffer.from([0x7e, 0x03, 0x00, 0x00, 0xe7]))
+      port.emit('data', PARAMS_REPLY)
       expect(statuses).toEqual(['connected'])
     })
 
@@ -186,7 +274,7 @@ describe('DmxManager', () => {
       expect(secondPort).not.toBe(firstPort)
 
       // Reply on the current (second) port.
-      secondPort.emit('data', Buffer.from([0x7e, 0x03, 0x00, 0x00, 0xe7]))
+      secondPort.emit('data', PARAMS_REPLY)
 
       // Let the original handshake's deadline pass — its stale timer must not fire.
       await vi.advanceTimersByTimeAsync(500)
@@ -246,7 +334,7 @@ describe('DmxManager', () => {
       // frameHandler/verifyTimeout out from under the live handshake, so
       // this reply would be silently dropped and the manager would hang
       // forever instead of ever reaching 'connected' or 'error'.
-      secondPort.emit('data', Buffer.from([0x7e, 0x03, 0x00, 0x00, 0xe7]))
+      secondPort.emit('data', PARAMS_REPLY)
 
       expect(statuses[statuses.length - 1]).toBe('connected')
     })
