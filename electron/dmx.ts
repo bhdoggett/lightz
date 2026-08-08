@@ -1,9 +1,8 @@
 import { SerialPort } from 'serialport'
 import type { DmxStatus, GroupChannelOverride } from '../src/shared/types'
 import { interpolate, clampValue } from '../src/shared/dmx-utils'
+import { parseEnttecFrames, START, END, GET_WIDGET_PARAMS_LABEL, type EnttecFrame } from './enttec-protocol'
 
-const START = 0x7e
-const END = 0xe7
 const DMX_START_CODE = 0x00
 
 // MK2 port labels per QLC+ source (enttecdmxusbpro.cpp): port 1 = 0x06, port 2 = 0xa9
@@ -22,6 +21,9 @@ export class DmxManager {
   private status: DmxStatus = 'disconnected'
   private onStatusChange?: (status: DmxStatus) => void
   private groupOverrides: Record<string, GroupChannelOverride> = {}
+  private incomingBuffer: Buffer = Buffer.alloc(0)
+  private frameHandler: ((frame: EnttecFrame) => void) | null = null
+  private closingAfterVerifyFailure = false
 
   connect(devicePath: string, onStatus: (s: DmxStatus) => void): void {
     this.onStatusChange = onStatus
@@ -31,6 +33,9 @@ export class DmxManager {
       this.port.close()
     }
     this.port = null
+    this.incomingBuffer = Buffer.alloc(0)
+    this.frameHandler = null
+    this.closingAfterVerifyFailure = false
 
     try {
       this.port = new SerialPort(
@@ -38,16 +43,38 @@ export class DmxManager {
         (err) => {
           if (err) {
             this.setStatus('error')
-          } else {
-            this.initMk2()
-            this.startSending()
-            this.setStatus('connected')
+            return
           }
+          this.verifyWidget(
+            () => {
+              this.initMk2()
+              this.startSending()
+              this.setStatus('connected')
+            },
+            () => {
+              this.closingAfterVerifyFailure = true
+              this.port?.close()
+              this.setStatus('error')
+            }
+          )
         }
       )
 
+      this.port.on('data', (chunk: Buffer) => {
+        this.incomingBuffer = Buffer.concat([this.incomingBuffer, chunk])
+        const { frames, rest } = parseEnttecFrames(this.incomingBuffer)
+        this.incomingBuffer = rest
+        for (const frame of frames) {
+          this.frameHandler?.(frame)
+        }
+      })
+
       this.port.on('close', () => {
         this.stopSending()
+        if (this.closingAfterVerifyFailure) {
+          this.closingAfterVerifyFailure = false
+          return
+        }
         this.setStatus('disconnected')
       })
 
@@ -59,6 +86,24 @@ export class DmxManager {
     } catch {
       this.setStatus('error')
     }
+  }
+
+  private verifyWidget(onVerified: () => void, onFailed: () => void): void {
+    let timeout: ReturnType<typeof setTimeout>
+    const cleanup = (): void => {
+      clearTimeout(timeout)
+      this.frameHandler = null
+    }
+    this.frameHandler = (frame) => {
+      if (frame.label !== GET_WIDGET_PARAMS_LABEL) return
+      cleanup()
+      onVerified()
+    }
+    timeout = setTimeout(() => {
+      cleanup()
+      onFailed()
+    }, 500)
+    this.port?.write(Buffer.from([START, GET_WIDGET_PARAMS_LABEL, 0x00, 0x00, END]))
   }
 
   private initMk2(): void {
