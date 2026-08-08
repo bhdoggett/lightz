@@ -30,8 +30,16 @@ export class DmxManager {
     this.onStatusChange = onStatus
 
     this.stopSending()
-    if (this.port?.isOpen) {
-      this.port.close()
+    if (this.port) {
+      // Strip the superseded port's listeners for the events that mutate
+      // shared state. ('error' is deliberately left attached — see the
+      // identity guard below — because removing it risks an "unhandled
+      // 'error' event" throw if the old hardware errors after being let go.)
+      this.port.removeAllListeners('close')
+      this.port.removeAllListeners('data')
+      if (this.port.isOpen) {
+        this.port.close()
+      }
     }
     this.port = null
     this.incomingBuffer = Buffer.alloc(0)
@@ -43,29 +51,39 @@ export class DmxManager {
     }
 
     try {
-      this.port = new SerialPort(
+      // Captured locally (not read back off `this.port`) so every handler
+      // below can tell whether the event it just received still belongs to
+      // the connection that's actually live, vs. a port a later connect()
+      // call has already superseded.
+      const port: SerialPort = new SerialPort(
         { path: devicePath, baudRate: 250000, dataBits: 8, stopBits: 2, parity: 'none' },
         (err) => {
+          if (this.port !== port) return
           if (err) {
             this.setStatus('error')
             return
           }
           this.verifyWidget(
+            port,
             () => {
+              if (this.port !== port) return
               this.initMk2()
               this.startSending()
               this.setStatus('connected')
             },
             () => {
+              if (this.port !== port) return
               this.closingAfterVerifyFailure = true
-              this.port?.close()
+              port.close()
               this.setStatus('error')
             }
           )
         }
       )
+      this.port = port
 
-      this.port.on('data', (chunk: Buffer) => {
+      port.on('data', (chunk: Buffer) => {
+        if (this.port !== port) return
         this.incomingBuffer = Buffer.concat([this.incomingBuffer, chunk])
         const { frames, rest } = parseEnttecFrames(this.incomingBuffer)
         this.incomingBuffer = rest
@@ -74,7 +92,8 @@ export class DmxManager {
         }
       })
 
-      this.port.on('close', () => {
+      port.on('close', () => {
+        if (this.port !== port) return
         this.stopSending()
         if (this.verifyTimeout) {
           clearTimeout(this.verifyTimeout)
@@ -88,7 +107,8 @@ export class DmxManager {
         this.setStatus('disconnected')
       })
 
-      this.port.on('error', (err) => {
+      port.on('error', (err) => {
+        if (this.port !== port) return
         console.error('[DMX] serial port error:', err.message)
         this.stopSending()
         if (this.verifyTimeout) {
@@ -103,7 +123,7 @@ export class DmxManager {
     }
   }
 
-  private verifyWidget(onVerified: () => void, onFailed: () => void): void {
+  private verifyWidget(port: SerialPort, onVerified: () => void, onFailed: () => void): void {
     const handler = (frame: EnttecFrame): void => {
       if (frame.label !== GET_WIDGET_PARAMS_LABEL) return
       cleanup()
@@ -126,7 +146,7 @@ export class DmxManager {
       cleanup()
       onFailed()
     }, 500)
-    this.port?.write(Buffer.from([START, GET_WIDGET_PARAMS_LABEL, 0x00, 0x00, END]))
+    port.write(Buffer.from([START, GET_WIDGET_PARAMS_LABEL, 0x00, 0x00, END]))
   }
 
   private initMk2(): void {

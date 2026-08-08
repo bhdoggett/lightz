@@ -218,5 +218,37 @@ describe('DmxManager', () => {
 
       vi.useRealTimers()
     })
+
+    it('ignores close/error events from a superseded port once a newer connect() has taken over', async () => {
+      const statuses: DmxStatus[] = []
+      manager.connect('/dev/fake', (s) => statuses.push(s))
+
+      await Promise.resolve()
+      await Promise.resolve()
+      const firstPort = FakeSerialPort.last!
+
+      // Supersede it with a second connect() while the first handshake is
+      // still pending (no reply yet).
+      manager.connect('/dev/fake', (s) => statuses.push(s))
+      await Promise.resolve()
+      await Promise.resolve()
+      const secondPort = FakeSerialPort.last!
+      expect(secondPort).not.toBe(firstPort)
+
+      // The old (first) port's close/error arrive late — after the new
+      // handshake has already registered its own frameHandler/timer. These
+      // must be ignored entirely, not clear state the live handshake owns.
+      firstPort.emit('close')
+      firstPort.emit('error', new Error('old port died'))
+
+      // The current (second) port replies — must still reach 'connected'.
+      // Under the bug, the stray events above would have nulled
+      // frameHandler/verifyTimeout out from under the live handshake, so
+      // this reply would be silently dropped and the manager would hang
+      // forever instead of ever reaching 'connected' or 'error'.
+      secondPort.emit('data', Buffer.from([0x7e, 0x03, 0x00, 0x00, 0xe7]))
+
+      expect(statuses[statuses.length - 1]).toBe('connected')
+    })
   })
 })
