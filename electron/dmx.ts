@@ -24,6 +24,7 @@ export class DmxManager {
   private incomingBuffer: Buffer = Buffer.alloc(0)
   private frameHandler: ((frame: EnttecFrame) => void) | null = null
   private closingAfterVerifyFailure = false
+  private verifyTimeout: ReturnType<typeof setTimeout> | null = null
 
   connect(devicePath: string, onStatus: (s: DmxStatus) => void): void {
     this.onStatusChange = onStatus
@@ -36,6 +37,10 @@ export class DmxManager {
     this.incomingBuffer = Buffer.alloc(0)
     this.frameHandler = null
     this.closingAfterVerifyFailure = false
+    if (this.verifyTimeout) {
+      clearTimeout(this.verifyTimeout)
+      this.verifyTimeout = null
+    }
 
     try {
       this.port = new SerialPort(
@@ -71,6 +76,11 @@ export class DmxManager {
 
       this.port.on('close', () => {
         this.stopSending()
+        if (this.verifyTimeout) {
+          clearTimeout(this.verifyTimeout)
+          this.verifyTimeout = null
+        }
+        this.frameHandler = null
         if (this.closingAfterVerifyFailure) {
           this.closingAfterVerifyFailure = false
           return
@@ -81,6 +91,11 @@ export class DmxManager {
       this.port.on('error', (err) => {
         console.error('[DMX] serial port error:', err.message)
         this.stopSending()
+        if (this.verifyTimeout) {
+          clearTimeout(this.verifyTimeout)
+          this.verifyTimeout = null
+        }
+        this.frameHandler = null
         this.setStatus('disconnected')
       })
     } catch {
@@ -89,17 +104,25 @@ export class DmxManager {
   }
 
   private verifyWidget(onVerified: () => void, onFailed: () => void): void {
-    let timeout: ReturnType<typeof setTimeout>
-    const cleanup = (): void => {
-      clearTimeout(timeout)
-      this.frameHandler = null
-    }
-    this.frameHandler = (frame) => {
+    const handler = (frame: EnttecFrame): void => {
       if (frame.label !== GET_WIDGET_PARAMS_LABEL) return
       cleanup()
       onVerified()
     }
-    timeout = setTimeout(() => {
+    const cleanup = (): void => {
+      if (this.verifyTimeout) {
+        clearTimeout(this.verifyTimeout)
+        this.verifyTimeout = null
+      }
+      // Only clear frameHandler if it's still ours — a stale cleanup (e.g. from
+      // an old handshake whose timer somehow still fired) must not clobber a
+      // newer handshake's handler.
+      if (this.frameHandler === handler) {
+        this.frameHandler = null
+      }
+    }
+    this.frameHandler = handler
+    this.verifyTimeout = setTimeout(() => {
       cleanup()
       onFailed()
     }, 500)

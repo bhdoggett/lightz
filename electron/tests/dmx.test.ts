@@ -150,5 +150,73 @@ describe('DmxManager', () => {
 
       vi.useRealTimers()
     })
+
+    it('does not connect on a wrong-label reply, but does connect once a valid reply follows (proves the label filter, not just an unparsed frame)', async () => {
+      const statuses: DmxStatus[] = []
+      manager.connect('/dev/fake', (s) => statuses.push(s))
+
+      await Promise.resolve()
+      await Promise.resolve()
+
+      const port = FakeSerialPort.last!
+
+      // Wrong label — must be parsed (not silently dropped) and rejected on label alone
+      port.emit('data', Buffer.from([0x7e, 0x06, 0x00, 0x00, 0xe7]))
+      expect(statuses).not.toContain('connected')
+
+      // Now the real reply arrives — proves the parser was live the whole time
+      // and only the label check was gating the wrong-label frame above.
+      port.emit('data', Buffer.from([0x7e, 0x03, 0x00, 0x00, 0xe7]))
+      expect(statuses).toEqual(['connected'])
+    })
+
+    it('cancels the first handshake timer when connect() is called again before it replies, so a stale timeout cannot kill the new connection', async () => {
+      vi.useFakeTimers()
+      const statuses: DmxStatus[] = []
+      manager.connect('/dev/fake', (s) => statuses.push(s))
+
+      await vi.advanceTimersByTimeAsync(0)
+      const firstPort = FakeSerialPort.last!
+
+      // Reconnect (e.g. settings change or hotplug poller retry) while the
+      // first handshake's 500ms timer is still pending.
+      manager.connect('/dev/fake', (s) => statuses.push(s))
+      await vi.advanceTimersByTimeAsync(0)
+      const secondPort = FakeSerialPort.last!
+      expect(secondPort).not.toBe(firstPort)
+
+      // Reply on the current (second) port.
+      secondPort.emit('data', Buffer.from([0x7e, 0x03, 0x00, 0x00, 0xe7]))
+
+      // Let the original handshake's deadline pass — its stale timer must not fire.
+      await vi.advanceTimersByTimeAsync(500)
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(statuses).not.toContain('error')
+      expect(statuses[statuses.length - 1]).toBe('connected')
+
+      vi.useRealTimers()
+    })
+
+    it('does not overwrite status with a late error if the port closes mid-handshake', async () => {
+      vi.useFakeTimers()
+      const statuses: DmxStatus[] = []
+      manager.connect('/dev/fake', (s) => statuses.push(s))
+
+      await vi.advanceTimersByTimeAsync(0)
+      const port = FakeSerialPort.last!
+
+      // Widget/cable drops mid-handshake, before it ever replied.
+      port.emit('close')
+      expect(statuses).toEqual(['disconnected'])
+
+      // The abandoned verify timer must not fire 'error' 500ms later.
+      await vi.advanceTimersByTimeAsync(500)
+      await vi.advanceTimersByTimeAsync(0)
+
+      expect(statuses).toEqual(['disconnected'])
+
+      vi.useRealTimers()
+    })
   })
 })
