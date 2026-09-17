@@ -13,9 +13,9 @@
 
   /* Text */
   --text-primary: #e5e7eb;
-  --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  --text-faint: #4b5563;
+  --text-secondary: #d1d5db;
+  --text-muted: #9ca3af;
+  --text-faint: #787f8d;
 
   /* Accent */
   --accent: #6366f1;
@@ -24,7 +24,7 @@
 
   /* Status */
   --status-connected: #22c55e;
-  --status-disconnected: #6b7280;
+  --status-disconnected: #9ca3af;
   --status-error: #ef4444;
   --status-warning: #f59e0b;
 

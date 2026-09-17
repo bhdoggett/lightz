@@ -37,6 +37,7 @@ function makeMockApi(): LightzApi {
     }),
     deleteNamedShow: async () => [],
     exportShow: async () => {},
+    exportNamedShow: async () => {},
     importShow: async () => null,
     setPort: async () => {},
     setDevicePath: async () => {},

@@ -174,28 +174,32 @@
 .addFixtureBtn {
   padding: 5px 16px;
   border-radius: var(--radius-md);
-  border: 1px dashed var(--border-default);
-  background: transparent;
-  color: var(--text-muted);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
   font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  transition: background 0.15s, box-shadow 0.15s;
 }
 
 .addFixtureBtn:hover {
-  color: var(--text-secondary);
-  border-color: var(--text-secondary);
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
 }
 
-.addFixtureBtnActive {
-  border-style: solid;
-  border-color: var(--accent);
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+.addFixtureBtn:disabled {
+  opacity: 0.5;
+  cursor: default;
 }
 
+.addFixtureBtnActive,
 .addFixtureBtnActive:hover {
-  color: var(--accent);
-  border-color: var(--accent);
+  background: var(--accent-hover);
+  border-color: #fff;
+  box-shadow: 0 0 0 3px var(--accent-glow), 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
 .layoutToggleRight {

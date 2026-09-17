@@ -33,6 +33,7 @@ export const electronApi: LightzApi = {
   loadNamedShow: (name) => window.electronAPI.loadNamedShow(name),
   deleteNamedShow: (name) => window.electronAPI.deleteNamedShow(name),
   exportShow: () => window.electronAPI.exportShow().then(() => {}),
+  exportNamedShow: (name) => window.electronAPI.exportNamedShow(name).then(() => {}),
   importShow: () => window.electronAPI.importShow(),
 
   listPorts: () => window.electronAPI.listPorts(),

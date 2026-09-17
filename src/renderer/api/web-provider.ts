@@ -5,7 +5,9 @@ import { makeSceneId, sceneNameTaken } from '../../shared/slug'
 import { demoConfig } from './demo-config'
 
 const SHOWS_KEY = 'lightz-shows'
+const DELETED_SHOWS_KEY = 'lightz-deleted-shows'
 const DEMO_SHOW_NAME = 'Demo'
+const DELETED_RETENTION_MS = 30 * 24 * 60 * 60 * 1000
 
 function getStoredShows(): Record<string, { config: Config; modifiedAt: number }> {
   try {
@@ -17,6 +19,34 @@ function getStoredShows(): Record<string, { config: Config; modifiedAt: number }
 
 function saveStoredShows(shows: Record<string, { config: Config; modifiedAt: number }>): void {
   localStorage.setItem(SHOWS_KEY, JSON.stringify(shows))
+}
+
+function getDeletedShows(): Record<string, { config: Config; deletedAt: number }> {
+  try {
+    return JSON.parse(localStorage.getItem(DELETED_SHOWS_KEY) || '{}')
+  } catch {
+    return {}
+  }
+}
+
+function archiveDeletedShow(name: string, config: Config): void {
+  const deleted = getDeletedShows()
+  const now = Date.now()
+  for (const [key, entry] of Object.entries(deleted)) {
+    if (now - entry.deletedAt > DELETED_RETENTION_MS) delete deleted[key]
+  }
+  deleted[name in deleted ? `${name}-${now}` : name] = { config, deletedAt: now }
+  localStorage.setItem(DELETED_SHOWS_KEY, JSON.stringify(deleted))
+}
+
+function downloadJson(data: unknown, filename: string): void {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
 }
 
 function listStoredShows(): ShowInfo[] {
@@ -227,19 +257,20 @@ export function createWebApi(callbacks: WebApiCallbacks): LightzApi {
     deleteNamedShow: async (name) => {
       if (name === DEMO_SHOW_NAME) return listStoredShows()
       const shows = getStoredShows()
+      const show = shows[name]
+      if (show) archiveDeletedShow(name, show.config)
       delete shows[name]
       saveStoredShows(shows)
       return listStoredShows()
     },
 
     exportShow: async () => {
-      const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = 'lightz-show.json'
-      a.click()
-      URL.revokeObjectURL(url)
+      downloadJson(config, 'lightz-show.json')
+    },
+
+    exportNamedShow: async (name) => {
+      const show = getStoredShows()[name]
+      downloadJson(name === DEMO_SHOW_NAME ? demoConfig : show?.config ?? config, `${name}.json`)
     },
 
     importShow: async () => null,

@@ -72,17 +72,20 @@
   flex: 1;
   padding: 7px;
   border-radius: var(--radius-md);
-  border: 1px dashed var(--border-default);
-  background: transparent;
-  color: var(--text-secondary);
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+  transition: background 0.15s, box-shadow 0.15s;
 }
 
 .newBtn:hover {
-  border-color: var(--text-secondary);
-  color: var(--text-primary);
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
 }
 
 .importBtn {
@@ -171,6 +174,25 @@
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.exportBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.exportBtn:hover {
+  border-color: var(--border-default);
+  color: var(--text-primary);
 }
 
 .deleteBtn {

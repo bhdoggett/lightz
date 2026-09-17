@@ -10,3 +10,5 @@ docs/
 .claude/
 dist-web/
 /.superpowers/
+test-results/
+*.tsbuildinfo

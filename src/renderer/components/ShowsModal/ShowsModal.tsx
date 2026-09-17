@@ -139,8 +139,17 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, cur
     executeImportFile()
   }
 
+  const handleExport = async (name: string) => {
+    setError(null)
+    try {
+      await api.exportNamedShow(name)
+    } catch (e) {
+      setError(`Could not export "${name}": ${String(e)}`)
+    }
+  }
+
   const handleDelete = async (name: string) => {
-    if (!confirm(`Delete "${name}"?`)) return
+    if (!confirm(`Delete "${name}"? It will be moved to the Deleted folder for 30 days.`)) return
     try {
       const updated = await api.deleteNamedShow(name)
       setShows(updated)
@@ -267,6 +276,18 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, cur
                   )}
                 </button>
                 <button
+                  className={styles.exportBtn}
+                  onClick={() => handleExport(show.name)}
+                  disabled={loadingName !== null}
+                  title="Export show to a file"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M12 3v12"/>
+                    <path d="m7 10 5 5 5-5"/>
+                    <path d="M5 21h14"/>
+                  </svg>
+                </button>
+                <button
                   className={styles.deleteBtn}
                   onClick={() => handleDelete(show.name)}
                   disabled={loadingName !== null}
@@ -283,7 +304,7 @@ export function ShowsModal({ onLoad, onSaved, onNew, onClose, dirty = false, cur
       <div className={styles.saveRow}>
         <input
           className={styles.nameInput}
-          placeholder="Save current state as…"
+          placeholder="Save current show as…"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSave()}

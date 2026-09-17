@@ -12,10 +12,10 @@ function parseShowFile(path: string): Config {
   return raw as Config
 }
 
-export async function exportShow(config: Config): Promise<boolean> {
+export async function exportShow(config: Config, defaultName = 'show'): Promise<boolean> {
   const { canceled, filePath } = await dialog.showSaveDialog({
     title: 'Save Show File',
-    defaultPath: 'show.json',
+    defaultPath: `${defaultName}.json`,
     filters: FILTERS,
   })
   if (canceled || !filePath) return false

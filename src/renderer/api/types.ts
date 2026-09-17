@@ -42,6 +42,7 @@ export interface LightzApi {
   loadNamedShow(name: string): Promise<Config>
   deleteNamedShow(name: string): Promise<ShowInfo[]>
   exportShow(): Promise<void>
+  exportNamedShow(name: string): Promise<void>
   importShow(): Promise<{ config: Config; name: string } | null>
 
   // Platform

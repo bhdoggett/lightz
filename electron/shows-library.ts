@@ -1,5 +1,5 @@
 import { join } from 'path'
-import { readdirSync, writeFileSync, readFileSync, unlinkSync, mkdirSync, existsSync, statSync } from 'fs'
+import { readdirSync, writeFileSync, readFileSync, renameSync, unlinkSync, mkdirSync, existsSync, statSync } from 'fs'
 import { app } from 'electron'
 import type { Config } from '../src/shared/types'
 
@@ -20,10 +20,29 @@ function ensureDir(): string {
 
 export function ensureShowsDir(): void {
   ensureDir()
+  purgeOldDeletedShows()
+}
+
+const DELETED_RETENTION_MS = 30 * 24 * 60 * 60 * 1000
+
+export function purgeOldDeletedShows(now = Date.now()): void {
+  const dir = join(getShowsDir(), 'deleted')
+  if (!existsSync(dir)) return
+  for (const file of readdirSync(dir)) {
+    if (!file.endsWith('.json')) continue
+    const path = join(dir, file)
+    if (now - statSync(path).mtimeMs > DELETED_RETENTION_MS) unlinkSync(path)
+  }
 }
 
 function showPath(name: string): string {
   return join(getShowsDir(), `${name}.json`)
+}
+
+function ensureDeletedDir(): string {
+  const dir = join(getShowsDir(), 'deleted')
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+  return dir
 }
 
 export function listShows(): ShowInfo[] {
@@ -51,5 +70,8 @@ export function loadNamedShow(name: string): Config {
 }
 
 export function deleteNamedShow(name: string): void {
-  unlinkSync(showPath(name))
+  const dir = ensureDeletedDir()
+  let target = join(dir, `${name}.json`)
+  if (existsSync(target)) target = join(dir, `${name}-${Date.now()}.json`)
+  renameSync(showPath(name), target)
 }

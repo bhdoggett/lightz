@@ -29,6 +29,7 @@ declare global {
       setGroupOverrides: (map: Record<string, GroupChannelOverride>) => Promise<void>
       activateShow: (config: Config) => Promise<void>
       exportShow: () => Promise<boolean>
+      exportNamedShow: (name: string) => Promise<boolean>
       importShow: () => Promise<{ config: Config; name: string } | null>
       resetShow: () => Promise<Config>
       listShows: () => Promise<ShowInfo[]>

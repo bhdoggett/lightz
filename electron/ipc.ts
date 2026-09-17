@@ -80,6 +80,10 @@ export function registerIpcHandlers(dmxManager: DmxManager, onReconnect: (path: 
     return exportShow(getConfig())
   })
 
+  ipcMain.handle('show:exportNamed', (_e, { name }: { name: string }) => {
+    return exportShow(loadNamedShow(name), name)
+  })
+
   ipcMain.handle('show:import', async () => {
     const result = await importShow()
     if (!result) return null

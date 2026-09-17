@@ -44,6 +44,7 @@ function makeMockApi(overrides?: Partial<LightzApi>): LightzApi {
     }),
     deleteNamedShow: async () => [],
     exportShow: async () => {},
+    exportNamedShow: async () => {},
     importShow: async () => null,
     setPort: async () => {},
     setDevicePath: async () => {},

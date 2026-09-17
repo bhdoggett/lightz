@@ -10,6 +10,7 @@ import { MultiFixtureFader } from '../components/MultiFixtureFader'
 import { CreateFixtureModal } from '../components/CreateFixtureModal'
 import { AddMenuModal } from '../components/AddMenuModal'
 import { AddMultiChannelFixturesModal } from '../components/AddMultiChannelFixturesModal'
+import { ExcludedGroupsModal } from '../components/ExcludedGroupsModal'
 import { LiveView } from './LiveView'
 import { useApi } from '../api/context'
 import { useDragReorder } from '../hooks/useDragReorder'
@@ -153,6 +154,7 @@ export function MainView({
 
   const [sceneSaveTrigger, setSceneSaveTrigger] = useState(0)
   const [sceneEditTrigger, setSceneEditTrigger] = useState(0)
+  const [excludedGroupNames, setExcludedGroupNames] = useState<string[] | null>(null)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -407,10 +409,7 @@ export function MainView({
     if (activeSceneId === id) setActiveSceneId(updated.id)
   }, [fixtures, scenes, api, getChannel, onScenesChange, activeSceneId])
 
-  const handleSaveSceneValues = useCallback(async () => {
-    if (!activeSceneId) return
-    const scene = scenes.find((s) => s.id === activeSceneId)
-    if (!scene) return
+  const saveActiveSceneValues = useCallback(async (scene: Scene) => {
     const values: Record<string, number> = {}
     for (const f of fixtures) {
       if (f.channels) {
@@ -421,9 +420,25 @@ export function MainView({
         values[f.id] = getChannel(f.universe, f.channel)
       }
     }
-    const updated = await api.updateScene({ id: scene.id, name: scene.name, fadeDuration: scene.fadeDuration, values })
+    const included = scene.groupStates
+    const refreshed = included
+      ? Object.fromEntries(Object.keys(included).map((id) => [id, groupStates[id] ?? included[id]]))
+      : undefined
+    const updated = await api.updateScene({ id: scene.id, name: scene.name, fadeDuration: scene.fadeDuration, values, groupStates: refreshed })
     if (updated) onScenesChange(scenes.map((s) => s.id === scene.id ? updated : s))
-  }, [activeSceneId, scenes, fixtures, getChannel, api, onScenesChange])
+  }, [scenes, fixtures, getChannel, groupStates, api, onScenesChange])
+
+  const handleSaveSceneValues = useCallback(async () => {
+    if (!activeSceneId) return
+    const scene = scenes.find((s) => s.id === activeSceneId)
+    if (!scene) return
+    const excluded = groups.filter((g) => !scene.groupStates?.[g.id])
+    if (excluded.length > 0) {
+      setExcludedGroupNames(excluded.map((g) => g.name))
+      return
+    }
+    await saveActiveSceneValues(scene)
+  }, [activeSceneId, scenes, groups, saveActiveSceneValues])
 
   const saveSceneRef = useRef(handleSaveSceneValues)
   saveSceneRef.current = handleSaveSceneValues
@@ -623,15 +638,25 @@ export function MainView({
           {!sectionsCollapsed.scenes && (
             <div className={styles.sectionActions}>
               {activeSceneId && (
-                <button className={styles.sectionActionBtn} onClick={() => setSceneEditTrigger((n) => n + 1)}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                    <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                    <path d="m15 5 4 4"/>
-                  </svg>
-                  Edit Scene
-                </button>
+                <>
+                  <button className={styles.sectionActionBtn} onClick={handleSaveSceneValues}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/>
+                      <path d="M17 21v-8H7v8"/>
+                      <path d="M7 3v5h8"/>
+                    </svg>
+                    Save Scene
+                  </button>
+                  <button className={styles.sectionActionBtn} onClick={() => setSceneEditTrigger((n) => n + 1)}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                      <path d="m15 5 4 4"/>
+                    </svg>
+                    Edit Scene
+                  </button>
+                </>
               )}
-              <button className={styles.sectionActionBtn} onClick={() => setSceneSaveTrigger((n) => n + 1)}>+ Save Scene</button>
+              <button className={styles.sectionActionBtn} onClick={() => setSceneSaveTrigger((n) => n + 1)}>+ New Scene</button>
             </div>
           )}
         </div>
@@ -909,6 +934,22 @@ export function MainView({
             onCancel={() => setEditingGroupId(null)}
           />
         </Modal>
+      )}
+
+      {excludedGroupNames && (
+        <ExcludedGroupsModal
+          groupNames={excludedGroupNames}
+          onSaveAnyway={async () => {
+            setExcludedGroupNames(null)
+            const scene = scenes.find((s) => s.id === activeSceneId)
+            if (scene) await saveActiveSceneValues(scene)
+          }}
+          onEditScene={() => {
+            setExcludedGroupNames(null)
+            setSceneEditTrigger((n) => n + 1)
+          }}
+          onCancel={() => setExcludedGroupNames(null)}
+        />
       )}
 
       {tab === 'full' && (

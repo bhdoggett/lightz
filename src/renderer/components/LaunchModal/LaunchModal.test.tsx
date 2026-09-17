@@ -26,7 +26,7 @@ function makeApi(overrides: Partial<LightzApi> = {}): LightzApi {
     resetShow: vi.fn().mockResolvedValue(baseConfig),
     listShows: vi.fn().mockResolvedValue([]),
     saveNamedShow: vi.fn(), loadNamedShow: vi.fn(),
-    deleteNamedShow: vi.fn(), exportShow: vi.fn(), importShow: vi.fn(),
+    deleteNamedShow: vi.fn(), exportShow: vi.fn(), exportNamedShow: vi.fn(), importShow: vi.fn(),
     listPorts: vi.fn(), openExternal: vi.fn(),
     onDmxStatus: vi.fn(), onDeviceAutoConnected: vi.fn(),
     onSceneActivated: vi.fn(), onMenuNewShow: vi.fn(),

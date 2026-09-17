@@ -45,6 +45,7 @@ const api = {
   setGroupOverrides: (map: Record<string, GroupChannelOverride>) => ipcRenderer.invoke('group:setOverrides', map),
 
   exportShow: () => ipcRenderer.invoke('show:export'),
+  exportNamedShow: (name: string) => ipcRenderer.invoke('show:exportNamed', { name }),
   importShow: () => ipcRenderer.invoke('show:import'),
 
   activateShow: (config: unknown) => ipcRenderer.invoke('show:activate', config),
