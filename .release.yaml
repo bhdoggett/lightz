@@ -1,0 +1,20 @@
+versionFiles:
+  - { path: package.json, kind: json, key: version }
+lockfiles: [npm]
+verify:
+  - npm run build
+  - npx vitest run
+build: local
+localBuild:
+  command: npm run build:mac
+  assetGlobs: ["dist-electron/*.dmg"]
+release: create
+notes: release
+expectedAssets:
+  - "Lightz-{version}-arm64.dmg"
+  - "Lightz-{version}.dmg"
+installNote: |
+  Lightz is not notarized, so macOS may block it on first launch. If you see
+  "Open Anyway" in System Settings → Privacy & Security, click it. If you see
+  "Lightz is damaged and can't be opened", run `xattr -cr /Applications/Lightz.app`
+  in Terminal, then try again.
