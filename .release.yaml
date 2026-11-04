@@ -5,16 +5,36 @@ verify:
   - npm run build
   - npx vitest run
 build: local
+# Built, signed and notarized on this Mac by the desktop-release workflow
+# (secrets come from the 1Password vault behind swamp's release-1p).
 localBuild:
-  command: npm run build:mac
+  # electron-builder signs both .apps, notarizes and staples them, and signs
+  # both dmgs; scripts/notarize-dmgs.sh then notarizes and staples the dmgs.
+  command: npm run build:mac && sh scripts/notarize-dmgs.sh
   assetGlobs: ["dist-electron/*.dmg"]
+  env:
+    # electron-builder 24 reads APPLE_API_KEY as the path to the .p8 and
+    # APPLE_API_KEY_ID as the key ID (Up and Running's Tauri build differs).
+    APPLE_API_KEY_ID: "2YFTGJA2Q3"
+  secrets:
+    APPLE_API_ISSUER: "AuthKey_2YFTGJA2Q3/issuer id"
+  secretFiles:
+    APPLE_API_KEY: "AuthKey_2YFTGJA2Q3/AuthKey_2YFTGJA2Q3.p8"
+  verify:
+    - xcrun stapler validate dist-electron/mac-arm64/Lightz.app
+    - spctl -a -vv -t exec dist-electron/mac-arm64/Lightz.app
+    - xcrun stapler validate dist-electron/mac/Lightz.app
+    - spctl -a -vv -t exec dist-electron/mac/Lightz.app
+    - xcrun stapler validate dist-electron/Lightz-{version}-arm64.dmg
+    - spctl -a -vv -t open --context context:primary-signature dist-electron/Lightz-{version}-arm64.dmg
+    - xcrun stapler validate dist-electron/Lightz-{version}.dmg
+    - spctl -a -vv -t open --context context:primary-signature dist-electron/Lightz-{version}.dmg
 release: create
 notes: release
 expectedAssets:
   - "Lightz-{version}-arm64.dmg"
   - "Lightz-{version}.dmg"
 installNote: |
-  Lightz is not notarized, so macOS may block it on first launch. If you see
-  "Open Anyway" in System Settings → Privacy & Security, click it. If you see
-  "Lightz is damaged and can't be opened", run `xattr -cr /Applications/Lightz.app`
-  in Terminal, then try again.
+  Lightz is signed and notarized by Apple. Download the dmg for your Mac
+  (`arm64` for Apple silicon, the other for Intel), open it, and drag Lightz to
+  Applications.

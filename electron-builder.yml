@@ -10,5 +10,27 @@ mac:
       arch:
         - x64
         - arm64
+  # Signed with the Developer ID certificate in the login keychain. The
+  # "Developer ID Application:" prefix must be left off; electron-builder
+  # adds it.
+  identity: "Doggett Systems LLC (9B9573H63M)"
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  # The .app is notarized with notarytool when APPLE_API_KEY (path to the .p8),
+  # APPLE_API_KEY_ID and APPLE_API_ISSUER are set; without them it is skipped.
+  # The dmg is notarized afterwards by scripts/notarize-dmgs.sh.
+  notarize:
+    teamId: 9B9573H63M
+dmg:
+  sign: true
 files:
   - out/**/*
+  # serialport ships prebuilds for every platform; keep only the Mac one.
+  - "!**/node_modules/@serialport/bindings-cpp/prebuilds/{android,linux,win32}-*/**"
+# Native modules (serialport) must sit outside app.asar so they are signed with
+# the Developer ID; the hardened runtime refuses to load the ad-hoc signed
+# prebuild otherwise.
+asarUnpack:
+  - "**/*.node"
