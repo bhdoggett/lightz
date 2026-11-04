@@ -15,7 +15,7 @@
     "dev:web": "vite --config vite.web.config.ts",
     "build:web": "vite build --config vite.web.config.ts",
     "build:mac": "npm run build && electron-builder --mac",
-    "postinstall": "electron-builder install-app-deps && electron-rebuild"
+    "postinstall": "electron-builder install-app-deps"
   },
   "dependencies": {
     "electron-store": "^8.2.0",
