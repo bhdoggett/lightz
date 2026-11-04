@@ -17,11 +17,22 @@ const fixtures: Fixture[] = [
 ]
 
 describe('LightVisualizer', () => {
-  it('renders fixture labels', () => {
+  it('starts collapsed by default', () => {
+    const { container } = render(
+      <LightVisualizer
+        fixtures={fixtures}
+        getChannel={() => 0}
+      />
+    )
+    expect(container.querySelector('[data-testid="viz-lights"]')).toBeNull()
+  })
+
+  it('renders fixture labels when expanded', () => {
     render(
       <LightVisualizer
         fixtures={fixtures}
         getChannel={() => 0}
+        defaultExpanded
       />
     )
     expect(screen.getByText('Front Wash')).toBeTruthy()
@@ -33,8 +44,10 @@ describe('LightVisualizer', () => {
       <LightVisualizer
         fixtures={fixtures}
         getChannel={() => 128}
+        defaultExpanded
       />
     )
+    expect(container.querySelector('[data-testid="viz-lights"]')).toBeTruthy()
     const toggle = container.querySelector('[data-testid="viz-toggle"]')!
     expect(toggle).toBeTruthy()
     fireEvent.click(toggle)

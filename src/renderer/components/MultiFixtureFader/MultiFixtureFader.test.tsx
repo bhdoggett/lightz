@@ -44,43 +44,53 @@ describe('MultiFixtureFader', () => {
 
   it('does not double up the right-neighbor divider with its own standalone border when expanded', () => {
     render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} hasRightNeighbor />)
-    fireEvent.click(screen.getByTitle('Expand channels'))
     const expandedPanel = screen.getByTestId('multi-fixture-card').firstElementChild
     expect(expandedPanel?.className).not.toMatch(/borderRight/)
   })
 
   it('keeps the right-neighbor divider when nested inside a group and expanded', () => {
     render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} standalone={false} hasRightNeighbor />)
-    fireEvent.click(screen.getByTitle('Expand channels'))
     const expandedPanel = screen.getByTestId('multi-fixture-card').firstElementChild
     expect(expandedPanel?.className).toMatch(/borderRight/)
   })
 
-  it('expands on click to show channel labels', async () => {
+  it('is expanded by default, showing channel labels', () => {
     render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} />)
-    fireEvent.click(screen.getByText('Stage Left Q6'))
     expect(screen.getByText('Red')).toBeTruthy()
     expect(screen.getByText('Green')).toBeTruthy()
     expect(screen.getByText('Strobe')).toBeTruthy()
   })
 
-  it('on/off toggle calls onChange with zeros when toggled off', () => {
+  it('collapses and expands again with the expand button', () => {
+    render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} />)
+    fireEvent.click(screen.getByTitle('Collapse channels'))
+    expect(screen.queryByText('Red')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByTitle('Expand channels'))
+    expect(screen.getByText('Red')).toBeInTheDocument()
+  })
+
+  // The first toggle is the master fader's; the rest belong to the sub-channels.
+  const masterToggle = () => screen.getAllByRole('button', { name: 'toggle' })[0]
+
+  it('master toggle turns the linked channels off', () => {
     const onChange = vi.fn()
     render(<MultiFixtureFader fixture={fixture} values={values} onChange={onChange} />)
-    fireEvent.click(screen.getByRole('switch'))
+    fireEvent.click(masterToggle())
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({ 'c-r': 0, 'c-g': 0, 'c-b': 0, 'c-s': 0 })
     )
   })
 
-  it('on/off toggle restores values when toggled back on', () => {
+  it('master toggle turns back on at full, keeping the color mix', () => {
     const onChange = vi.fn()
-    render(<MultiFixtureFader fixture={fixture} values={values} onChange={onChange} />)
-    const toggle = screen.getByRole('switch')
-    fireEvent.click(toggle) // off
-    fireEvent.click(toggle) // on
+    const { rerender } = render(<MultiFixtureFader fixture={fixture} values={values} onChange={onChange} />)
+    fireEvent.click(masterToggle()) // off
+    const off = { 'c-r': 0, 'c-g': 0, 'c-b': 0, 'c-s': 0 }
+    rerender(<MultiFixtureFader fixture={fixture} values={off} onChange={onChange} />)
+    fireEvent.click(masterToggle()) // on
+    // 200:100:50 scaled so the brightest channel is at 255
     expect(onChange).toHaveBeenLastCalledWith(
-      expect.objectContaining({ 'c-r': 200, 'c-g': 100, 'c-b': 50, 'c-s': 0 })
+      expect.objectContaining({ 'c-r': 255, 'c-g': 128, 'c-b': 64, 'c-s': 0 })
     )
   })
 
@@ -88,7 +98,7 @@ describe('MultiFixtureFader', () => {
     render(<MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} />)
     const footer = screen.getByTestId('fader-footer')
     expect(footer).toContainElement(screen.getByTitle('Edit fixture'))
-    expect(footer).toContainElement(screen.getByTitle('Expand channels'))
+    expect(footer).toContainElement(screen.getByTitle('Collapse channels'))
   })
 
   describe('edit mode', () => {
@@ -111,7 +121,7 @@ describe('MultiFixtureFader', () => {
           dragHandleProps={dragHandleProps}
         />
       )
-      fireEvent.click(screen.getByRole('button', { name: /expand channels/i }))
+      expect(screen.getByText('Red')).toBeInTheDocument()
       expect(screen.getAllByTestId('drag-handle')).toHaveLength(1)
     })
 
@@ -126,7 +136,8 @@ describe('MultiFixtureFader', () => {
           onSelect={onSelect}
         />
       )
-      fireEvent.click(screen.getByTestId('select-overlay'))
+      // The master's overlay comes first; sub-channel overlays follow.
+      fireEvent.click(screen.getAllByTestId('select-overlay')[0])
       expect(onSelect).toHaveBeenCalled()
     })
 
@@ -196,7 +207,7 @@ describe('MultiFixtureFader', () => {
       expect(swatch).toHaveAttribute('aria-expanded', 'false')
     })
 
-    it('expands when the expand button is clicked while editing, like a group can be toggled open', () => {
+    it('collapses and expands with the expand button while editing, like a group can be toggled open', () => {
       render(
         <MultiFixtureFader
           fixture={fixture}
@@ -206,6 +217,8 @@ describe('MultiFixtureFader', () => {
           onSelect={vi.fn()}
         />
       )
+      fireEvent.click(screen.getByTitle('Collapse channels'))
+      expect(screen.queryByText('Red')).not.toBeInTheDocument()
       fireEvent.click(screen.getByTitle('Expand channels'))
       expect(screen.getByText('Red')).toBeInTheDocument()
     })
@@ -221,7 +234,7 @@ describe('MultiFixtureFader', () => {
           onSelect={onSelect}
         />
       )
-      fireEvent.click(screen.getByTitle('Expand channels'))
+      fireEvent.click(screen.getByTitle('Collapse channels'))
       expect(onSelect).not.toHaveBeenCalled()
     })
 
@@ -229,7 +242,6 @@ describe('MultiFixtureFader', () => {
       const { rerender, container } = render(
         <MultiFixtureFader fixture={fixture} values={values} onChange={vi.fn()} />
       )
-      fireEvent.click(screen.getByTitle('Expand channels'))
       expect(screen.getByText('Red')).toBeTruthy()
 
       rerender(

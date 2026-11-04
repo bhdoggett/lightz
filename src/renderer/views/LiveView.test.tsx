@@ -12,12 +12,10 @@ vi.mock('../api/context', () => ({
 }))
 
 const defaultProps = {
-  universe: 0 as const,
   fixtures: [],
   getChannel: mockGetChannel,
   setChannel: vi.fn(),
   onRename: vi.fn(),
-  onAllOff: vi.fn(),
 }
 
 describe('LiveView', () => {
@@ -27,15 +25,17 @@ describe('LiveView', () => {
     mockGetChannel.mockReturnValue(0)
   })
 
-  it('renders 512 channel faders', () => {
+  it('renders 512 channel faders for each of the two universes', () => {
     render(<LiveView {...defaultProps} />)
-    expect(screen.getByText('001')).toBeInTheDocument()
-    expect(screen.getByText('512')).toBeInTheDocument()
+    expect(screen.getByText('1-001')).toBeInTheDocument()
+    expect(screen.getByText('1-512')).toBeInTheDocument()
+    expect(screen.getByText('2-001')).toBeInTheDocument()
+    expect(screen.getByText('2-512')).toBeInTheDocument()
   })
 
-  it('renders all 512 sliders', () => {
+  it('renders 1024 sliders across both universes', () => {
     render(<LiveView {...defaultProps} />)
-    expect(screen.getAllByRole('slider')).toHaveLength(512)
+    expect(screen.getAllByRole('slider')).toHaveLength(1024)
   })
 
   it('calls setChannel IPC when a slider changes', () => {
@@ -44,26 +44,19 @@ describe('LiveView', () => {
     expect(mockSetChannel).toHaveBeenCalledWith({ universe: 0, channel: 1, value: 100 })
   })
 
-  it('renders the All Off button', () => {
-    render(<LiveView {...defaultProps} />)
-    expect(screen.getByRole('button', { name: /all off/i })).toBeInTheDocument()
-  })
-
-  it('calls setChannel(0) for all 512 channels when All Off clicked', async () => {
+  it('sends a universe 2 slider change with universe 1', () => {
     const setChannelProp = vi.fn()
     render(<LiveView {...defaultProps} setChannel={setChannelProp} />)
-    await userEvent.click(screen.getByRole('button', { name: /all off/i }))
-    expect(setChannelProp).toHaveBeenCalledTimes(512)
-    expect(setChannelProp).toHaveBeenCalledWith(0, 1, 0)
-    expect(setChannelProp).toHaveBeenCalledWith(0, 512, 0)
-    expect(mockSetChannel).toHaveBeenCalledTimes(512)
+    fireEvent.change(screen.getAllByRole('slider')[512], { target: { value: '42' } })
+    expect(setChannelProp).toHaveBeenCalledWith(1, 1, 42)
+    expect(mockSetChannel).toHaveBeenCalledWith({ universe: 1, channel: 1, value: 42 })
   })
 
-  it('calls onAllOff when All Off clicked', async () => {
-    const onAllOff = vi.fn()
-    render(<LiveView {...defaultProps} onAllOff={onAllOff} />)
-    await userEvent.click(screen.getByRole('button', { name: /all off/i }))
-    expect(onAllOff).toHaveBeenCalledTimes(1)
+  it('collapses a universe when its header is clicked', async () => {
+    render(<LiveView {...defaultProps} />)
+    await userEvent.click(screen.getByRole('button', { name: /universe 1/i }))
+    expect(screen.queryByText('1-001')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('slider')).toHaveLength(512)
   })
 
   it('shows fixture label for a labeled channel', () => {

@@ -29,31 +29,26 @@ describe('GroupCard', () => {
     expect(screen.getByText('Front Wash')).toBeInTheDocument()
   })
 
-  it('is collapsed by default — fixture value displays not visible', () => {
+  it('is expanded by default — fixture faders visible', () => {
     render(<GroupCard {...defaultProps} />)
-    expect(screen.queryByTestId('value-display')).not.toBeInTheDocument()
+    expect(screen.getAllByTestId('value-display').length).toBeGreaterThan(1)
+    expect(screen.getByTestId('fixture-panel')).toBeInTheDocument()
   })
 
-  it('shows fixture faders when expanded', async () => {
+  it('shows a thin divider between channels when expanded, but not before the first', () => {
     render(<GroupCard {...defaultProps} />)
-    await userEvent.click(screen.getByRole('button', { name: /expand/i }))
-    expect(screen.getAllByTestId('value-display').length).toBeGreaterThan(0)
-  })
-
-  it('shows a thin divider between channels when expanded, but not before the first', async () => {
-    render(<GroupCard {...defaultProps} />)
-    await userEvent.click(screen.getByRole('button', { name: /expand/i }))
     const panel = screen.getByTestId('fixture-panel')
     const [first, second] = [...panel.children]
     expect(first.className).not.toMatch(/divider/)
     expect(second.className).toMatch(/divider/)
   })
 
-  it('collapses again on second click', async () => {
+  it('collapses on click and expands again on second click', async () => {
     render(<GroupCard {...defaultProps} />)
-    await userEvent.click(screen.getByRole('button', { name: /expand/i }))
     await userEvent.click(screen.getByRole('button', { name: /collapse/i }))
-    expect(screen.queryByTestId('value-display')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('fixture-panel')).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /expand/i }))
+    expect(screen.getByTestId('fixture-panel')).toBeInTheDocument()
   })
 
   it('calls onFull when full button clicked', async () => {
@@ -80,7 +75,8 @@ describe('GroupCard', () => {
   it('calls onFaderChange when slider moved', () => {
     const onFaderChange = vi.fn()
     render(<GroupCard {...defaultProps} onFaderChange={onFaderChange} />)
-    fireEvent.change(screen.getByRole('slider'), { target: { value: '60' } })
+    // The group master's slider comes first; the member fixtures' sliders follow.
+    fireEvent.change(screen.getAllByRole('slider')[0], { target: { value: '60' } })
     expect(onFaderChange).toHaveBeenCalledWith(60)
   })
 
@@ -99,13 +95,13 @@ describe('GroupCard', () => {
   describe('edit mode', () => {
     it('renders a drag handle instead of the plain fader value when isEditing', () => {
       render(<GroupCard {...defaultProps} isEditing />)
-      expect(screen.getByTestId('drag-handle')).toBeInTheDocument()
+      expect(screen.getAllByTestId('drag-handle')[0]).toBeInTheDocument()
     })
 
     it('calls onSelect when the master panel is clicked while editing', async () => {
       const onSelect = vi.fn()
       render(<GroupCard {...defaultProps} isEditing onSelect={onSelect} />)
-      await userEvent.click(screen.getByTestId('select-overlay'))
+      await userEvent.click(screen.getAllByTestId('select-overlay')[0])
       expect(onSelect).toHaveBeenCalled()
     })
 
@@ -116,15 +112,16 @@ describe('GroupCard', () => {
       expect(screen.getByRole('button', { name: /unpack/i })).toBeInTheDocument()
     })
 
-    it('renders Unpack alongside Expand while editing (both available)', () => {
+    it('renders Unpack alongside the expand/collapse button while editing (both available)', () => {
       render(<GroupCard {...defaultProps} isEditing onSelect={vi.fn()} onUnpack={vi.fn()} />)
-      expect(screen.getByRole('button', { name: /expand/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /collapse/i })).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /unpack/i })).toBeInTheDocument()
     })
 
-    it('expanding while editing does not also call onSelect', async () => {
+    it('collapsing and expanding while editing does not also call onSelect', async () => {
       const onSelect = vi.fn()
       render(<GroupCard {...defaultProps} isEditing onSelect={onSelect} onUnpack={vi.fn()} />)
+      await userEvent.click(screen.getByRole('button', { name: /collapse/i }))
       await userEvent.click(screen.getByRole('button', { name: /expand/i }))
       expect(onSelect).not.toHaveBeenCalled()
       expect(screen.getAllByTestId('drag-handle').length).toBeGreaterThan(1)
@@ -146,7 +143,7 @@ describe('GroupCard', () => {
 
     it('keeps the selected outline on the whole card, not just the master panel, when the group is expanded', async () => {
       const { rerender } = render(<GroupCard {...defaultProps} />)
-      await userEvent.click(screen.getByRole('button', { name: /expand/i }))
+      expect(screen.getByTestId('fixture-panel')).toBeInTheDocument()
       rerender(<GroupCard {...defaultProps} isEditing selected />)
       expect(screen.getByTestId('group-card').className).toMatch(/selected/)
       // fixture panel content is still rendered (as drag handles, now that the group is editing)
@@ -177,8 +174,7 @@ describe('GroupCard', () => {
     }
 
     async function renderExpanded(props: Partial<ComponentProps<typeof GroupCard>> = {}) {
-      const utils = render(<GroupCard {...defaultProps} isEditing onSelect={vi.fn()} {...props} />)
-      await userEvent.click(screen.getByRole('button', { name: /expand/i }))
+      render(<GroupCard {...defaultProps} isEditing onSelect={vi.fn()} {...props} />)
       const panel = screen.getByTestId('fixture-panel')
       const dragIdEls = Array.from(panel.querySelectorAll('[data-drag-id]')) as HTMLElement[]
       stubRect(dragIdEls[0], 0, 100)
@@ -233,8 +229,10 @@ describe('GroupCard', () => {
 
   it('renders its gear/expand controls inside a shared FaderFooter', () => {
     render(<GroupCard {...defaultProps} />)
-    const footer = screen.getByTestId('fader-footer')
-    expect(footer).toContainElement(screen.getByRole('button', { name: /edit group/i }))
-    expect(footer).toContainElement(screen.getByRole('button', { name: /expand/i }))
+    // Member fixtures have footers too; find the one holding the group's gear.
+    const gear = screen.getByRole('button', { name: /edit group/i })
+    const footer = gear.closest('[data-testid="fader-footer"]')
+    expect(footer).not.toBeNull()
+    expect(footer).toContainElement(screen.getByRole('button', { name: /collapse/i }))
   })
 })

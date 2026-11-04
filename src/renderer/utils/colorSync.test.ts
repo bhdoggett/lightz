@@ -57,11 +57,11 @@ describe('pickerHexToChannelValues', () => {
     expect(result.a).toBe(127)
   })
 
-  it('derives white from neutral color', () => {
+  it('does not update white channel (caller keeps the current white value)', () => {
     const channels = [ch('w', 'white'), ch('r', 'red'), ch('g', 'green'), ch('b', 'blue')]
-    // #808080 = R:128 G:128 B:128 → neutral = min(128,128,128) = 128
     const result = pickerHexToChannelValues('#808080', channels)
-    expect(result.w).toBe(128)
+    expect(result).toEqual({ r: 128, g: 128, b: 128 })
+    expect('w' in result).toBe(false)
   })
 
   it('does not update uv channel (leaves it absent)', () => {
