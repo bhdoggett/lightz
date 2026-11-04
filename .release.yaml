@@ -10,7 +10,9 @@ build: local
 localBuild:
   # electron-builder signs both .apps, notarizes and staples them, and signs
   # both dmgs; scripts/notarize-dmgs.sh then notarizes and staples the dmgs.
-  command: npm run build:mac && sh scripts/notarize-dmgs.sh
+  # Output goes to stderr because a failed step reports only stderr's tail,
+  # and electron-builder prints its errors on stdout.
+  command: "{ npm run build:mac && sh scripts/notarize-dmgs.sh; } 1>&2"
   assetGlobs: ["dist-electron/*.dmg"]
   env:
     # electron-builder 24 reads APPLE_API_KEY as the path to the .p8 and

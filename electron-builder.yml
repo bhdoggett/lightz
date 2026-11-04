@@ -21,8 +21,10 @@ mac:
   # The .app is notarized with notarytool when APPLE_API_KEY (path to the .p8),
   # APPLE_API_KEY_ID and APPLE_API_ISSUER are set; without them it is skipped.
   # The dmg is notarized afterwards by scripts/notarize-dmgs.sh.
-  notarize:
-    teamId: 9B9573H63M
+  # No teamId: electron-builder 24 passes it to @electron/notarize, which takes
+  # it as Apple ID password credentials and refuses to mix them with the API
+  # key. The API key already identifies the team.
+  notarize: true
 dmg:
   sign: true
 files:
